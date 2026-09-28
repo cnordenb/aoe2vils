@@ -202,6 +202,9 @@ body {
 .dockopt input { margin: 0; width: .95rem; height: .95rem; accent-color: var(--focus); cursor: pointer; }
 .dockopt input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .dockopt[hidden] { visibility: hidden; }   /* keeps its space: nothing shifts when it hides */
+/* Full Tech Tree (a civ) and Include Regional & Unique (Generic) share one spot, as wide as the longer label */
+.opt-slot { display: inline-grid; }
+.opt-slot > .dockopt { grid-area: 1 / 1; }
 .combo { position: relative; }
 .combo input {
   width: 100%;
@@ -636,7 +639,10 @@ col.c-rm    { width: var(--w-rm); }
           <span class="adder-opts">
             <label class="dockopt"><input type="checkbox" id="include-dock"> Include Dock</label>
             <label class="dockopt"><input type="checkbox" id="include-bld"> Buildings</label>
-            <label class="dockopt" title="All non-unique units, buildings and technologies, without civilization bonuses, team bonuses or unique technologies"><input type="checkbox" id="full-tree"> Full Tech Tree</label>
+            <span class="opt-slot">
+              <label class="dockopt" title="All non-unique units, buildings and technologies, without civilization bonuses, team bonuses or unique technologies"><input type="checkbox" id="full-tree"> Full Tech Tree</label>
+              <label class="dockopt" title="Also list regional and unique units and buildings"><input type="checkbox" id="include-ru"> Include Regional &amp; Unique</label>
+            </span>
           </span>
         </div>
         <div class="combo">
@@ -1318,6 +1324,14 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   const INF = has("I"), RANGED = has("A"), GUN = has("G"), STABLE = has("S"), WORKSHOP = has("W"),
         SIEGE = has("X"), DOCK = has("D"), WARSHIP = has("N"), MIL = has("L"), BLD = has("B");
   const UNIT = (u) => !BLD(u);
+  // Regional units and buildings: not unique, but only some civs have them (aoe2techtree.net RegionalUnit / RegionalBuilding).
+  const REGIONAL = new Set(["Armored Elephant", "Siege Elephant", "Battle Elephant", "Elite Battle Elephant", "Camel Rider", "Heavy Camel Rider",
+    "Catapult Galleon", "Champi Scout", "Champi Runner", "Champi Warrior", "Elite Champi Warrior", "Dromon", "Eagle Scout", "Eagle Warrior",
+    "Elite Eagle Warrior", "Elephant Archer", "Elite Elephant Archer", "Fire Lancer", "Elite Fire Lancer", "Hei Guang Cavalry",
+    "Heavy Hei Guang Cavalry", "Longship", "Elite Longship", "Lou Chuan", "Mounted Crossbowman", "Heavy Mounted Crossbowman", "Rocket Cart",
+    "Heavy Rocket Cart", "Slinger", "Steppe Lancer", "Elite Steppe Lancer", "Traction Trebuchet", "Varangian Guard", "Elite Varangian Guard",
+    "Caravanserai", "Fortified Church", "Mule Cart", "Pasture", "Settlement"]);
+  const REGIONAL_OR_UNIQUE = (u) => has("U")(u) || members(u).some((m) => REGIONAL.has(m));
   const FOOT_ARCHER = (u) => RANGED(u) && !has("M")(u);
   const VIL = named("Villager");
   const SPEAR = named("Spearman", "Pikeman", "Halberdier");
@@ -1448,7 +1462,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   const ALIAS = new Map();
   UNITS.forEach((u) => members(u).forEach((m) => { if (!byName.has(m)) ALIAS.set(m, u[0]); }));
 
-  const state = { rows: [], food: "farm", up: Object.fromEntries(UPS.map((k) => [k, false])), civ: "Generic", allies: [], age: 3, dock: false, ftt: false, consc: false, crane: false, uts: [], postimp: false, bldOn: false,
+  const state = { rows: [], food: "farm", up: Object.fromEntries(UPS.map((k) => [k, false])), civ: "Generic", allies: [], age: 3, dock: false, ftt: false, regional: false, consc: false, crane: false, uts: [], postimp: false, bldOn: false,
     niche: false, src: { wood: "std", gold: "std", stone: "std" } };
   const MAX_BUILDERS = 20;
   const MAX_ALLIES = 7;
@@ -1512,6 +1526,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       if (cur && s.age >= 0 && s.age <= 3) state.age = s.age | 0;
       state.dock = !!s.dock;
       state.ftt = !!s.ftt;
+      state.regional = !!s.regional;
       state.consc = !!s.consc;
       state.crane = !!s.crane;
       state.postimp = !!s.postimp;
@@ -2252,11 +2267,13 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     save();
   });
 
-  // Generic already lists everything, so the box is hidden there and starts unticked for a real civ.
+  // Full Tech Tree is for a real civ (hidden for Generic, starts unticked); Generic gets Include Regional & Unique in its place.
   function syncFtt() {
     const gen = state.civ === "Generic";
     fttBox.closest("label").hidden = gen;
     fttBox.checked = !gen && state.ftt;
+    ruBox.closest("label").hidden = !gen;
+    ruBox.checked = state.regional;
   }
 
   function setCiv(civ) {
@@ -2421,6 +2438,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
         if (pv && pv.hidden.has(i)) return;
         const s = (pv && pv.search.get(i)) || s0;
         if (!available(i) || (!state.dock && isDock(u)) || (!state.bldOn && BLD(u)) || !tokens.every((t) => s.includes(t))) return;
+        // Generic lists regional and unique entries only with Include Regional & Unique ticked.
+        if (state.civ === "Generic" && !state.regional && REGIONAL_OR_UNIQUE(u)) return;
         // When the query only matches a member (e.g. "champion"), show which one.
         let hint = "";
         const shown = displayName(i);
@@ -2532,6 +2551,14 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     if (unitCombo.isOpen()) { unitCombo.render(); unitInput.focus({ preventScroll: true }); }
   });
 
+  // Include Regional & Unique (Generic only): a dropdown filter, like Include Dock.
+  const ruBox = $("include-ru");
+  ruBox.addEventListener("change", () => {
+    state.regional = ruBox.checked;
+    save();
+    if (unitCombo.isOpen()) { unitCombo.render(); unitInput.focus({ preventScroll: true }); }
+  });
+
   const bldBox = $("include-bld");
   bldBox.addEventListener("change", () => {
     state.bldOn = bldBox.checked;
@@ -2580,7 +2607,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   $("reset").addEventListener("click", () => {
     unitCombo.close(); allyCombo.close(); civCombo.close();
     unitInput.value = "";
-    // Include Dock, Buildings and Full Tech Tree are view options: Clear All leaves them as they are.
+    // Include Dock, Buildings, Full Tech Tree and Include Regional & Unique are view options: Clear All leaves them as they are.
     // (Full Tech Tree hides with Generic and starts unticked for the next civ, as usual.)
     Object.assign(state, { rows: [], civ: "Generic", allies: [], age: 3, food: "farm", ftt: false, consc: false, crane: false, uts: [], postimp: false,
       src: { wood: "std", gold: "std", stone: "std" } });
