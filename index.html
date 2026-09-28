@@ -1,0 +1,2676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Villagers required · AoE2 DE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@700&family=Alegreya+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #e9ece7;
+  --surface: #f8f9f6;
+  --ink: #1e2a2f;
+  --muted: #5b676b;
+  --rule: #cfd5cf;
+  --focus: #2f6190;
+  --wood: #83602b;
+  --food: #b13f2d;
+  --gold: #9a7409;
+  --stone: #5a6875;
+  --tint: 7%;
+  --tint-strong: 15%;
+
+  --w-count: 7rem;
+  --w-wood: 10rem;
+  --w-food: 16rem;
+  --w-gold: 11rem;
+  --w-stone: 11.5rem;
+  --w-rm: 2.5rem;
+  --w-tech: 11.5rem;
+  --w-bld: 0px;
+  --cols: var(--w-rm) minmax(0, 1fr) var(--w-bld) var(--w-count) var(--w-wood) var(--w-food) var(--w-gold) var(--w-stone) var(--w-tech);
+
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14191b;
+    --surface: #1c2326;
+    --ink: #e3e7e2;
+    --muted: #97a29f;
+    --rule: #34403f;
+    --focus: #86b6e6;
+    --wood: #cf9f5e;
+    --food: #e5775f;
+    --gold: #e2b93f;
+    --stone: #a3b1be;
+    --tint: 9%;
+    --tint-strong: 20%;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14191b;
+  --surface: #1c2326;
+  --ink: #e3e7e2;
+  --muted: #97a29f;
+  --rule: #34403f;
+  --focus: #86b6e6;
+  --wood: #cf9f5e;
+  --food: #e5775f;
+  --gold: #e2b93f;
+  --stone: #a3b1be;
+  --tint: 9%;
+  --tint-strong: 20%;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { height: 100%; scroll-padding-top: env(safe-area-inset-top, 0px); }
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.35 "Alegreya Sans", "Gill Sans", "Segoe UI", system-ui, sans-serif;
+  font-variant-numeric: lining-nums tabular-nums;
+  -webkit-text-size-adjust: 100%;
+}
+.wood  { --res: var(--wood); }
+.food  { --res: var(--food); }
+.gold  { --res: var(--gold); }
+.stone { --res: var(--stone); }
+
+.app {
+  height: 100%;
+  max-width: 92rem;
+  margin: 0 auto;
+  padding: .7rem max(1rem, env(safe-area-inset-right, 0px)) .9rem max(1rem, env(safe-area-inset-left, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: .55rem;
+}
+
+/* Title bar */
+.top { display: flex; align-items: center; gap: .6rem 1.2rem; }
+.top h1 {
+  margin: 0;
+  flex: 0 1 auto;
+  min-width: 0;
+  font-family: Alegreya, Georgia, "Times New Roman", serif;
+  font-weight: 700;
+  font-size: 1.55rem;
+  line-height: 1.1;
+  letter-spacing: -.01em;
+}
+.pickers { display: flex; align-items: center; justify-content: flex-end; gap: .5rem 1.3rem; }
+/* The Clear button sits centred in the space between the title and the pickers. */
+.clear-slot { flex: 1 1 0; min-width: 0; display: flex; justify-content: center; gap: .5rem; }
+/* Hidden buttons keep their space so nothing around them jumps. */
+.pagebtn[hidden] { display: inline-block; visibility: hidden; }
+.pagebtn {
+  flex: none;
+  font: inherit; font-size: .9rem; font-weight: 700; line-height: 1.2;
+  padding: .38rem .85rem;
+  color: var(--ink); background: var(--surface);
+  border: 1px solid var(--rule); border-radius: 3px;
+  cursor: pointer;
+}
+.pagebtn:hover { border-color: var(--ink); }
+.pagebtn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+#reset:hover { color: var(--food); border-color: var(--food); }
+.pagebtn.accent { color: var(--focus); border-color: color-mix(in srgb, var(--focus) 55%, var(--rule)); }
+.pagebtn.accent:hover { background: color-mix(in srgb, var(--focus) 10%, var(--surface)); border-color: var(--focus); }
+.postimp-cell { grid-column: -2 / -1; padding: .6rem .75rem; border-left: 1px solid var(--rule);
+  display: flex; flex-direction: column; align-items: flex-start; gap: .5rem; }
+.clear-techs { font-size: .8rem; padding: .25rem .65rem; }
+.clear-techs-alt, .clear-techs-alt[hidden] { display: none; }
+.postimp-opt { display: inline-flex; align-items: center; gap: .45rem; font-weight: 700; font-size: .95rem; cursor: pointer; }
+.postimp-opt input { margin: 0; width: 1rem; height: 1rem; accent-color: var(--focus); cursor: pointer; }
+.postimp-opt input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.postimp-alt { display: none; }
+.civpick { flex: none; display: flex; align-items: center; gap: .55rem; }
+.civpick label { font-weight: 700; font-size: .95rem; }
+.civpick .combo { width: 15rem; }
+.civpick .combo input { padding-top: .38rem; padding-bottom: .38rem; text-overflow: ellipsis; }
+.civpick .list { left: auto; right: 0; width: min(18rem, calc(100vw - 1rem)); }
+.list .cur { font-size: .78rem; color: var(--muted); }
+.allies .list { width: min(25rem, calc(100vw - 1rem)); }
+.list[aria-multiselectable="true"] [role="option"] { align-items: center; }
+.list .ck {
+  flex: none; width: .95rem; height: .95rem;
+  border: 1.5px solid var(--muted); border-radius: 2px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: .7rem; line-height: 1; color: var(--surface);
+}
+.list [aria-selected="true"] .ck { background: var(--focus); border-color: var(--focus); }
+.list [aria-selected="true"] .ck::after { content: "✓"; font-weight: 700; }
+.list [aria-disabled="true"] { opacity: .45; cursor: default; }
+.list .tb { font-size: .78rem; color: var(--muted); max-width: 58%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.list .fxn { font-size: .78rem; color: var(--muted); }
+
+.civbar { display: flex; align-items: baseline; gap: .4rem 1.2rem; min-height: 1.35em; font-size: .9rem; margin-top: -.2rem; }
+#civ-fx { margin: 0; flex: 1; min-width: 0; color: var(--muted); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+#civ-fx strong { color: var(--ink); font-weight: 700; }
+#civ-fx .off { opacity: .6; }
+.age { display: flex; align-items: center; gap: .15rem .8rem; margin: 0; padding: 0; border: 0; flex: none; }
+.age[hidden] { display: none; }
+.age label { display: inline-flex; align-items: center; gap: .3rem; cursor: pointer; }
+.age input { margin: 0; accent-color: var(--focus); cursor: pointer; }
+.age input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+.meta .mod { text-decoration: underline dotted; text-underline-offset: 2px; }
+.meta .na { color: var(--food); font-style: italic; }
+.sheet tr.na .uname { color: var(--food); font-style: italic; }
+
+/* The sheet: controls row + table share one column grid, so each resource runs as a lane */
+.board {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.lanes {
+  display: grid;
+  grid-template-columns: var(--cols);
+  border-bottom: 1px solid var(--rule);
+}
+.adder {
+  grid-column: 1 / 5;
+  position: relative;
+  padding: .55rem .8rem .5rem;
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+  min-width: 0;
+}
+/* Checkboxes sit on their own line under the heading, always in the same place */
+.adder-head { display: flex; flex-direction: column; align-items: flex-start; gap: .25rem; }
+.adder-title { font-weight: 700; font-size: .95rem; }
+.adder-opts { display: inline-flex; gap: .3rem .5rem; flex-wrap: wrap; }
+.dockopt { display: inline-flex; align-items: center; gap: .25rem; font-size: .8rem; cursor: pointer; white-space: nowrap; }
+.dockopt input { margin: 0; width: .95rem; height: .95rem; accent-color: var(--focus); cursor: pointer; }
+.dockopt input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.dockopt[hidden] { visibility: hidden; }   /* keeps its space: nothing shifts when it hides */
+.combo { position: relative; }
+.combo input {
+  width: 100%;
+  font: inherit;
+  font-size: 1rem;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: .5rem 2rem .5rem .65rem;
+}
+.combo input::placeholder { color: var(--muted); }
+.combo::after {
+  content: "";
+  position: absolute;
+  right: .8rem; top: 50%;
+  width: .45rem; height: .45rem;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+}
+.combo input:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; border-color: transparent; }
+.adder-foot { display: flex; align-items: baseline; gap: .6rem; min-height: 1.3em; font-size: .85rem; }
+#status { margin: 0; color: var(--muted); flex: 1; min-width: 0; }
+#status.warn { color: var(--food); font-weight: 500; }
+.linkbtn {
+  font: inherit; color: var(--muted); background: none; border: 0; padding: 0;
+  text-decoration: underline; text-underline-offset: 2px; cursor: pointer;
+}
+.linkbtn:hover { color: var(--ink); }
+.linkbtn[hidden] { display: none; }
+
+/* Dropdown list */
+.list {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  width: min(30rem, calc(100vw - 2rem));
+  margin: 0; padding: .25rem 0;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  box-shadow: 0 10px 28px -8px rgb(0 0 0 / .35);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.list[hidden] { display: none; }
+.list .parent {
+  padding: .55rem .75rem .1rem;
+  font-weight: 700;
+  font-size: 1.02rem;
+  color: var(--ink);
+  border-top: 1px solid var(--rule);
+}
+.list .parent:first-child { border-top: 0; }
+.list .grp {
+  padding: .35rem .75rem .12rem;
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+.list [role="option"] {
+  display: flex; align-items: baseline; gap: .6rem;
+  padding: .3rem .75rem;
+  cursor: pointer;
+}
+.list [role="option"] .nm { flex: 1; min-width: 0; }
+.list [role="option"].active { background: color-mix(in srgb, var(--focus) 16%, transparent); }
+.list .added { font-size: .78rem; color: var(--muted); }
+.list .alias { font-size: .8rem; color: var(--muted); font-style: italic; }
+.list .none { padding: .6rem .75rem; color: var(--muted); }
+
+.meta { font-size: .8em; color: var(--muted); white-space: nowrap; }
+.meta b { font-weight: 500; }
+.meta .t-wood { color: var(--wood); }
+.meta .t-food { color: var(--food); }
+.meta .t-gold { color: var(--gold); }
+.meta .t-stone { color: var(--stone); }
+
+/* Resource settings */
+fieldset.res {
+  margin: 0;
+  padding: .55rem .7rem .6rem;
+  border: 0;
+  border-left: 1px solid var(--rule);
+  border-top: 3px solid var(--res);
+  min-width: 0;
+  background: color-mix(in srgb, var(--res) var(--tint), var(--surface));
+  font-size: .9rem;
+}
+fieldset.res legend { float: left; width: 100%; padding: 0; margin: 0 0 .3rem; }
+fieldset.res legend + * { clear: both; }
+.lg { display: flex; align-items: baseline; justify-content: space-between; gap: .4rem; }
+.lg strong { color: var(--res); font-size: 1.02rem; }
+.rate { color: var(--muted); font-size: .85rem; white-space: nowrap; }
+.rate b { color: var(--ink); font-weight: 500; }
+.opt {
+  display: flex; align-items: center; gap: .4rem;
+  padding: .08rem 0;
+  line-height: 1.25;
+  cursor: pointer;
+  width: fit-content;
+  max-width: 100%;
+}
+.opt input { margin: 0; width: .95rem; height: .95rem; flex: none; accent-color: var(--res); cursor: pointer; }
+.opt input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.food-grid { display: grid; grid-template-columns: auto auto; column-gap: .9rem; justify-content: start; }
+.food .opt { white-space: nowrap; }
+/* Food source: a plain dropdown (five options, no search needed); farm upgrades sit under it */
+.food-src {
+  margin-right: auto; min-width: 0;
+  font: inherit; font-size: .9em; line-height: 1.2; color: var(--ink); background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--res) 45%, var(--rule)); border-radius: 3px;
+  padding: .08rem .25rem; cursor: pointer;
+}
+fieldset.food .lg { justify-content: flex-start; gap: .5rem; }
+.food-src:focus-visible, .src-sel:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.food-src { max-width: 9.5rem; flex: 0 1 auto; text-overflow: ellipsis; }
+/* Wood, gold and stone sources: a dropdown under the heading, only with Niche Incomes on */
+.src-sel {
+  display: block; width: 100%; max-width: 100%; margin: .05rem 0 .3rem; clear: both;
+  font: inherit; font-size: .88em; line-height: 1.2; color: var(--ink); background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--res) 45%, var(--rule)); border-radius: 3px;
+  padding: .12rem .25rem; cursor: pointer; text-overflow: ellipsis;
+}
+.src-sel[hidden] { display: none; }
+.nested { margin: 0 0 0 .45rem; padding-left: .8rem; border-left: 1px solid color-mix(in srgb, var(--res) 40%, transparent); }
+.nested.off .opt, .opt.na { opacity: .42; cursor: default; }
+.opt.na input { cursor: default; }
+.nested.off .opt input { cursor: default; }
+
+/* Table */
+.sheet-wrap { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+.lane-bg {
+  position: absolute; inset: 0;
+  display: grid;
+  grid-template-columns: var(--cols);
+  pointer-events: none;
+}
+.lane-bg > div + div { border-left: 1px solid var(--rule); }
+.lane-bg > .wood, .lane-bg > .food, .lane-bg > .gold, .lane-bg > .stone {
+  background: color-mix(in srgb, var(--res) var(--tint), var(--surface));
+}
+table.sheet {
+  position: relative;
+  width: calc(100% - var(--w-tech));
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: var(--fs, 15px);
+}
+col.c-count { width: var(--w-count); }
+col.c-bld { width: var(--w-bld); }
+/* # Builders: a column as wide as # Buildings, collapsed to nothing while hidden */
+html.show-bld { --w-bld: var(--w-count); }
+html:not(.show-bld) .sheet .bld-cell { padding: 0; border: 0; overflow: hidden; visibility: hidden; }
+html:not(.show-bld) .lane-bg > .bld-lane { border-left: 0; }
+.sheet td.bld-cell { padding: .2em .4em; }
+.sheet tfoot td.bld-cell { text-align: center; font-size: 1.12em; }
+col.c-wood  { width: var(--w-wood); }
+col.c-food  { width: var(--w-food); }
+col.c-gold  { width: var(--w-gold); }
+col.c-stone { width: var(--w-stone); }
+col.c-rm    { width: var(--w-rm); }
+.sheet th, .sheet td { padding: .38em .75em; text-align: left; font-weight: 400; }
+.sheet thead th {
+  font-size: .85em;
+  font-weight: 700;
+  color: var(--muted);
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sheet thead th.num { color: var(--res); }
+.sheet .num { text-align: right; }
+.sheet tbody tr > * { border-bottom: 1px solid color-mix(in srgb, var(--rule) 60%, transparent); }
+.sheet tbody th { font-weight: 500; }
+.uname { margin-right: .45em; }
+.upg {
+  font: inherit; font-size: .72em; font-weight: 700; line-height: 1.2;
+  padding: .1em .45em; margin-right: .45em; vertical-align: .1em;
+  color: var(--focus); background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--focus) 55%, var(--rule)); border-radius: 3px; cursor: pointer;
+}
+.upg:hover { background: color-mix(in srgb, var(--focus) 12%, var(--surface)); border-color: var(--focus); }
+.upg:disabled { color: var(--muted); border-color: var(--rule); opacity: .6; cursor: default; background: none; }
+.upg:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.sheet td.num.zero { color: color-mix(in srgb, var(--muted) 55%, transparent); }
+.sheet td.count { padding: .2em .4em; }
+.sheet th.count-h { text-align: center; }
+/* Building count: [−][nn][+], square buttons as tall as the field */
+.stepper { --sh: 1.75em; display: flex; justify-content: center; }
+.stepper input {
+  width: 2.5em; height: var(--sh); flex: none;
+  font: inherit; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--rule); border-left: 0; border-right: 0; border-radius: 0;
+  padding: 0 .2em; text-align: center;
+  -moz-appearance: textfield; appearance: textfield;
+}
+.stepper input::-webkit-inner-spin-button, .stepper input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.stepper .step {
+  width: var(--sh); height: var(--sh); flex: none; padding: 0;
+  font: inherit; font-weight: 700; line-height: 1;
+  color: var(--ink); background: color-mix(in srgb, var(--rule) 35%, var(--surface));
+  border: 1px solid var(--rule); cursor: pointer;
+}
+.stepper .step:first-child { border-radius: 3px 0 0 3px; }
+.stepper .step:last-child { border-radius: 0 3px 3px 0; }
+.stepper .step:hover { background: color-mix(in srgb, var(--rule) 70%, var(--surface)); }
+.stepper .step:disabled { color: var(--muted); opacity: .5; cursor: default; }
+.stepper input:focus-visible, .stepper .step:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; position: relative; z-index: 1; }
+.sheet td.rm { padding: 0; text-align: center; }
+.sheet td.rm button {
+  font: inherit; font-size: 1.2em; font-weight: 700; line-height: 1;
+  width: 1.8em; height: 1.8em;
+  color: var(--food); background: none; border: 0; border-radius: 3px; cursor: pointer;
+}
+.sheet td.rm button:hover { color: var(--surface); background: var(--food); }
+.sheet td.rm button:focus-visible { outline: 2px solid var(--focus); }
+.sheet tr.empty td { color: var(--muted); padding: 1.1em .75em; white-space: normal; }
+/* Farm Reseeding: added automatically while farmers are needed */
+.sheet tr.reseed > * { background: color-mix(in srgb, var(--wood) 5%, transparent); }
+.sheet tr.reseed th .uname { font-style: italic; }
+.reseed-techs { display: flex; flex-wrap: wrap; gap: .1em .8em; margin-top: .15em; font-size: .8em; font-weight: 400; }
+.reseed-techs .opt { gap: .3em; }
+.reseed-techs .opt input { width: .95em; height: .95em; accent-color: var(--food); }
+.sheet tfoot tr > * {
+  border-top: 2px solid var(--ink);
+  font-weight: 700;
+  padding-top: .5em; padding-bottom: .5em;
+}
+.sheet tfoot td.num { color: var(--res); font-size: 1.12em; }
+.sheet tfoot td.num.zero { color: var(--muted); }
+.sheet tfoot td.wood, .sheet tfoot td.food, .sheet tfoot td.gold, .sheet tfoot td.stone {
+  background: color-mix(in srgb, var(--res) var(--tint-strong), transparent);
+}
+.sheet tfoot td.count-total { text-align: center; font-size: 1.12em; }
+/* Total villagers: to the right of the table, under the technologies */
+.grand-box { display: flex; flex-direction: column; margin-top: .5rem; padding-top: .55rem; border-top: 1px solid var(--rule); }
+.grand-label { font-size: .8rem; font-weight: 700; color: var(--muted); }
+.gl-short { display: none; }
+#grand { font-size: 2rem; line-height: 1.1; font-weight: 700; color: var(--ink); }
+.age legend.sr, .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.short, .bl-short { display: none; }
+
+/* Technologies: to the right of the table */
+.techs {
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: var(--w-tech);
+  padding: .45rem .75rem .6rem;
+  border-left: 1px solid var(--rule);
+  font-size: .88rem;
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  overflow: hidden;
+}
+.techs .opt { align-items: flex-start; width: auto; }
+.techs .opt[hidden] { display: none; }
+.techs .opt input { margin-top: .15rem; accent-color: var(--focus); }
+.techs .opt input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.tn { display: block; font-weight: 500; }
+.te { display: block; font-size: .8rem; color: var(--muted); line-height: 1.25; }
+#ut-list { display: flex; flex-direction: column; gap: .35rem; }
+#ut-list:empty { display: none; }
+
+@keyframes flash {
+  from { background-color: color-mix(in srgb, var(--focus) 26%, transparent); }
+  to   { background-color: transparent; }
+}
+.sheet tr.flash > * { animation: flash 1s ease-out; }
+@media (prefers-reduced-motion: reduce) { .sheet tr.flash > * { animation: none; } }
+
+/* Mid widths */
+/* Mid layout: up to 1320px wide, or up to 1600px while the # Builders column shows */
+  html.mid { --w-tech: 10rem; --w-count: 6.4rem; --w-wood: 8.6rem; --w-food: 14rem; --w-gold: 9.4rem; --w-stone: 9.8rem; --w-rm: 2rem; }
+  html.mid fieldset.res { font-size: .84rem; padding: .5rem .55rem .55rem; }
+  html.mid .bl-long { display: none; }
+  html.mid .bl-short { display: inline; }
+  html.mid .civpick { flex-direction: column; align-items: stretch; gap: .1rem; }
+  html.mid .civpick label { font-size: .8rem; }
+  html.mid .civpick .combo { width: 12rem; }
+
+
+/* Narrow screens: controls stack, table columns tighten */
+@media (min-width: 600px) {
+  html.narrow.show-bld { --w-wood: 4.4rem; --w-food: 4.4rem; --w-gold: 4.4rem; --w-stone: 4.4rem; }
+}
+/* Narrow layout (stacked settings): up to 1150px wide, or up to 1320px while # Builders shows */
+  html.narrow .postimp-cell { display: none; }
+  html.narrow .postimp-alt { display: inline-flex; margin-bottom: .2rem; }
+  html.narrow .clear-techs-alt, html.narrow .clear-techs-alt[hidden] { display: inline-block; align-self: flex-start; margin-bottom: .2rem; }
+  html.narrow .sheet thead th { white-space: normal; overflow: visible; line-height: 1.15; vertical-align: bottom; }
+  html.narrow { --w-tech: 9.5rem; --w-count: 6.4rem; --w-wood: 5rem; --w-food: 5rem; --w-gold: 5rem; --w-stone: 5rem; --w-rm: 2rem; }
+  html.narrow .lanes {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-areas: "add add add" "food food food" "wood gold stone";
+  }
+  html.narrow .adder { grid-area: add; grid-column: 1 / -1; padding: .55rem .6rem .45rem; }
+  html.narrow fieldset.res.food { grid-area: food; border-left: 0; }
+  html.narrow fieldset.res.wood { grid-area: wood; border-left: 0; }
+  html.narrow fieldset.res.gold { grid-area: gold; }
+  html.narrow fieldset.res.stone { grid-area: stone; }
+  html.narrow .food-grid { grid-template-columns: auto auto; column-gap: 1.6rem; }
+  html.narrow .others { display: grid; grid-template-columns: auto auto; column-gap: .9rem; align-content: start; }
+  html.narrow .meta-row { display: none; }
+
+@media (max-width: 820px) {
+
+  html.narrow { --w-tech: 0px; }
+  html.narrow .lane-bg > .tech-lane { display: none; }
+  html.narrow .sheet-wrap { display: flex; flex-direction: column; }
+  html.narrow .techs {
+    position: static; width: auto; border-left: 0; border-bottom: 1px solid var(--rule);
+    flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: .15rem 1rem;
+    padding: .35rem .6rem; background: var(--surface); flex: none;
+    position: relative; z-index: 1; order: -1;
+  }
+  html.narrow table.sheet { order: 0; }
+  html.narrow #ut-list { flex-direction: row; flex-wrap: wrap; gap: .15rem 1rem; }
+  html.narrow .techs .opt input { margin-top: 0; }
+  html.narrow .grand-box { flex-direction: row; align-items: baseline; gap: .35rem; margin: 0 0 0 auto; padding: 0; border: 0; }
+  html.narrow #grand { font-size: 1.15rem; }
+  html.narrow .postimp-alt { margin: 0; font-size: .85rem; }
+  html.narrow .clear-techs-alt, html.narrow .clear-techs-alt[hidden] { margin: 0; padding: .1rem .5rem; font-size: .75rem; }
+  html.narrow .techs .opt { align-items: center; }
+  html.narrow .te { display: none; }
+}
+@media (max-width: 599px) {
+
+  html.narrow { --w-count: 3.9rem; --w-wood: 2.6rem; --w-food: 2.6rem; --w-gold: 2.6rem; --w-stone: 2.6rem; --w-rm: 1.6rem; }
+  html.narrow .stepper { --sh: 1.45em; }
+  html.narrow .stepper input { width: 1.8em; }
+  html.narrow .sheet td.count, html.narrow .sheet td.bld-cell { padding: .2em .15em; }
+  html.narrow .app { padding-left: max(.5rem, env(safe-area-inset-left, 0px)); padding-right: max(.5rem, env(safe-area-inset-right, 0px)); padding-top: .5rem; gap: .4rem; }
+  html.narrow .top h1 { font-size: 1.2rem; flex: 1 1 auto; }
+  html.narrow .top { flex-wrap: wrap; row-gap: .3rem; }
+  html.narrow #reset, html.narrow #clear-civs { padding: .15rem .45rem; font-size: .75rem; }
+  html.narrow .top { column-gap: .5rem; }
+  html.narrow .top h1 { font-size: 1.1rem; flex: 0 1 auto; }
+  html.narrow .clear-slot { flex: 1 1 auto; gap: .35rem; flex-wrap: wrap; row-gap: .25rem; justify-content: flex-end; }
+  html.narrow .pickers { flex-basis: 100%; gap: .5rem; }
+  html.narrow .civpick { flex: 1 1 0; min-width: 0; }
+  html.narrow .civpick .combo { width: auto; }
+  html.narrow .civpick label { font-size: .75rem; }
+  html.narrow .civbar { flex-wrap: wrap; font-size: .82rem; margin-top: 0; }
+  html.narrow #civ-fx { flex-basis: 100%; }
+  html.narrow .age { flex: 1 1 100%; flex-wrap: wrap; gap: .15rem .7rem; }
+  html.narrow .age label { gap: .25rem; white-space: nowrap; }
+  html.narrow fieldset.res { font-size: .8rem; padding: .4rem .45rem .45rem; }
+  html.narrow .lg strong { font-size: .95rem; }
+  html.narrow .rate { font-size: .78rem; }
+  html.narrow .food-grid { column-gap: .8rem; }
+  html.narrow .others { grid-template-columns: auto; }
+  html.narrow .sheet th, html.narrow .sheet td { padding-left: .4em; padding-right: .4em; }
+  html.narrow .long { display: none; }
+  html.narrow .short { display: inline; }
+  html.narrow .techs { font-size: .8rem; gap: .1rem .8rem; padding: .3rem .45rem; }
+  html.narrow .adder-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  html.narrow /* Small phones: every line counts, html.narrow the page never scrolls */
+  .lanes { grid-template-columns: 1.25fr 1fr 1fr; }
+  html.narrow .clear-techs-alt[hidden] { display: none; }
+  html.narrow .gl-long { display: none; }
+  html.narrow .gl-short { display: inline; }
+  html.narrow .age { gap: .1rem .5rem; font-size: .76rem; }
+  html.narrow .civpick .combo input { padding-top: .28rem; padding-bottom: .28rem; }
+}
+@media (max-width: 599px) {
+  /* Phones with the # Builders column: slimmer steppers and number columns so names stay readable */
+  html.narrow.show-bld { --w-count: 3.5rem; --w-wood: 2.3rem; --w-food: 2.3rem; --w-gold: 2.3rem; --w-stone: 2.3rem; --w-rm: 1.4rem; }
+  html.narrow.show-bld .stepper { --sh: 1.3em; }
+  html.narrow.show-bld .stepper input { width: 1.55em; }
+}
+
+/* No buildings (Buildings box off, none in the table): no stone costs, so the Stone column and its settings
+   are blanked out. The space stays exactly where it is, so nothing else moves. */
+:root.no-stone .sheet .stone { color: transparent; pointer-events: none; user-select: none; }
+:root.no-stone .sheet tfoot td.stone { background: none; }
+:root.no-stone fieldset.res.stone { visibility: hidden; }
+:root.no-stone .lane-bg > .stone { background: none; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <h1>Villagers required</h1>
+    <div class="clear-slot">
+      <button type="button" class="pagebtn" id="reset" title="Reset everything: table, civilizations, age and all checkboxes">Clear All</button>
+      <button type="button" class="pagebtn" id="clear-civs" title="Your civilization back to Generic, no allies">Clear Civs</button>
+    </div>
+    <div class="pickers">
+      <div class="civpick allies">
+        <label for="ally-search">Allied Civilization(s)</label>
+        <div class="combo">
+          <input id="ally-search" type="text" role="combobox" autocomplete="off" spellcheck="false"
+                 aria-autocomplete="list" aria-expanded="false" aria-controls="ally-list" aria-describedby="civ-fx"
+                 placeholder="None">
+          <ul id="ally-list" class="list" role="listbox" aria-multiselectable="true" aria-label="Allied civilizations, up to 7" hidden></ul>
+        </div>
+      </div>
+      <div class="civpick">
+        <label for="civ-search">Your Civilization</label>
+        <div class="combo">
+          <input id="civ-search" type="text" role="combobox" autocomplete="off" spellcheck="false"
+                 aria-autocomplete="list" aria-expanded="false" aria-controls="civ-list" aria-describedby="civ-fx"
+                 placeholder="Search civilizations" value="Generic">
+          <ul id="civ-list" class="list" role="listbox" aria-label="Civilizations" hidden></ul>
+        </div>
+      </div>
+    </div>
+  </header>
+  <div class="civbar">
+    <p id="civ-fx" aria-live="polite"></p>
+    <fieldset id="age" class="age">
+      <legend class="sr">Age</legend>
+      <label><input type="radio" name="age" value="0"> Dark Age</label>
+      <label><input type="radio" name="age" value="1"> Feudal Age</label>
+      <label><input type="radio" name="age" value="2"> Castle Age</label>
+      <label><input type="radio" name="age" value="3"> Imperial Age</label>
+    </fieldset>
+  </div>
+
+  <div class="board">
+    <div class="lanes">
+      <div class="adder">
+        <div class="adder-head">
+          <label for="unit-search" class="adder-title" id="adder-title">Add a unit</label>
+          <span class="adder-opts">
+            <label class="dockopt"><input type="checkbox" id="include-dock"> Include Dock</label>
+            <label class="dockopt"><input type="checkbox" id="include-bld"> Buildings</label>
+            <label class="dockopt" title="All non-unique units, buildings and technologies, without civilization bonuses, team bonuses or unique technologies"><input type="checkbox" id="full-tree"> Full Tech Tree</label>
+          </span>
+        </div>
+        <div class="combo">
+          <input id="unit-search" type="text" role="combobox" autocomplete="off" spellcheck="false"
+                 aria-autocomplete="list" aria-expanded="false" aria-controls="unit-list"
+                 placeholder="Type to search, e.g. knight">
+          <ul id="unit-list" class="list" role="listbox" aria-label="Units and buildings" hidden></ul>
+        </div>
+        <div class="adder-foot">
+          <p id="status" aria-live="polite"></p>
+          <button type="button" class="linkbtn" id="clear" hidden>Clear table</button>
+        </div>
+      </div>
+
+      <fieldset class="res wood">
+        <legend><span class="lg"><strong>Wood</strong><span class="rate" id="rate-wood-t" title="Gathered per villager per minute"><b id="rate-wood">0</b>/min</span></span></legend>
+        <select class="src-sel" id="src-wood" data-src="wood" aria-label="Wood source" hidden></select>
+        <div>
+          <label class="opt"><input type="checkbox" data-up="dba"> Double-Bit Axe</label>
+          <label class="opt"><input type="checkbox" data-up="bs"> Bow Saw</label>
+          <label class="opt"><input type="checkbox" data-up="tms"> Two-Man Saw</label>
+        </div>
+      </fieldset>
+
+      <fieldset class="res food">
+        <legend><span class="lg"><strong>Food</strong>
+          <select id="food-source" name="food" class="food-src" aria-label="Food source">
+            <option value="farm" id="farm-option">Farm</option>
+            <option value="berries">Berries</option>
+            <option value="hunt">Hunt</option>
+            <option value="sheep">Sheep</option>
+            <option value="fish" title="Villagers fishing from the shore">Fishing</option>
+          </select>
+          <span class="rate" id="rate-food-t" title="Gathered per villager per minute"><b id="rate-food">0</b>/min</span></span></legend>
+        <div class="nested" id="farm-ups">
+          <label class="opt"><input type="checkbox" data-up="hp"> Heavy Plow</label>
+          <label class="opt"><input type="checkbox" data-up="wb"> Wheelbarrow</label>
+          <label class="opt"><input type="checkbox" data-up="hc"> Hand Cart</label>
+        </div>
+      </fieldset>
+
+      <fieldset class="res gold">
+        <legend><span class="lg"><strong>Gold</strong><span class="rate" id="rate-gold-t" title="Gathered per villager per minute"><b id="rate-gold">0</b>/min</span></span></legend>
+        <select class="src-sel" id="src-gold" data-src="gold" aria-label="Gold source" hidden></select>
+        <div>
+          <label class="opt"><input type="checkbox" data-up="gm"> <span><span class="long">Gold </span>Mining</span></label>
+          <label class="opt"><input type="checkbox" data-up="gsm"> <span><span class="long">Gold </span>Shaft Mining</span></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="res stone">
+        <legend><span class="lg"><strong>Stone</strong><span class="rate" id="rate-stone-t" title="Gathered per villager per minute"><b id="rate-stone">0</b>/min</span></span></legend>
+        <select class="src-sel" id="src-stone" data-src="stone" aria-label="Stone source" hidden></select>
+        <div>
+          <label class="opt"><input type="checkbox" data-up="sm"> <span><span class="long">Stone </span>Mining</span></label>
+          <label class="opt"><input type="checkbox" data-up="ssm"> <span><span class="long">Stone </span>Shaft Mining</span></label>
+        </div>
+      </fieldset>
+      <div class="postimp-cell">
+        <label class="postimp-opt" title="Imperial Age with every available technology, latest unit versions only"><input type="checkbox" class="postimp-box"> Post-Imp</label>
+        <label class="postimp-opt niche-opt" title="Choose unusual income sources (relics, Feitorias, civ-specific incomes) for each resource"><input type="checkbox" class="niche-box"> Niche Incomes</label>
+        <button type="button" class="pagebtn clear-techs" title="Untick every technology">Clear Techs</button>
+      </div>
+    </div>
+
+    <div class="sheet-wrap" id="sheet-wrap">
+      <div class="lane-bg" aria-hidden="true">
+        <div></div><div></div><div class="bld-lane"></div><div></div><div class="wood"></div><div class="food"></div><div class="gold"></div><div class="stone"></div><div class="tech-lane"></div>
+      </div>
+      <table class="sheet" id="sheet">
+        <caption class="sr">Villagers needed per resource for each unit</caption>
+        <colgroup>
+          <col class="c-rm"><col><col class="c-bld"><col class="c-count"><col class="c-wood"><col class="c-food"><col class="c-gold"><col class="c-stone">
+        </colgroup>
+        <thead>
+          <tr>
+            <th scope="col"><span class="sr">Remove</span></th>
+            <th scope="col" id="unit-head">Unit</th>
+            <th scope="col" class="count-h bld-cell" title="Villagers building each building"><span class="bl-long"># Builders</span><span class="bl-short"># Bldrs</span></th>
+            <th scope="col" class="count-h" title="Buildings producing this unit non-stop"><span class="bl-long"># Buildings</span><span class="bl-short"># Bldgs</span></th>
+            <th scope="col" class="num wood" id="head-wood"># Wood vils</th>
+            <th scope="col" class="num food" id="head-food"># Food vils</th>
+            <th scope="col" class="num gold" id="head-gold"># Gold vils</th>
+            <th scope="col" class="num stone" id="head-stone"># Stone vils</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+        <tfoot>
+          <tr>
+            <td></td>
+            <th scope="row">Total</th>
+            <td class="bld-cell" id="tot-bld" title="Builders in total (counted in the villagers required)"></td>
+            <td class="count-total" id="tot-count" title="Buildings in total">0</td>
+            <td class="num wood" id="tot-wood">0</td>
+            <td class="num food" id="tot-food">0</td>
+            <td class="num gold" id="tot-gold">0</td>
+            <td class="num stone" id="tot-stone">0</td>
+          </tr>
+        </tfoot>
+      </table>
+      <aside class="techs" id="techs" aria-label="Technologies">
+        <label class="postimp-opt postimp-alt" title="Imperial Age with every available technology, latest unit versions only"><input type="checkbox" class="postimp-box"> Post-Imp</label>
+        <label class="postimp-opt postimp-alt niche-opt" title="Choose unusual income sources (relics, Feitorias, civ-specific incomes) for each resource"><input type="checkbox" class="niche-box"> Niche Incomes</label>
+        <button type="button" class="pagebtn clear-techs clear-techs-alt" title="Untick every technology">Clear Techs</button>
+        <div id="ut-list"></div>
+        <label class="opt"><input type="checkbox" id="consc"> <span class="tn">Conscription</span></label>
+        <label class="opt" hidden><input type="checkbox" id="crane"> <span class="tn">Treadmill Crane</span></label>
+        <div class="grand-box"><span class="grand-label"><span class="gl-long">Villagers required</span><span class="gl-short">Villagers</span></span><b id="grand">0</b></div>
+      </aside>
+    </div>
+  </div>
+</div>
+<script>
+const CIV_NAMES = ["Armenians", "Aztecs", "Bengalis", "Berbers", "Bohemians", "Britons", "Bulgarians", "Burgundians", "Burmese", "Byzantines", "Celts", "Chinese", "Cumans", "Danes", "Dravidians", "Ethiopians", "Franks", "Georgians", "Goths", "Gurjaras", "Hindustanis", "Huns", "Incas", "Italians", "Japanese", "Jurchens", "Khitans", "Khmer", "Koreans", "Lithuanians", "Magyars", "Malay", "Malians", "Mapuche", "Mayans", "Mongols", "Muisca", "Persians", "Poles", "Portuguese", "Romans", "Saracens", "Saxons", "Shu", "Sicilians", "Slavs", "Spanish", "Tatars", "Teutons", "Tupi", "Turks", "Varangians", "Vietnamese", "Vikings", "Wei", "Wu"];
+// [name, group, wood, food, gold, stone, seconds, flags, age per civ (0 = not available), generic age, merged members]
+const UNITS = [
+  ["Villager", "Town Center", 0, 50, 0, 0, 25, "", "11111111111111111111111111111111111111111111111111111111", 1],
+  ["Fishing Ship", "Dock", 75, 0, 0, 0, 40, "D", "11111111111111111111111111111111111111111111111111111111", 1],
+  ["Trade Cog", "Dock", 100, 0, 50, 0, 36, "D", "22222222222222222222222222222222222222222222222222222222", 2],
+  ["Transport Ship", "Dock", 125, 0, 0, 0, 46, "D", "11111111111111111111111111111111111111111111111111111111", 1],
+  ["Galley", "Dock", 90, 0, 30, 0, 45, "DNL", "22222222222222222222222222222222222222222222222222222222", 2],
+  ["War Galley / Galleon", "Dock", 90, 0, 30, 0, 27, "DNL", "33333333333333333333333333333333333333333333333333333333", 3, ["War Galley", "Galleon"]],
+  ["Fire Galley", "Dock", 75, 0, 45, 0, 49, "DNL", "22222222222222222222222222222222222222222222222222222222", 2],
+  ["Fire Ship / Fast Fire Ship", "Dock", 75, 0, 45, 0, 27, "DNL", "33333333333333333333333333333333333333333333333333333333", 3, ["Fire Ship", "Fast Fire Ship"]],
+  ["Demolition Raft", "Dock", 45, 0, 80, 0, 45, "DNL", "22222222222220222222222222220222222222202202222222202022", 2],
+  ["Demolition Ship / Heavy Demolition Ship", "Dock", 45, 0, 80, 0, 31, "DNL", "33333333333330333333333333330333333333303303333333303033", 3, ["Demolition Ship", "Heavy Demolition Ship"]],
+  ["Hulk", "Dock", 75, 0, 35, 0, 42, "DNL", "22222222222222222222222222222222222222222222222222222222", 2],
+  ["War Hulk / Carrack", "Dock", 75, 0, 35, 0, 27, "DNL", "33333333333333333333333333333333333333333333333333333333", 3, ["War Hulk", "Carrack"]],
+  ["(Elite) Cannon Galleon", "Dock", 200, 0, 150, 0, 46, "GDNL", "00444444404000444404400440444444400404440400444440404000", 4, ["Cannon Galleon", "Elite Cannon Galleon"]],
+  ["(Elite) Longship", "Dock", 100, 0, 50, 0, 25, "DNL", "00000000000003000000000000000000000000000030000000030300", 3, ["Longship", "Elite Longship"]],
+  ["Dragon Ship", "Dock", 75, 0, 45, 0, 27, "DNLU", "00000000000400000000000000000000000000000000000000000000", 4],
+  ["Catapult Galleon", "Dock", 225, 0, 100, 0, 55, "DNL", "04000000000044000000004000000000044040000040000004040400", 4],
+  ["(Elite) Caravel", "Dock", 90, 0, 43, 0, 25, "DNLU", "00000000000000000000000000000000000000030000000000000000", 3, ["Caravel", "Elite Caravel"]],
+  ["(Elite) Turtle Ship", "Dock", 190, 0, 130, 0, 50, "GDNLU", "00000000000000000000000000003000000000000000000000000000", 3, ["Turtle Ship", "Elite Turtle Ship"]],
+  ["Dromon", "Dock", 175, 0, 150, 0, 65, "DNL", "40000000040000000040040000000000000000004000000000000000", 4],
+  ["Lou Chuan", "Dock", 250, 0, 225, 0, 60, "DNL", "00000000000400000000000004000000000000000004000000000044", 4],
+  ["Thirisadai", "Dock", 180, 0, 60, 0, 40, "DNLU", "00000000000000400000000000000000000000000000000000000000", 4],
+  ["Militia-line", "Barracks", 0, 50, 20, 0, 21, "ILK", "11111111111111111111110111111111101101111111111110111111", 1, ["Militia", "Man-at-Arms", "Long Swordsman", "Two-Handed Swordsman", "Champion", "Legionary"]],
+  ["Spearman-line", "Barracks", 25, 35, 0, 0, 22, "ILK", "12222222222222222222222222222222222222222222222222222222", 2, ["Spearman", "Pikeman", "Halberdier"]],
+  ["Eagle Scout", "Barracks", 0, 20, 50, 0, 46, "ILK", "02000000000000000000000000000000002000000000000000000000", 2],
+  ["Eagle Warrior", "Barracks", 0, 20, 50, 0, 35, "ILK", "03000000000000000000000000000000003000000000000000000000", 3],
+  ["Elite Eagle Warrior", "Barracks", 0, 20, 50, 0, 20, "ILK", "04000000000000000000000000000000004000000000000000000000", 4],
+  ["Champi Scout", "Barracks", 0, 50, 25, 0, 42, "ILK", "00000000000000000000001000000000010010000000000001000000", 1],
+  ["Champi Runner", "Barracks", 0, 50, 25, 0, 34, "ILK", "00000000000000000000002000000000020020000000000002000000", 2],
+  ["Champi Warrior", "Barracks", 0, 50, 25, 0, 26, "ILK", "00000000000000000000003000000000030030000000000003000000", 3],
+  ["Elite Champi Warrior", "Barracks", 0, 50, 25, 0, 21, "ILK", "00000000000000000000004000000000040040000000000004000000", 4],
+  ["Fire Lancer", "Barracks", 45, 0, 45, 0, 35, "IGLK", "00000000000300000000000003303000000000000000000000003000", 3],
+  ["Elite Fire Lancer", "Barracks", 45, 0, 45, 0, 25, "IGLK", "00000000000400000000000004404000000000000000000000004000", 4],
+  ["(Elite) Huskarl (Barracks)", "Barracks", 0, 75, 35, 0, 13, "ILKU", "00000000000000000030000000000000000000000000000000000000", 3, ["Huskarl (Barracks)", "Elite Huskarl (Barracks)"]],
+  ["(Elite) Varangian Guard", "Barracks", 0, 65, 45, 0, 30, "ILK", "00000000030003000000000000000000000000000030000000030300", 3, ["Varangian Guard", "Elite Varangian Guard"]],
+  ["Condottiero", "Barracks", 0, 50, 35, 0, 18, "ILKU", "00000000000000000000000400000000000000000000000000000000", 4],
+  ["Flemish Militia", "Barracks", 0, 35, 25, 0, 16, "ILKU", "00000002000000000000000000000000000000000000000000000000", 2],
+  ["Jian Swordsman", "Barracks", 0, 45, 50, 0, 35, "ILKU", "00000000000000000000000000000000000000000000000000000003", 3],
+  ["(Elite) Ibirapema Warrior", "Barracks", 0, 30, 60, 0, 24, "ILKU", "00000000000000000000000000000000000000000000000003000000", 3, ["Ibirapema Warrior", "Elite Ibirapema Warrior"]],
+  ["Temple Guard", "Barracks", 0, 70, 45, 0, 28, "ILKU", "00000000000000000000000000000000000030000000000000000000", 3],
+  ["Elite Temple Guard", "Barracks", 0, 70, 45, 0, 24, "ILKU", "00000000000000000000000000000000000040000000000000000000", 4],
+  ["Archer", "Archery Range", 25, 0, 45, 0, 35, "ALR", "22222222222222222222222222222222222222222222222222222222", 2],
+  ["Crossbowman / Arbalester", "Archery Range", 25, 0, 45, 0, 27, "ALR", "33333303333333333333333333333333333333333333330333333333", 3, ["Crossbowman", "Arbalester"]],
+  ["Skirmisher", "Archery Range", 35, 25, 0, 0, 26, "ALR", "22222222222222222222222222222222222222222222222222222222", 2],
+  ["Elite Skirmisher / Imperial Skirmisher", "Archery Range", 35, 25, 0, 0, 22, "ALR", "33333333333333333333333333333333333333333333333333033333", 3, ["Elite Skirmisher", "Imperial Skirmisher"]],
+  ["Cavalry Archer", "Archery Range", 40, 0, 60, 0, 37, "AMLR", "30030030330330030330330033333333300303003303030300303003", 3],
+  ["Heavy Cavalry Archer", "Archery Range", 40, 0, 60, 0, 30, "AMLR", "00040040440040040440440044344440400404004404040400404000", 4],
+  ["Mounted Crossbowman", "Archery Range", 40, 0, 65, 0, 40, "AMLR", "00003303003003003000000300000000000000330030303030030300", 3],
+  ["Heavy Mounted Crossbowman", "Archery Range", 40, 0, 65, 0, 30, "AMLR", "00000400004004004000000000000000000000400040404040040000", 4],
+  ["Hand Cannoneer", "Archery Range", 0, 45, 50, 0, 34, "AGLR", "00043004040000404444400440044400400004040400004440400000", 4],
+  ["(Elite) Elephant Archer", "Archery Range", 0, 60, 80, 0, 32, "AMLER", "00300000000000300003000000000000000000000000000000000000", 3, ["Elephant Archer", "Elite Elephant Archer"]],
+  ["Genitour", "Archery Range", 35, 40, 0, 0, 25, "AMLRU", "00030000000000000000000000000000000000000000000000000000", 3],
+  ["Elite Genitour", "Archery Range", 35, 40, 0, 0, 23, "AMLRU", "00040000000000000000000000000000000000000000000000000000", 4],
+  ["Bolas Rider", "Archery Range", 50, 0, 55, 0, 34, "AMLRU", "00000000000000000000000000000000030000000000000000000000", 3],
+  ["Elite Bolas Rider", "Archery Range", 50, 0, 55, 0, 28, "AMLRU", "00000000000000000000000000000000040000000000000000000000", 4],
+  ["Slinger", "Archery Range", 25, 50, 0, 0, 25, "ALR", "00000000000000000000003000000000030030000000000003000000", 3],
+  ["Grenadier", "Archery Range", 0, 55, 50, 0, 21, "AGLRU", "00000000000000000000000003000000000000000000000000000000", 3],
+  ["Xianbei Raider", "Archery Range", 65, 0, 35, 0, 29, "AMLRU", "00000000000000000000000000000000000000000000000000000030", 3],
+  ["Scout Cavalry-line", "Stable", 0, 80, 0, 0, 30, "MSL", "20222222222222222222220222222222200202222222222220222222", 2, ["Scout Cavalry", "Light Cavalry", "Hussar", "Winged Hussar"]],
+  ["Knight-line", "Stable", 0, 60, 75, 0, 30, "MSL", "30033333333333033330030330033333300303333330333330333300", 3, ["Knight", "Cavalier", "Paladin", "Savar"]],
+  ["Camel Rider-line", "Stable", 0, 55, 60, 0, 22, "MSLC", "00030000030030030002300000300000300303000300000300300000", 3, ["Camel Scout", "Camel Rider", "Heavy Camel Rider"]],
+  ["Imperial Camel Rider", "Stable", 0, 55, 60, 0, 20, "MSLCU", "00000000000000000000400000000000000000000000000000000000", 4],
+  ["(Elite) Battle Elephant", "Stable", 0, 100, 70, 0, 24, "MSLE", "00300000300000300000000000030003000000000000000000003000", 3, ["Battle Elephant", "Elite Battle Elephant"]],
+  ["Steppe Lancer", "Stable", 0, 70, 40, 0, 24, "MSL", "00000000000030000000000003300000000300000000000300000000", 3],
+  ["Elite Steppe Lancer", "Stable", 0, 70, 40, 0, 20, "MSL", "00000000000040000000000004400000000400000000000400000000", 4],
+  ["(Elite) Shrivamsha Rider", "Stable", 0, 70, 30, 0, 20, "MSLU", "00000000000000000003000000000000000000000000000000000000", 3, ["Shrivamsha Rider", "Elite Shrivamsha Rider"]],
+  ["(Heavy) Hei Guang Cavalry", "Stable", 0, 65, 65, 0, 28, "MSL", "00000000000000000000000000000000000000000003000000000033", 3, ["Hei Guang Cavalry", "Heavy Hei Guang Cavalry"]],
+  ["(Elite) Tarkan (Stable)", "Stable", 0, 60, 60, 0, 14, "MSLU", "00000000000000000000030000000000000000000000000000000000", 3, ["Tarkan (Stable)", "Elite Tarkan (Stable)"]],
+  ["Ram-line", "Siege Workshop", 160, 0, 75, 0, 36, "WXL", "33033333333323033330033333333333333333333333333333333333", 3, ["Battering Ram", "Capped Ram", "Siege Ram"]],
+  ["Armored Elephant-line", "Siege Workshop", 0, 120, 95, 0, 36, "MWXLE", "00300000000000300003300000000000000000000000000000000000", 3, ["Armored Elephant", "Siege Elephant"]],
+  ["Mangonel-line", "Siege Workshop", 160, 0, 135, 0, 46, "WXL", "33333333333033333333333330030333333333333333333333333333", 3, ["Mangonel", "Onager", "Siege Onager"]],
+  ["(Heavy) Scorpion", "Siege Workshop", 75, 0, 75, 0, 30, "WXL", "33333333333333333333333333333333333333333330333333333333", 3, ["Scorpion", "Heavy Scorpion"]],
+  ["(Heavy) Rocket Cart", "Siege Workshop", 135, 0, 155, 0, 40, "GWXL", "00000000000300000000000003303000000000000000000000000000", 3, ["Rocket Cart", "Heavy Rocket Cart"]],
+  ["Siege Tower", "Siege Workshop", 100, 0, 120, 0, 36, "WXL", "33333333333333333333333333333333333333333333333333333333", 3],
+  ["Bombard Cannon-line", "Siege Workshop", 225, 0, 225, 0, 56, "GWXL", "00044004440000444044400404004404400004440400004040404000", 4, ["Bombard Cannon", "Houfnice"]],
+  ["Traction Trebuchet", "Siege Workshop", 175, 0, 210, 0, 70, "WXL", "00000000000000000000000000000000000000000004000000000044", 4],
+  ["Mounted Trebuchet", "Siege Workshop", 0, 175, 175, 0, 46, "MWXLCU", "00000000000000000000000000400000000000000000000000000000", 4],
+  ["War Chariot", "Siege Workshop", 0, 75, 90, 0, 32, "MWXLU", "00000000000000000000000000000000000000000003000000000000", 3],
+  ["Flaming Camel", "Siege Workshop", 0, 75, 30, 0, 30, "MWLCU", "00000000000000000000000000000000000000000000000400000000", 4],
+  ["Trebuchet", "Castle", 200, 0, 200, 0, 50, "XL", "44444444444444444444444444444444444444444440444444444400", 4],
+  ["Petard", "Castle", 0, 65, 20, 0, 25, "L", "33333333333333333333333333333333333333333333333333333333", 3],
+  ["(Elite) Arambai", "Castle", 75, 0, 60, 0, 18, "AMLU", "00000000300000000000000000000000000000000000000000000000", 3, ["Arambai", "Elite Arambai"]],
+  ["(Elite) Ballista Elephant", "Castle", 0, 100, 80, 0, 25, "MXLEU", "00000000000000000000000000030000000000000000000000000000", 3, ["Ballista Elephant", "Elite Ballista Elephant"]],
+  ["Berserk", "Castle", 0, 65, 20, 0, 14, "ILU", "00000000000000000000000000000000000000000000000000000300", 3],
+  ["Elite Berserk", "Castle", 0, 65, 20, 0, 12, "ILU", "00000000000000000000000000000000000000000000000000000400", 4],
+  ["Blackwood Archer", "Castle", 40, 0, 45, 0, 18, "ALU", "00000000000000000000000000000000000000000000000003000000", 3],
+  ["Elite Blackwood Archer", "Castle", 40, 0, 45, 0, 14, "ALU", "00000000000000000000000000000000000000000000000004000000", 4],
+  ["(Elite) Boyar", "Castle", 0, 60, 70, 0, 15, "MLU", "00000000000000000000000000000000000000000000030000000000", 3, ["Boyar", "Elite Boyar"]],
+  ["(Elite) Camel Archer", "Castle", 50, 0, 60, 0, 25, "AMLCU", "00030000000000000000000000000000000000000000000000000000", 3, ["Camel Archer", "Elite Camel Archer"]],
+  ["(Elite) Cataphract", "Castle", 0, 70, 75, 0, 20, "MLU", "00000000030000000000000000000000000000000000000000000000", 3, ["Cataphract", "Elite Cataphract"]],
+  ["(Elite) Centurion", "Castle", 0, 75, 85, 0, 24, "MLU", "00000000000000000000000000000000000000003000000000000000", 3, ["Centurion", "Elite Centurion"]],
+  ["(Elite) Chakram Thrower", "Castle", 0, 65, 30, 0, 15, "ILU", "00000000000000000003000000000000000000000000000000000000", 3, ["Chakram Thrower", "Elite Chakram Thrower"]],
+  ["Chu Ko Nu", "Castle", 40, 0, 35, 0, 16, "ALU", "00000000000300000000000000000000000000000000000000000000", 3],
+  ["Elite Chu Ko Nu", "Castle", 40, 0, 35, 0, 13, "ALU", "00000000000400000000000000000000000000000000000000000000", 4],
+  ["Composite Bowman", "Castle", 35, 0, 45, 0, 12, "ALU", "30000000000000000000000000000000000000000000000000000000", 3],
+  ["Elite Composite Bowman", "Castle", 35, 0, 45, 0, 10, "ALU", "40000000000000000000000000000000000000000000000000000000", 4],
+  ["Conquistador", "Castle", 0, 75, 60, 0, 26, "AMGLU", "00000000000000000000000000000000000000000000003000000000", 3],
+  ["Elite Conquistador", "Castle", 0, 75, 60, 0, 24, "AMGLU", "00000000000000000000000000000000000000000000004000000000", 4],
+  ["Coustillier", "Castle", 0, 55, 55, 0, 15, "MLU", "00000003000000000000000000000000000000000000000000000000", 3],
+  ["Elite Coustillier", "Castle", 0, 55, 55, 0, 14, "MLU", "00000004000000000000000000000000000000000000000000000000", 4],
+  ["(Elite) Fire Archer", "Castle", 45, 0, 45, 0, 17, "ALU", "00000000000000000000000000000000000000000000000000000003", 3, ["Fire Archer", "Elite Fire Archer"]],
+  ["(Elite) Gbeto", "Castle", 0, 50, 40, 0, 17, "ILU", "00000000000000000000000000000000300000000000000000000000", 3, ["Gbeto", "Elite Gbeto"]],
+  ["(Elite) Genoese Crossbowman", "Castle", 45, 0, 40, 0, 14, "ALU", "00000000000000000000000300000000000000000000000000000000", 3, ["Genoese Crossbowman", "Elite Genoese Crossbowman"]],
+  ["(Elite) Ghulam", "Castle", 0, 30, 45, 0, 12, "ILU", "00000000000000000000300000000000000000000000000000000000", 3, ["Ghulam", "Elite Ghulam"]],
+  ["(Elite) Guecha Warrior", "Castle", 50, 0, 60, 0, 17, "ALU", "00000000000000000000000000000000000030000000000000000000", 3, ["Guecha Warrior", "Elite Guecha Warrior"]],
+  ["Hearth Troop", "Castle", 80, 0, 35, 0, 16, "ILU", "00000000000000000000000000000000000000000030000000000000", 3],
+  ["Elite Hearth Troop", "Castle", 80, 0, 35, 0, 14, "ILU", "00000000000000000000000000000000000000000040000000000000", 4],
+  ["(Elite) Huskarl", "Castle", 0, 75, 35, 0, 13, "ILU", "00000000000000000030000000000000000000000000000000000000", 3, ["Huskarl", "Elite Huskarl"]],
+  ["Hussite Wagon", "Castle", 110, 0, 80, 0, 30, "GXLU", "00003000000000000000000000000000000000000000000000000000", 3],
+  ["Elite Hussite Wagon", "Castle", 110, 0, 80, 0, 26, "GXLU", "00004000000000000000000000000000000000000000000000000000", 4],
+  ["(Elite) Iron Pagoda", "Castle", 0, 80, 55, 0, 14, "MLU", "00000000000000000000000003000000000000000000000000000000", 3, ["Iron Pagoda", "Elite Iron Pagoda"]],
+  ["(Elite) Jaguar Warrior", "Castle", 0, 60, 30, 0, 12, "ILU", "03000000000000000000000000000000000000000000000000000000", 3, ["Jaguar Warrior", "Elite Jaguar Warrior"]],
+  ["(Elite) Janissary", "Castle", 0, 60, 55, 0, 21, "AGLU", "00000000000000000000000000000000000000000000000000300000", 3, ["Janissary", "Elite Janissary"]],
+  ["(Elite) Jarl", "Castle", 0, 75, 55, 0, 23, "MLU", "00000000000000000000000000000000000000000000000000030000", 3, ["Jarl", "Elite Jarl"]],
+  ["(Elite) Jomsviking", "Castle", 0, 65, 15, 0, 10, "ILU", "00000000000003000000000000000000000000000000000000000000", 3, ["Jomsviking", "Elite Jomsviking"]],
+  ["(Elite) Kamayuk", "Castle", 0, 70, 30, 0, 10, "ILU", "00000000000000000000003000000000000000000000000000000000", 3, ["Kamayuk", "Elite Kamayuk"]],
+  ["(Elite) Karambit Warrior", "Castle", 0, 25, 15, 0, 6, "ILU", "00000000000000000000000000000003000000000000000000000000", 3, ["Karambit Warrior", "Elite Karambit Warrior"]],
+  ["Keshik", "Castle", 0, 60, 40, 0, 17, "MLU", "00000000000000000000000000000000000000000000000300000000", 3],
+  ["Elite Keshik", "Castle", 0, 60, 40, 0, 15, "MLU", "00000000000000000000000000000000000000000000000400000000", 4],
+  ["(Elite) Kipchak", "Castle", 60, 0, 35, 0, 20, "AMLU", "00000000000030000000000000000000000000000000000000000000", 3, ["Kipchak", "Elite Kipchak"]],
+  ["(Elite) Kona", "Castle", 0, 65, 40, 0, 14, "MLU", "00000000000000000000000000000000030000000000000000000000", 3, ["Kona", "Elite Kona"]],
+  ["(Elite) Konnik", "Castle", 0, 60, 70, 0, 16, "MLU", "00000030000000000000000000000000000000000000000000000000", 3, ["Konnik", "Elite Konnik"]],
+  ["Leitis", "Castle", 0, 70, 50, 0, 20, "MLU", "00000000000000000000000000000300000000000000000000000000", 3],
+  ["Elite Leitis", "Castle", 0, 70, 50, 0, 18, "MLU", "00000000000000000000000000000400000000000000000000000000", 4],
+  ["(Elite) Liao Dao", "Castle", 0, 40, 40, 0, 12, "ILU", "00000000000000000000000000300000000000000000000000000000", 3, ["Liao Dao", "Elite Liao Dao"]],
+  ["(Elite) Longbowman", "Castle", 35, 0, 40, 0, 18, "ALU", "00000300000000000000000000000000000000000000000000000000", 3, ["Longbowman", "Elite Longbowman"]],
+  ["Magyar Huszar", "Castle", 0, 35, 45, 0, 18, "MLU", "00000000000000000000000000000030000000000000000000000000", 3],
+  ["Elite Magyar Huszar", "Castle", 0, 35, 45, 0, 12, "MLU", "00000000000000000000000000000040000000000000000000000000", 4],
+  ["(Elite) Mameluke", "Castle", 0, 55, 85, 0, 23, "MLCU", "00000000000000000000000000000000000000000300000000000000", 3, ["Mameluke", "Elite Mameluke"]],
+  ["(Elite) Mangudai", "Castle", 55, 0, 65, 0, 26, "AMLU", "00000000000000000000000000000000000300000000000000000000", 3, ["Mangudai", "Elite Mangudai"]],
+  ["(Elite) Monaspa", "Castle", 0, 60, 45, 0, 14, "MLU", "00000000000000000300000000000000000000000000000000000000", 3, ["Monaspa", "Elite Monaspa"]],
+  ["(Elite) Obuch", "Castle", 0, 55, 20, 0, 12, "ILU", "00000000000000000000000000000000000000300000000000000000", 3, ["Obuch", "Elite Obuch"]],
+  ["Organ Gun", "Castle", 80, 0, 70, 0, 28, "GXLU", "00000000000000000000000000000000000000030000000000000000", 3],
+  ["Elite Organ Gun", "Castle", 80, 0, 70, 0, 21, "GXLU", "00000000000000000000000000000000000000040000000000000000", 4],
+  ["(Elite) Plumed Archer", "Castle", 55, 0, 55, 0, 16, "ALU", "00000000000000000000000000000000003000000000000000000000", 3, ["Plumed Archer", "Elite Plumed Archer"]],
+  ["Ratha", "Castle", 60, 0, 60, 0, 24, "AMLU", "00300000000000000000000000000000000000000000000000000000", 3],
+  ["Elite Ratha", "Castle", 60, 0, 60, 0, 18, "AMLU", "00400000000000000000000000000000000000000000000000000000", 4],
+  ["(Elite) Rattan Archer", "Castle", 50, 0, 45, 0, 16, "ALU", "00000000000000000000000000000000000000000000000000003000", 3, ["Rattan Archer", "Elite Rattan Archer"]],
+  ["(Elite) Samurai", "Castle", 0, 45, 30, 0, 9, "ILU", "00000000000000000000000030000000000000000000000000000000", 3, ["Samurai", "Elite Samurai"]],
+  ["(Elite) Serjeant", "Castle", 0, 55, 25, 0, 12, "ILU", "00000000000000000000000000000000000000000000300000000000", 3, ["Serjeant", "Elite Serjeant"]],
+  ["Shotel Warrior", "Castle", 0, 50, 30, 0, 8, "ILU", "00000000000000030000000000000000000000000000000000000000", 3],
+  ["Elite Shotel Warrior", "Castle", 0, 50, 30, 0, 4, "ILU", "00000000000000040000000000000000000000000000000000000000", 4],
+  ["(Elite) Tarkan", "Castle", 0, 60, 60, 0, 14, "MLU", "00000000000000000000030000000000000000000000000000000000", 3, ["Tarkan", "Elite Tarkan"]],
+  ["(Elite) Teutonic Knight", "Castle", 0, 85, 30, 0, 12, "ILU", "00000000000000000000000000000000000000000000000030000000", 3, ["Teutonic Knight", "Elite Teutonic Knight"]],
+  ["(Elite) Throwing Axeman", "Castle", 0, 55, 25, 0, 13, "ILU", "00000000000000003000000000000000000000000000000000000000", 3, ["Throwing Axeman", "Elite Throwing Axeman"]],
+  ["(Elite) Tiger Cavalry", "Castle", 0, 60, 80, 0, 18, "MLU", "00000000000000000000000000000000000000000000000000000030", 3, ["Tiger Cavalry", "Elite Tiger Cavalry"]],
+  ["(Elite) Urumi Swordsman", "Castle", 0, 65, 20, 0, 9, "ILU", "00000000000000300000000000000000000000000000000000000000", 3, ["Urumi Swordsman", "Elite Urumi Swordsman"]],
+  ["(Elite) War Elephant", "Castle", 0, 170, 85, 0, 25, "MLEU", "00000000000000000000000000000000000003000000000000000000", 3, ["War Elephant", "Elite War Elephant"]],
+  ["(Elite) War Wagon", "Castle", 200, 0, 60, 0, 21, "AMLU", "00000000000000000000000000003000000000000000000000000000", 3, ["War Wagon", "Elite War Wagon"]],
+  ["(Elite) White Feather Guard", "Castle", 0, 60, 15, 0, 11, "ILU", "00000000000000000000000000000000000000000003000000000000", 3, ["White Feather Guard", "Elite White Feather Guard"]],
+  ["(Elite) Woad Raider", "Castle", 0, 70, 25, 0, 10, "ILU", "00000000003000000000000000000000000000000000000000000000", 3, ["Woad Raider", "Elite Woad Raider"]],
+  ["Serjeant (Donjon)", "Donjon", 0, 55, 25, 0, 16, "ILU", "00000000000000000000000000000000000000000000200000000000", 2],
+  ["Monk", "Monastery", 0, 0, 100, 0, 51, "", "33333333333333333333333333333333333333333333333333333333", 3],
+  ["Missionary", "Monastery", 0, 30, 100, 0, 51, "MU", "00000000000000000000000000000000000000000000003000000000", 3],
+  ["Warrior Priest", "Monastery", 0, 40, 50, 0, 30, "IU", "30000000000000000000000000000000000000000000000000000000", 3],
+  ["Trade Cart", "Market", 100, 0, 50, 0, 51, "", "22222222222222222222222222222222222222222222222222222222", 2],
+  ["Caravanserai", "Economic", 175, 0, 0, 50, 60, "B", "00000000000000000000400000000000000004000000000000000000", 4],
+  ["Dock", "Economic", 150, 0, 0, 0, 35, "B", "11111111111111111111111111111111111111111111111111111111", 1],
+  ["Farm", "Economic", 60, 0, 0, 0, 15, "B", "11111111111111111111111111011111111111111111111111111111", 1],
+  ["Feitoria", "Economic", 0, 0, 350, 300, 120, "BU", "00000000000000000000000000000000000000040000000000000000", 4],
+  ["Fish Trap", "Economic", 100, 0, 0, 0, 40, "B", "22222222222222222222222222222222222222222222222222222222", 2],
+  ["Folwark", "Economic", 100, 0, 0, 0, 40, "BU", "00000000000000000000000000000000000000100000000000000000", 1],
+  ["Harbor", "Economic", 150, 0, 0, 0, 35, "BU", "00000000000000000000000000000003000000000000000000000000", 3],
+  ["House", "Economic", 25, 0, 0, 0, 25, "B", "11111111111111111111101111111111111111111111111111111111", 1],
+  ["Lumber Camp", "Economic", 100, 0, 0, 0, 35, "B", "01111111111111111011110111111111101101111111111110111111", 1],
+  ["Market", "Economic", 175, 0, 0, 0, 60, "B", "22222222222222222222222222222222222222222222222222222222", 2],
+  ["Mill", "Economic", 100, 0, 0, 0, 35, "B", "11111111111111111111110111111111101101011111111110111111", 1],
+  ["Mining Camp", "Economic", 100, 0, 0, 0, 35, "B", "01111111111111111011110111111111101101111111111110111111", 1],
+  ["Mule Cart", "Economic", 80, 20, 0, 0, 25, "B", "10000000000000000100000000000000000000000000000000000000", 1],
+  ["Pasture", "Economic", 110, 0, 0, 0, 22, "B", "00000000000000000000000000100000000000000000000000000000", 1],
+  ["Settlement", "Economic", 125, 0, 0, 0, 40, "B", "00000000000000000000001000000000010010000000000001000000", 1],
+  ["Town Center", "Economic", 275, 0, 0, 100, 150, "B", "33333333333323333333333333333333333333333333333333333333", 3],
+  ["Wonder", "Economic", 1000, 0, 1000, 1000, 3500, "B", "44444444444444444444444444444444444444444444444444444444", 4],
+  ["Archery Range", "Military", 175, 0, 0, 0, 50, "B", "22222222222222222222222222222222222222222222222222222222", 2],
+  ["Barracks", "Military", 175, 0, 0, 0, 50, "B", "11111111111111111111111111111111111111111111111111111111", 1],
+  ["Blacksmith", "Military", 150, 0, 0, 0, 40, "B", "22222222222222222222222222222222222222222222222222222222", 2],
+  ["Bombard Tower", "Military", 0, 0, 100, 125, 80, "B", "40004004040400400000000400004404040000440000004440404000", 4],
+  ["Castle", "Military", 0, 0, 0, 650, 200, "B", "33333333333333333333333333333333333333333333333333333333", 3],
+  ["Donjon", "Military", 50, 0, 0, 175, 125, "BU", "00000000000000000000000000000000000000000000100000000000", 1],
+  ["Fortified Church", "Military", 200, 0, 0, 0, 50, "B", "30000000000000000300000000000000000000000000000000000000", 3],
+  ["Gate", "Military", 0, 0, 0, 30, 70, "B", "22222222222202222202222222222222222222222222222222222222", 2],
+  ["Krepost", "Military", 0, 0, 0, 350, 150, "BU", "00000030000000000000000000000000000000000000000000000000", 3],
+  ["Monastery", "Military", 175, 0, 0, 0, 40, "B", "03333333333333333033333333333333333333333333333333333333", 3],
+  ["Outpost", "Military", 25, 0, 0, 5, 15, "B", "11111111111111111111111111111111111111111111111111111111", 1],
+  ["Palisade Gate", "Military", 30, 0, 0, 0, 30, "B", "11111111111111111111111111111111111111111111111111111111", 1],
+  ["Palisade Wall", "Military", 3, 0, 0, 0, 7, "B", "11111111111111111111111111111111111111111111111111111111", 1],
+  ["Siege Workshop", "Military", 200, 0, 0, 0, 40, "B", "33333333333323333333333333333333333333333333333333333333", 3],
+  ["Stable", "Military", 175, 0, 0, 0, 50, "B", "20222222222222222222220222222222200202222222222220222222", 2],
+  ["Stone Wall-line", "Military", 0, 0, 0, 5, 10, "B", "22222222222202222202222222222222222222222222222222222222", 2, ["Stone Wall", "Fortified Wall"]],
+  ["University", "Military", 200, 0, 0, 0, 60, "B", "33333333333333333333333333333333333333333333333333333333", 3],
+  ["Watch Tower-line", "Military", 35, 0, 0, 125, 80, "B", "22222222222222222222222222222222222222222222022222222222", 2, ["Watch Tower", "Guard Tower", "Keep"]]
+];
+// Post-Imp: every unit and building as [unique, available per civ] and the upgrade steps between them.
+const MEMBERS = {
+  "Villager": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "Fishing Ship": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "Trade Cog": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "Transport Ship": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "Galley": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "War Galley": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "Galleon": [0, "10111111111111111111111111011111011111111111111111111111"],
+  "Fire Galley": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "Fire Ship": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "Fast Fire Ship": [0, "01110101010011101110001110111111111101101000111111010011"],
+  "Demolition Raft": [0, "11111111111110111111111111110111111111101101111111101011"],
+  "Demolition Ship": [0, "11111111111110111111111111110111111111101101111111101011"],
+  "Heavy Demolition Ship": [0, "10010100011100101011010001000000101111000101101010101001"],
+  "Hulk": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "War Hulk": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "Carrack": [0, "11111011111110111011101111111011111011110111111110111111"],
+  "Cannon Galleon": [0, "00111111101000111101100110111111100101110100111110101000"],
+  "Elite Cannon Galleon": [0, "00111001100000100000100110011101000001010100001100101000"],
+  "Longship": [0, "00000000000001000000000000000000000000000010000000010100"],
+  "Elite Longship": [0, "00000000000001000000000000000000000000000010000000010100"],
+  "Dragon Ship": [1, "00000000000100000000000000000000000000000000000000000000"],
+  "Catapult Galleon": [0, "01000000000011000000001000000000011010000010000001010100"],
+  "Caravel": [1, "00000000000000000000000000000000000000010000000000000000"],
+  "Elite Caravel": [1, "00000000000000000000000000000000000000010000000000000000"],
+  "Turtle Ship": [1, "00000000000000000000000000001000000000000000000000000000"],
+  "Elite Turtle Ship": [1, "00000000000000000000000000001000000000000000000000000000"],
+  "Dromon": [0, "10000000010000000010010000000000000000001000000000000000"],
+  "Lou Chuan": [0, "00000000000100000000000001000000000000000001000000000011"],
+  "Thirisadai": [1, "00000000000000100000000000000000000000000000000000000000"],
+  "Militia": [0, "11111111111111111111110111111111101101111111111110111111"],
+  "Man-at-Arms": [0, "11111111111111111111110111111111101101111111111110111111"],
+  "Long Swordsman": [0, "11111111111111111111110110111111101101111111111110111111"],
+  "Two-Handed Swordsman": [0, "11111111111111111111110110111111101100110111111110111111"],
+  "Champion": [0, "11111101111111101110100110101110100100110111111010101101"],
+  "Legionary": [1, "00000000000000000000000000000000000000001000000000000000"],
+  "Spearman": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "Pikeman": [0, "11111111111111111110111111111111111111111111111111011111"],
+  "Halberdier": [0, "10101111111111111110011011011111011001011011111111011011"],
+  "Eagle Scout": [0, "01000000000000000000000000000000001000000000000000000000"],
+  "Eagle Warrior": [0, "01000000000000000000000000000000001000000000000000000000"],
+  "Elite Eagle Warrior": [0, "01000000000000000000000000000000001000000000000000000000"],
+  "Champi Scout": [0, "00000000000000000000001000000000010010000000000001000000"],
+  "Champi Runner": [0, "00000000000000000000001000000000010010000000000001000000"],
+  "Champi Warrior": [0, "00000000000000000000001000000000010010000000000001000000"],
+  "Elite Champi Warrior": [0, "00000000000000000000001000000000010010000000000001000000"],
+  "Fire Lancer": [0, "00000000000100000000000001101000000000000000000000001000"],
+  "Elite Fire Lancer": [0, "00000000000100000000000001101000000000000000000000001000"],
+  "Huskarl (Barracks)": [1, "00000000000000000010000000000000000000000000000000000000"],
+  "Elite Huskarl (Barracks)": [1, "00000000000000000010000000000000000000000000000000000000"],
+  "Varangian Guard": [0, "00000000010001000000000000000000000000000010000000010100"],
+  "Elite Varangian Guard": [0, "00000000010001000000000000000000000000000010000000010100"],
+  "Condottiero": [1, "00000000000000000000000100000000000000000000000000000000"],
+  "Flemish Militia": [1, "00000001000000000000000000000000000000000000000000000000"],
+  "Jian Swordsman": [1, "00000000000000000000000000000000000000000000000000000001"],
+  "Ibirapema Warrior": [1, "00000000000000000000000000000000000000000000000001000000"],
+  "Elite Ibirapema Warrior": [1, "00000000000000000000000000000000000000000000000001000000"],
+  "Temple Guard": [1, "00000000000000000000000000000000000010000000000000000000"],
+  "Elite Temple Guard": [1, "00000000000000000000000000000000000010000000000000000000"],
+  "Archer": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "Crossbowman": [0, "11111101111111111111111111111111111111111111110111111111"],
+  "Arbalester": [0, "11101100010100110000001110011011101110110111100001001101"],
+  "Skirmisher": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "Elite Skirmisher": [0, "11111111111111111111111111111111111111111111111111011111"],
+  "Imperial Skirmisher": [1, "00000000000000000000000000000000000000000000000000001000"],
+  "Cavalry Archer": [0, "10010010110110010110110011111111100101001101010100101001"],
+  "Heavy Cavalry Archer": [0, "00010010110010010110110011111110100101001101010100101000"],
+  "Mounted Crossbowman": [0, "00001101001001001000000100000000000000110010101010010100"],
+  "Heavy Mounted Crossbowman": [0, "00000100001001001000000000000000000000100010101010010000"],
+  "Hand Cannoneer": [0, "00011001010000101111100110011100100001010100001110100000"],
+  "Elephant Archer": [0, "00100000000000100001000000000000000000000000000000000000"],
+  "Elite Elephant Archer": [0, "00100000000000100001000000000000000000000000000000000000"],
+  "Genitour": [1, "00010000000000000000000000000000000000000000000000000000"],
+  "Elite Genitour": [1, "00010000000000000000000000000000000000000000000000000000"],
+  "Bolas Rider": [1, "00000000000000000000000000000000010000000000000000000000"],
+  "Elite Bolas Rider": [1, "00000000000000000000000000000000010000000000000000000000"],
+  "Slinger": [0, "00000000000000000000001000000000010010000000000001000000"],
+  "Grenadier": [1, "00000000000000000000000001000000000000000000000000000000"],
+  "Xianbei Raider": [1, "00000000000000000000000000000000000000000000000000000010"],
+  "Scout Cavalry": [0, "10111111111111111111110111111111100101111111111110111111"],
+  "Light Cavalry": [0, "10111111111111111111110111111111100101111111111100111111"],
+  "Hussar": [0, "00010011111010010111110101111010000101000110011100110011"],
+  "Winged Hussar": [1, "00000000000000000000000000000100000000100000000000000000"],
+  "Knight": [0, "10011111111111011110010110011111100101111110111110111100"],
+  "Cavalier": [0, "10011111111110011110010110011111100101111010111110111100"],
+  "Paladin": [0, "00000001011010001000010000000110000000000000001010000000"],
+  "Savar": [1, "00000000000000000000000000000000000001000000000000000000"],
+  "Camel Scout": [1, "00000000000000000001000000000000000000000000000000000000"],
+  "Camel Rider": [0, "00010000010010010001100000100000100101000100000100100000"],
+  "Heavy Camel Rider": [0, "00010000010000010001100000100000100101000100000100100000"],
+  "Imperial Camel Rider": [1, "00000000000000000000100000000000000000000000000000000000"],
+  "Battle Elephant": [0, "00100000100000100000000000010001000000000000000000001000"],
+  "Elite Battle Elephant": [0, "00100000100000000000000000010001000000000000000000001000"],
+  "Steppe Lancer": [0, "00000000000010000000000001100000000100000000000100000000"],
+  "Elite Steppe Lancer": [0, "00000000000010000000000001100000000100000000000100000000"],
+  "Shrivamsha Rider": [1, "00000000000000000001000000000000000000000000000000000000"],
+  "Elite Shrivamsha Rider": [1, "00000000000000000001000000000000000000000000000000000000"],
+  "Hei Guang Cavalry": [0, "00000000000000000000000000000000000000000001000000000011"],
+  "Heavy Hei Guang Cavalry": [0, "00000000000000000000000000000000000000000001000000000011"],
+  "Tarkan (Stable)": [1, "00000000000000000000010000000000000000000000000000000000"],
+  "Elite Tarkan (Stable)": [1, "00000000000000000000010000000000000000000000000000000000"],
+  "Battering Ram": [0, "11011111111111011110011111111111111111111111111111111111"],
+  "Capped Ram": [0, "11011111111111011110011111111111111111111111111111111110"],
+  "Siege Ram": [0, "11000010011111010100011001110000001101101111111101110110"],
+  "Armored Elephant": [0, "00100000000000100001100000000000000000000000000000000000"],
+  "Siege Elephant": [0, "00100000000000100001100000000000000000000000000000000000"],
+  "Mangonel": [0, "11111111111011111111111110010111111111111111111111111111"],
+  "Onager": [0, "11111111111011111111101110010111111111111111111111011111"],
+  "Siege Onager": [0, "01000010001011110100000000000000100110000100110010000000"],
+  "Scorpion": [0, "11111111111111111111111111111111111111111110111111111111"],
+  "Heavy Scorpion": [0, "10111110101101111111001011010011011111001010110111110111"],
+  "Rocket Cart": [0, "00000000000100000000000001101000000000000000000000000000"],
+  "Heavy Rocket Cart": [0, "00000000000100000000000001101000000000000000000000000000"],
+  "Siege Tower": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "Bombard Cannon": [0, "00011001110000111011100101001101100001110100001010101000"],
+  "Houfnice": [1, "00001000000000000000000000000000000000000000000000000000"],
+  "Traction Trebuchet": [0, "00000000000000000000000000000000000000000001000000000011"],
+  "Mounted Trebuchet": [1, "00000000000000000000000000100000000000000000000000000000"],
+  "War Chariot": [1, "00000000000000000000000000000000000000000001000000000000"],
+  "Flaming Camel": [1, "00000000000000000000000000000000000000000000000100000000"],
+  "Trebuchet": [0, "11111111111111111111111111111111111111111110111111111100"],
+  "Petard": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "Arambai": [1, "00000000100000000000000000000000000000000000000000000000"],
+  "Elite Arambai": [1, "00000000100000000000000000000000000000000000000000000000"],
+  "Ballista Elephant": [1, "00000000000000000000000000010000000000000000000000000000"],
+  "Elite Ballista Elephant": [1, "00000000000000000000000000010000000000000000000000000000"],
+  "Berserk": [1, "00000000000000000000000000000000000000000000000000000100"],
+  "Elite Berserk": [1, "00000000000000000000000000000000000000000000000000000100"],
+  "Blackwood Archer": [1, "00000000000000000000000000000000000000000000000001000000"],
+  "Elite Blackwood Archer": [1, "00000000000000000000000000000000000000000000000001000000"],
+  "Boyar": [1, "00000000000000000000000000000000000000000000010000000000"],
+  "Elite Boyar": [1, "00000000000000000000000000000000000000000000010000000000"],
+  "Camel Archer": [1, "00010000000000000000000000000000000000000000000000000000"],
+  "Elite Camel Archer": [1, "00010000000000000000000000000000000000000000000000000000"],
+  "Cataphract": [1, "00000000010000000000000000000000000000000000000000000000"],
+  "Elite Cataphract": [1, "00000000010000000000000000000000000000000000000000000000"],
+  "Centurion": [1, "00000000000000000000000000000000000000001000000000000000"],
+  "Elite Centurion": [1, "00000000000000000000000000000000000000001000000000000000"],
+  "Chakram Thrower": [1, "00000000000000000001000000000000000000000000000000000000"],
+  "Elite Chakram Thrower": [1, "00000000000000000001000000000000000000000000000000000000"],
+  "Chu Ko Nu": [1, "00000000000100000000000000000000000000000000000000000000"],
+  "Elite Chu Ko Nu": [1, "00000000000100000000000000000000000000000000000000000000"],
+  "Composite Bowman": [1, "10000000000000000000000000000000000000000000000000000000"],
+  "Elite Composite Bowman": [1, "10000000000000000000000000000000000000000000000000000000"],
+  "Conquistador": [1, "00000000000000000000000000000000000000000000001000000000"],
+  "Elite Conquistador": [1, "00000000000000000000000000000000000000000000001000000000"],
+  "Coustillier": [1, "00000001000000000000000000000000000000000000000000000000"],
+  "Elite Coustillier": [1, "00000001000000000000000000000000000000000000000000000000"],
+  "Fire Archer": [1, "00000000000000000000000000000000000000000000000000000001"],
+  "Elite Fire Archer": [1, "00000000000000000000000000000000000000000000000000000001"],
+  "Gbeto": [1, "00000000000000000000000000000000100000000000000000000000"],
+  "Elite Gbeto": [1, "00000000000000000000000000000000100000000000000000000000"],
+  "Genoese Crossbowman": [1, "00000000000000000000000100000000000000000000000000000000"],
+  "Elite Genoese Crossbowman": [1, "00000000000000000000000100000000000000000000000000000000"],
+  "Ghulam": [1, "00000000000000000000100000000000000000000000000000000000"],
+  "Elite Ghulam": [1, "00000000000000000000100000000000000000000000000000000000"],
+  "Guecha Warrior": [1, "00000000000000000000000000000000000010000000000000000000"],
+  "Elite Guecha Warrior": [1, "00000000000000000000000000000000000010000000000000000000"],
+  "Hearth Troop": [1, "00000000000000000000000000000000000000000010000000000000"],
+  "Elite Hearth Troop": [1, "00000000000000000000000000000000000000000010000000000000"],
+  "Huskarl": [1, "00000000000000000010000000000000000000000000000000000000"],
+  "Elite Huskarl": [1, "00000000000000000010000000000000000000000000000000000000"],
+  "Hussite Wagon": [1, "00001000000000000000000000000000000000000000000000000000"],
+  "Elite Hussite Wagon": [1, "00001000000000000000000000000000000000000000000000000000"],
+  "Iron Pagoda": [1, "00000000000000000000000001000000000000000000000000000000"],
+  "Elite Iron Pagoda": [1, "00000000000000000000000001000000000000000000000000000000"],
+  "Jaguar Warrior": [1, "01000000000000000000000000000000000000000000000000000000"],
+  "Elite Jaguar Warrior": [1, "01000000000000000000000000000000000000000000000000000000"],
+  "Janissary": [1, "00000000000000000000000000000000000000000000000000100000"],
+  "Elite Janissary": [1, "00000000000000000000000000000000000000000000000000100000"],
+  "Jarl": [1, "00000000000000000000000000000000000000000000000000010000"],
+  "Elite Jarl": [1, "00000000000000000000000000000000000000000000000000010000"],
+  "Jomsviking": [1, "00000000000001000000000000000000000000000000000000000000"],
+  "Elite Jomsviking": [1, "00000000000001000000000000000000000000000000000000000000"],
+  "Kamayuk": [1, "00000000000000000000001000000000000000000000000000000000"],
+  "Elite Kamayuk": [1, "00000000000000000000001000000000000000000000000000000000"],
+  "Karambit Warrior": [1, "00000000000000000000000000000001000000000000000000000000"],
+  "Elite Karambit Warrior": [1, "00000000000000000000000000000001000000000000000000000000"],
+  "Keshik": [1, "00000000000000000000000000000000000000000000000100000000"],
+  "Elite Keshik": [1, "00000000000000000000000000000000000000000000000100000000"],
+  "Kipchak": [1, "00000000000010000000000000000000000000000000000000000000"],
+  "Elite Kipchak": [1, "00000000000010000000000000000000000000000000000000000000"],
+  "Kona": [1, "00000000000000000000000000000000010000000000000000000000"],
+  "Elite Kona": [1, "00000000000000000000000000000000010000000000000000000000"],
+  "Konnik": [1, "00000010000000000000000000000000000000000000000000000000"],
+  "Elite Konnik": [1, "00000010000000000000000000000000000000000000000000000000"],
+  "Leitis": [1, "00000000000000000000000000000100000000000000000000000000"],
+  "Elite Leitis": [1, "00000000000000000000000000000100000000000000000000000000"],
+  "Liao Dao": [1, "00000000000000000000000000100000000000000000000000000000"],
+  "Elite Liao Dao": [1, "00000000000000000000000000100000000000000000000000000000"],
+  "Longbowman": [1, "00000100000000000000000000000000000000000000000000000000"],
+  "Elite Longbowman": [1, "00000100000000000000000000000000000000000000000000000000"],
+  "Magyar Huszar": [1, "00000000000000000000000000000010000000000000000000000000"],
+  "Elite Magyar Huszar": [1, "00000000000000000000000000000010000000000000000000000000"],
+  "Mameluke": [1, "00000000000000000000000000000000000000000100000000000000"],
+  "Elite Mameluke": [1, "00000000000000000000000000000000000000000100000000000000"],
+  "Mangudai": [1, "00000000000000000000000000000000000100000000000000000000"],
+  "Elite Mangudai": [1, "00000000000000000000000000000000000100000000000000000000"],
+  "Monaspa": [1, "00000000000000000100000000000000000000000000000000000000"],
+  "Elite Monaspa": [1, "00000000000000000100000000000000000000000000000000000000"],
+  "Obuch": [1, "00000000000000000000000000000000000000100000000000000000"],
+  "Elite Obuch": [1, "00000000000000000000000000000000000000100000000000000000"],
+  "Organ Gun": [1, "00000000000000000000000000000000000000010000000000000000"],
+  "Elite Organ Gun": [1, "00000000000000000000000000000000000000010000000000000000"],
+  "Plumed Archer": [1, "00000000000000000000000000000000001000000000000000000000"],
+  "Elite Plumed Archer": [1, "00000000000000000000000000000000001000000000000000000000"],
+  "Ratha": [1, "00100000000000000000000000000000000000000000000000000000"],
+  "Elite Ratha": [1, "00100000000000000000000000000000000000000000000000000000"],
+  "Rattan Archer": [1, "00000000000000000000000000000000000000000000000000001000"],
+  "Elite Rattan Archer": [1, "00000000000000000000000000000000000000000000000000001000"],
+  "Samurai": [1, "00000000000000000000000010000000000000000000000000000000"],
+  "Elite Samurai": [1, "00000000000000000000000010000000000000000000000000000000"],
+  "Serjeant": [1, "00000000000000000000000000000000000000000000100000000000"],
+  "Elite Serjeant": [1, "00000000000000000000000000000000000000000000100000000000"],
+  "Shotel Warrior": [1, "00000000000000010000000000000000000000000000000000000000"],
+  "Elite Shotel Warrior": [1, "00000000000000010000000000000000000000000000000000000000"],
+  "Tarkan": [1, "00000000000000000000010000000000000000000000000000000000"],
+  "Elite Tarkan": [1, "00000000000000000000010000000000000000000000000000000000"],
+  "Teutonic Knight": [1, "00000000000000000000000000000000000000000000000010000000"],
+  "Elite Teutonic Knight": [1, "00000000000000000000000000000000000000000000000010000000"],
+  "Throwing Axeman": [1, "00000000000000001000000000000000000000000000000000000000"],
+  "Elite Throwing Axeman": [1, "00000000000000001000000000000000000000000000000000000000"],
+  "Tiger Cavalry": [1, "00000000000000000000000000000000000000000000000000000010"],
+  "Elite Tiger Cavalry": [1, "00000000000000000000000000000000000000000000000000000010"],
+  "Urumi Swordsman": [1, "00000000000000100000000000000000000000000000000000000000"],
+  "Elite Urumi Swordsman": [1, "00000000000000100000000000000000000000000000000000000000"],
+  "War Elephant": [1, "00000000000000000000000000000000000001000000000000000000"],
+  "Elite War Elephant": [1, "00000000000000000000000000000000000001000000000000000000"],
+  "War Wagon": [1, "00000000000000000000000000001000000000000000000000000000"],
+  "Elite War Wagon": [1, "00000000000000000000000000001000000000000000000000000000"],
+  "White Feather Guard": [1, "00000000000000000000000000000000000000000001000000000000"],
+  "Elite White Feather Guard": [1, "00000000000000000000000000000000000000000001000000000000"],
+  "Woad Raider": [1, "00000000001000000000000000000000000000000000000000000000"],
+  "Elite Woad Raider": [1, "00000000001000000000000000000000000000000000000000000000"],
+  "Serjeant (Donjon)": [1, "00000000000000000000000000000000000000000000100000000000"],
+  "Monk": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "Missionary": [1, "00000000000000000000000000000000000000000000001000000000"],
+  "Warrior Priest": [1, "10000000000000000000000000000000000000000000000000000000"],
+  "Trade Cart": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "Archery Range": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "Barracks": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "Stable": [0, "10111111111111111111110111111111100101111111111110111111"],
+  "Siege Workshop": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "Blacksmith": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "Dock": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "University": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "Outpost": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "Watch Tower": [0, "11111111111111111111111111111111111111111111011111111111"],
+  "Guard Tower": [0, "11111111111101111101101111111111101111111111011111111111"],
+  "Keep": [0, "00101111111101110101001111011101101010111110001011101011"],
+  "Bombard Tower": [0, "10001001010100100000000100001101010000110000001110101000"],
+  "Palisade Wall": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "Palisade Gate": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "Gate": [0, "11111111111101111101111111111111111111111111111111111111"],
+  "Stone Wall": [0, "11111111111101111101111111111111111111111111111111111111"],
+  "Fortified Wall": [0, "11111101111100111101101111111100101100111111011110111110"],
+  "Castle": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "Monastery": [0, "01111111111111111011111111111111111111111111111111111111"],
+  "House": [0, "11111111111111111111101111111111111111111111111111111111"],
+  "Town Center": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "Wonder": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "Mining Camp": [0, "01111111111111111011110111111111101101111111111110111111"],
+  "Lumber Camp": [0, "01111111111111111011110111111111101101111111111110111111"],
+  "Market": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "Mill": [0, "11111111111111111111110111111111101101011111111110111111"],
+  "Farm": [0, "11111111111111111111111111011111111111111111111111111111"],
+  "Fish Trap": [0, "11111111111111111111111111111111111111111111111111111111"],
+  "Feitoria": [1, "00000000000000000000000000000000000000010000000000000000"],
+  "Pasture": [0, "00000000000000000000000000100000000000000000000000000000"],
+  "Settlement": [0, "00000000000000000000001000000000010010000000000001000000"],
+  "Caravanserai": [0, "00000000000000000000100000000000000001000000000000000000"],
+  "Fortified Church": [0, "10000000000000000100000000000000000000000000000000000000"],
+  "Mule Cart": [0, "10000000000000000100000000000000000000000000000000000000"],
+  "Krepost": [1, "00000010000000000000000000000000000000000000000000000000"],
+  "Harbor": [1, "00000000000000000000000000000001000000000000000000000000"],
+  "Donjon": [1, "00000000000000000000000000000000000000000000100000000000"],
+  "Folwark": [1, "00000000000000000000000000000000000000100000000000000000"]
+};
+const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armored Elephant", "Siege Elephant"], ["Ballista Elephant", "Elite Ballista Elephant"], ["Battering Ram", "Capped Ram"], ["Battle Elephant", "Elite Battle Elephant"], ["Berserk", "Elite Berserk"], ["Blackwood Archer", "Elite Blackwood Archer"], ["Bolas Rider", "Elite Bolas Rider"], ["Bombard Cannon", "Houfnice"], ["Boyar", "Elite Boyar"], ["Camel Archer", "Elite Camel Archer"], ["Camel Rider", "Heavy Camel Rider"], ["Camel Scout", "Camel Rider"], ["Cannon Galleon", "Elite Cannon Galleon"], ["Capped Ram", "Siege Ram"], ["Caravel", "Elite Caravel"], ["Cataphract", "Elite Cataphract"], ["Cavalier", "Paladin"], ["Cavalier", "Savar"], ["Cavalry Archer", "Heavy Cavalry Archer"], ["Centurion", "Elite Centurion"], ["Chakram Thrower", "Elite Chakram Thrower"], ["Champi Runner", "Champi Warrior"], ["Champi Scout", "Champi Runner"], ["Champi Warrior", "Elite Champi Warrior"], ["Chu Ko Nu", "Elite Chu Ko Nu"], ["Composite Bowman", "Elite Composite Bowman"], ["Conquistador", "Elite Conquistador"], ["Coustillier", "Elite Coustillier"], ["Crossbowman", "Arbalester"], ["Demolition Raft", "Demolition Ship"], ["Demolition Ship", "Heavy Demolition Ship"], ["Eagle Scout", "Eagle Warrior"], ["Eagle Warrior", "Elite Eagle Warrior"], ["Elephant Archer", "Elite Elephant Archer"], ["Elite Skirmisher", "Imperial Skirmisher"], ["Fire Archer", "Elite Fire Archer"], ["Fire Galley", "Fire Ship"], ["Fire Lancer", "Elite Fire Lancer"], ["Fire Ship", "Dragon Ship"], ["Fire Ship", "Fast Fire Ship"], ["Galley", "War Galley"], ["Gbeto", "Elite Gbeto"], ["Genitour", "Elite Genitour"], ["Genoese Crossbowman", "Elite Genoese Crossbowman"], ["Ghulam", "Elite Ghulam"], ["Guecha Warrior", "Elite Guecha Warrior"], ["Hearth Troop", "Elite Hearth Troop"], ["Heavy Camel Rider", "Imperial Camel Rider"], ["Hei Guang Cavalry", "Heavy Hei Guang Cavalry"], ["Hulk", "War Hulk"], ["Huskarl (Barracks)", "Elite Huskarl (Barracks)"], ["Huskarl", "Elite Huskarl"], ["Hussite Wagon", "Elite Hussite Wagon"], ["Ibirapema Warrior", "Elite Ibirapema Warrior"], ["Iron Pagoda", "Elite Iron Pagoda"], ["Jaguar Warrior", "Elite Jaguar Warrior"], ["Janissary", "Elite Janissary"], ["Jarl", "Elite Jarl"], ["Jomsviking", "Elite Jomsviking"], ["Kamayuk", "Elite Kamayuk"], ["Karambit Warrior", "Elite Karambit Warrior"], ["Keshik", "Elite Keshik"], ["Kipchak", "Elite Kipchak"], ["Knight", "Cavalier"], ["Kona", "Elite Kona"], ["Konnik", "Elite Konnik"], ["Leitis", "Elite Leitis"], ["Liao Dao", "Elite Liao Dao"], ["Light Cavalry", "Hussar"], ["Light Cavalry", "Winged Hussar"], ["Long Swordsman", "Legionary"], ["Long Swordsman", "Two-Handed Swordsman"], ["Longbowman", "Elite Longbowman"], ["Longship", "Elite Longship"], ["Magyar Huszar", "Elite Magyar Huszar"], ["Mameluke", "Elite Mameluke"], ["Man-at-Arms", "Long Swordsman"], ["Mangonel", "Onager"], ["Mangudai", "Elite Mangudai"], ["Militia", "Man-at-Arms"], ["Monaspa", "Elite Monaspa"], ["Mounted Crossbowman", "Heavy Mounted Crossbowman"], ["Obuch", "Elite Obuch"], ["Onager", "Siege Onager"], ["Organ Gun", "Elite Organ Gun"], ["Pikeman", "Halberdier"], ["Plumed Archer", "Elite Plumed Archer"], ["Ratha", "Elite Ratha"], ["Rattan Archer", "Elite Rattan Archer"], ["Rocket Cart", "Heavy Rocket Cart"], ["Samurai", "Elite Samurai"], ["Scorpion", "Heavy Scorpion"], ["Scout Cavalry", "Light Cavalry"], ["Serjeant", "Elite Serjeant"], ["Serjeant (Donjon)", "Elite Serjeant"], ["Shotel Warrior", "Elite Shotel Warrior"], ["Shrivamsha Rider", "Elite Shrivamsha Rider"], ["Skirmisher", "Elite Skirmisher"], ["Spearman", "Pikeman"], ["Steppe Lancer", "Elite Steppe Lancer"], ["Tarkan (Stable)", "Elite Tarkan (Stable)"], ["Tarkan", "Elite Tarkan"], ["Temple Guard", "Elite Temple Guard"], ["Teutonic Knight", "Elite Teutonic Knight"], ["Throwing Axeman", "Elite Throwing Axeman"], ["Tiger Cavalry", "Elite Tiger Cavalry"], ["Turtle Ship", "Elite Turtle Ship"], ["Two-Handed Swordsman", "Champion"], ["Urumi Swordsman", "Elite Urumi Swordsman"], ["Varangian Guard", "Elite Varangian Guard"], ["War Elephant", "Elite War Elephant"], ["War Galley", "Galleon"], ["War Hulk", "Carrack"], ["War Wagon", "Elite War Wagon"], ["White Feather Guard", "Elite White Feather Guard"], ["Woad Raider", "Elite Woad Raider"], ["Watch Tower", "Guard Tower"], ["Guard Tower", "Keep"], ["Stone Wall", "Fortified Wall"]];
+(function () {
+  "use strict";
+
+  const RES = ["wood", "food", "gold", "stone"];
+  const LETTER = { wood: "w", food: "f", gold: "g", stone: "s" };
+  const AGES = ["Dark Age", "Feudal Age", "Castle Age", "Imperial Age"];
+
+  /* ---------- gathering ---------- */
+  // Base work rates per villager per second (generic civ).
+  const BASE = { wood: 0.39, gold: 0.38, stone: 0.36 };
+  const FOOD = { berries: 0.31, hunt: 0.41, sheep: 0.33, fish: 0.43 };
+  // Farm rates per villager per minute by farm upgrades owned.
+  // Hand Cart without Heavy Plow is estimated from the Heavy Plow gain seen with Wheelbarrow.
+  const FARM_TABLES = {
+    generic: { "": 20.3, hp: 21.2, wb: 23.03, "wb+hp": 23.16, hc: 23.87, "hc+hp": 24.0 },
+    aztecs:  { "": 22.46, hp: 22.98, wb: 23.9, "wb+hp": 24.0, hc: 23.9, "hc+hp": 24.0 },
+    berbers: { "": 20.88, hp: 21.61, wb: 23.13, "wb+hp": 23.64, hc: 23.48, "hc+hp": 24.0 },
+    khmer:   { "": 21.48, hp: 22.11, wb: 23.56, "wb+hp": 23.77, hc: 23.79, "hc+hp": 24.0 },
+    pasture: { "": 22.89, hp: 22.89, wb: 23.96, "wb+hp": 23.96, hc: 25.26, "hc+hp": 25.26 },
+  };
+  // Niche income sources, per minute (rates tested by hand). kind = what one unit of the source is.
+  // civs: who has it (team: allies count too), age: earliest age, unique: a unique building (kept under Full Tech Tree).
+  const NICHE = {
+    wood: [
+      { id: "pforager", label: "Portuguese Forager", perMin: 5, kind: "vils", civs: ["Portuguese"], age: 1, tip: "Portuguese foragers also generate wood" },
+      { id: "feitoria", label: "Feitoria", perMin: 42, kind: "feitoria", civs: ["Portuguese"], age: 4, unique: true, tip: "Portuguese Feitoria" },
+    ],
+    food: [
+      { id: "shu", label: "Shu Lumberjack", perMin: 1, kind: "vils", civs: ["Shu"], age: 1, tip: "Shu lumberjacks also generate food" },
+      { id: "feitoria", label: "Feitoria", perMin: 97, kind: "feitoria", civs: ["Portuguese"], age: 4, unique: true, tip: "Portuguese Feitoria" },
+      { id: "gurjara", label: "Gurjara Livestock", perMin: 6, kind: "livestock", civs: ["Gurjaras"], age: 1, tip: "Livestock garrisoned in a Gurjara Mill" },
+      { id: "gurjara-l", label: "Gurjara Livestock (large)", perMin: 8, kind: "livestock", civs: ["Gurjaras"], age: 1, tip: "Large livestock garrisoned in a Gurjara Mill" },
+      { id: "brelic", label: "Burgundian Relic", perMin: 20, kind: "relic", civs: ["Burgundians"], team: true, age: 3, tip: "Burgundian team bonus: relics also generate food" },
+    ],
+    gold: [
+      { id: "relic", label: "Relic", perMin: 30, kind: "relic", age: 3, tip: "A garrisoned relic" },
+      { id: "vshep", label: "Varangian Shepherd", from: "sheep", mult: 0.1, kind: "vils", civs: ["Varangians"], age: 1, tip: "Gold at 10% of the shepherding rate" },
+      { id: "vhunt", label: "Varangian Hunter", from: "hunt", mult: 0.1, kind: "vils", civs: ["Varangians"], age: 1, tip: "Gold at 10% of the hunting rate" },
+      { id: "vfish", label: "Varangian Fisherman", from: "fish", mult: 0.1, kind: "vils", civs: ["Varangians"], age: 1, tip: "Gold at 10% of the fishing rate" },
+      { id: "pstone", label: "Polish Stone Miner", perMin: 6, kind: "vils", civs: ["Poles"], age: 1, tip: "Polish stone miners also generate gold" },
+      { id: "feitoria", label: "Feitoria", perMin: 60, kind: "feitoria", civs: ["Portuguese"], age: 4, unique: true, tip: "Portuguese Feitoria" },
+      { id: "bfarmer", label: "Burgundian Farmer", perMin: 0.8, kind: "vils", civs: ["Burgundians"], age: 3, ut: true, tip: "Burgundian Vineyards: farmers also generate gold" },
+      { id: "vlumber", label: "Vietnamese Lumberjack", perMin: 0.8, kind: "vils", civs: ["Vietnamese"], age: 4, ut: true, tip: "Paper Money: lumberjacks also generate gold" },
+    ],
+    stone: [
+      { id: "feitoria", label: "Feitoria", perMin: 18, kind: "feitoria", civs: ["Portuguese"], age: 4, unique: true, tip: "Portuguese Feitoria" },
+    ],
+  };
+  const STD_SRC = { wood: "Lumberjack", gold: "Gold Miner", stone: "Stone Miner" };
+  const FOOD_STD = [["farm", "Farm"], ["berries", "Berries"], ["hunt", "Hunt"], ["sheep", "Sheep"], ["fish", "Fishing"]];
+  const KIND = { vils: ["vils", "villager"], feitoria: ["Feitorias", "Feitoria"], relic: ["Relics", "relic"], livestock: ["Livestock", "livestock animal"] };
+
+  const MULT = { dba: 1.2, bs: 1.2, tms: 1.1, gm: 1.15, gsm: 1.15, sm: 1.15, ssm: 1.15 };
+  const REQUIRES = { bs: "dba", tms: "bs", gsm: "gm", ssm: "sm", hc: "wb", hp: "hcol", crop: "hp" };
+  const UPS = ["dba", "bs", "tms", "hp", "wb", "hc", "gm", "gsm", "sm", "ssm", "hcol", "crop"];
+  const TECH_DESC = {
+    dba: "Lumberjacks work 20% faster", bs: "Lumberjacks work 20% faster", tms: "Lumberjacks work 10% faster",
+    hp: "Farms hold 125 more food; farmers carry 1 more", wb: "Villagers carry 25% more and move 10% faster",
+    hc: "Villagers carry 50% more and move 10% faster", gm: "Gold miners work 15% faster", gsm: "Gold miners work 15% faster",
+    sm: "Stone miners work 15% faster", ssm: "Stone miners work 15% faster",
+    hcol: "Farms hold 75 more food", crop: "Farms hold 175 more food" };
+  const CONSC_DESC = "Military buildings except Siege Workshops work 33% faster";
+  const CRANE_DESC = "Builders work 20% faster";
+  // Tooltip: why a box is locked (if it is), then what the tech does.
+  const tip = (why, desc) => (why ? `${why}. ${desc}` : desc);
+  const TECH_NAME = { dba: "Double-Bit Axe", bs: "Bow Saw", tms: "Two-Man Saw", hp: "Heavy Plow", wb: "Wheelbarrow",
+    hc: "Hand Cart", gm: "Gold Mining", gsm: "Gold Shaft Mining", sm: "Stone Mining", ssm: "Stone Shaft Mining",
+    hcol: "Horse Collar", crop: "Crop Rotation" };
+  // Age (1 Dark .. 4 Imperial) each eco upgrade becomes available, and civs that differ (aoe2techtree.net).
+  const TECH_AGE = { dba: 2, bs: 3, tms: 4, hp: 3, wb: 2, hc: 3, gm: 2, gsm: 3, sm: 2, ssm: 3, hcol: 2, crop: 4 };
+  const TECH_AGE_CIV = { Burgundians: { dba: 1, bs: 2, tms: 3, hp: 2, wb: 1, hc: 2, gm: 1, gsm: 2, sm: 1, ssm: 2, hcol: 1, crop: 3 } };   // e.g. Burgundians get eco upgrades an age early
+  // Civs missing each eco upgrade in their tech tree.
+  const NO_TECH = {
+    tms: ["Armenians", "Aztecs", "Berbers", "Bulgarians", "Celts", "Danes", "Franks", "Georgians", "Gurjaras", "Incas", "Khmer", "Malay", "Malians", "Mapuche", "Mongols", "Poles", "Romans", "Sicilians", "Tatars", "Wei"],
+    hp: ["Khitans"],
+    gsm: ["Dravidians", "Georgians", "Goths", "Italians", "Khitans", "Lithuanians", "Mayans", "Poles", "Portuguese", "Spanish", "Teutons", "Varangians", "Vietnamese"],
+    ssm: ["Armenians", "Bengalis", "Britons", "Burmese", "Cumans", "Dravidians", "Franks", "Huns", "Japanese", "Magyars", "Romans", "Saracens", "Saxons", "Shu", "Slavs", "Tatars", "Tupi", "Turks", "Vikings"],
+    hcol: ["Khitans"],
+    crop: ["Armenians", "Bohemians", "Britons", "Celts", "Chinese", "Danes", "Dravidians", "Ethiopians", "Hindustanis", "Huns", "Japanese",
+      "Khitans", "Koreans", "Mongols", "Saracens", "Shu", "Spanish", "Tupi", "Turks", "Wu"],
+  };
+
+  /* ---------- unit groups used by civ bonuses ---------- */
+  // UNITS rows: [name, group, wood, food, gold, stone, time, flags, age per civ, generic age, merged members]
+  // Upgrade-line members that cost the same and train equally fast share one row (e.g. "Militia-line", "(Elite) Samurai").
+  const members = (u) => u[10] || [u[0]];
+  // flags: I infantry, A ranged, M mounted, G gunpowder, S stable, W siege workshop,
+  //        X siege weapon, D dock, N warship, L military, B building, U unique (per aoe2techtree)
+  const has = (f) => (u) => u[7].indexOf(f) !== -1;
+  const named = (...n) => (u) => members(u).some((m) => n.indexOf(m) !== -1);
+  const any = (...fs) => (u) => fs.some((f) => f(u));
+  const INF = has("I"), RANGED = has("A"), GUN = has("G"), STABLE = has("S"), WORKSHOP = has("W"),
+        SIEGE = has("X"), DOCK = has("D"), WARSHIP = has("N"), MIL = has("L"), BLD = has("B");
+  const UNIT = (u) => !BLD(u);
+  const FOOT_ARCHER = (u) => RANGED(u) && !has("M")(u);
+  const VIL = named("Villager");
+  const SPEAR = named("Spearman", "Pikeman", "Halberdier");
+  const SKIRM = named("Skirmisher", "Elite Skirmisher", "Imperial Skirmisher");
+  const CAMEL = named("Camel Rider", "Heavy Camel Rider", "Imperial Camel Rider");
+  const SCOUT = named("Scout Cavalry", "Light Cavalry", "Hussar", "Winged Hussar");
+  const FORT = named("Palisade Wall", "Palisade Gate", "Stone Wall", "Fortified Wall", "Gate", "Watch Tower",
+                     "Guard Tower", "Keep", "Bombard Tower", "Castle", "Donjon", "Krepost");
+
+  // Effect builders. p is a percentage, or [Dark, Feudal, Castle, Imperial].
+  const cost = (m, p, label, res) => ({ k: "cost", m, p, label, res });
+  const flat = (m, res, v, label) => ({ k: "flat", m, res, v, p: v, label });
+  const faster = (m, p, label) => ({ k: "time", m, p, label });
+  const rate = (src, p, label) => ({ k: "rate", src, p, label });
+  const farmTable = (t, label) => ({ k: "farm", t, label });
+  const team = (e) => Object.assign(e, { team: true });
+  // Replace a share of one resource with another, e.g. gold cost paid in food instead.
+  const swap = (m, from, to, frac, label) => ({ k: "swap", m, from, to, frac, p: 1, label });
+  const inGroup = (...g) => (u) => g.indexOf(u[1]) !== -1;
+  const RANGE = has("R"), BARRACKS = has("K"), CAMEL_OR_ELE = any(has("C"), has("E"));
+  const MOUNTED_ARCHER = (u) => RANGED(u) && has("M")(u);
+
+  // Civ and team bonuses that change villager counts, from aoe2techtree.net civ descriptions.
+  const FX = {
+    Armenians: [cost(named("Mule Cart"), 25, "Mule Carts cost −{p}%")],
+    Aztecs: [team({ k: "relicgold", mult: 1.33, label: "relics generate 33% more gold" }), faster(MIL, 15, "military units train {p}% faster"), farmTable("aztecs", "villagers carry more, so farms are faster")],
+    Berbers: [cost(STABLE, [0, 0, 15, 20], "Stable units cost −{p}%"), farmTable("berbers", "faster villagers, so farms are faster"),
+              team({ k: "unlock", ages: { Genitour: 3, "Elite Genitour": 4 }, label: "Genitour at the Archery Range" })],
+    Bohemians: [flat(named("Blacksmith", "University"), "wood", 100, "Blacksmiths and Universities −100 wood"), team(faster(named("Trade Cart"), 80, "Markets work {p}% faster"))],
+    Britons: [rate("sheep", 25, "shepherds +{p}%"), cost(named("Town Center"), [0, 0, 50, 50], "Town Centers −{p}% wood", ["wood"]), team(faster(RANGE, 10, "Archery Ranges work {p}% faster"))],
+    Bulgarians: [cost(named("Town Center"), 50, "Town Centers −{p}% stone", ["stone"])],
+    Byzantines: [cost(any(SPEAR, SKIRM, CAMEL), 25, "Spearman-line, Skirmishers and Camel Riders −{p}%")],
+    Celts: [rate("wood", 15, "lumberjacks +{p}%"), team(faster(WORKSHOP, 20, "Siege Workshops work {p}% faster"))],
+    Cumans: [flat(named("Archery Range", "Stable"), "wood", 75, "Archery Ranges and Stables −75 wood")],
+    Danes: [rate("food", 5, "villagers drop off +{p}% food")],
+    Dravidians: [cost(SIEGE, 33, "siege weapons −{p}% wood", ["wood"])],
+    Franks: [rate("berries", 15, "foragers +{p}%"), cost(named("Castle"), [0, 0, 15, 25], "Castles −{p}%")],
+    Goths: [cost(INF, [15, 20, 25, 30], "infantry −{p}%"), team(faster(BARRACKS, 20, "Barracks work {p}% faster"))],
+    Hindustanis: [cost(VIL, [8, 13, 18, 23], "Villagers −{p}%")],
+    Huns: [cost(named("Cavalry Archer", "Heavy Cavalry Archer"), [0, 0, 10, 20], "Cavalry Archers −{p}%"), team(faster(STABLE, 20, "Stables work {p}% faster"))],
+    Incas: [cost(MIL, [15, 20, 25, 30], "military units −{p}% food", ["food"]), cost(BLD, 15, "buildings −{p}% stone", ["stone"])],
+    Italians: [cost(GUN, 20, "gunpowder units −{p}%"), cost(named("Fishing Ship"), 15, "Fishing Ships −{p}%"),
+               team({ k: "unlock", ages: { Condottiero: 4 }, label: "Condottiero at the Barracks in Imperial Age" })],
+    Japanese: [cost(named("Mill", "Lumber Camp", "Mining Camp"), 50, "Mills, Lumber and Mining Camps −{p}%")],
+    Khitans: [farmTable("pasture", "Pastures replace Farms"), faster(any(SPEAR, SKIRM, SCOUT), 15, "Spearman-line, Skirmishers and Scout Cavalry-line train {p}% faster")],
+    Khmer: [farmTable("khmer", "farmers drop off at the farm, so farms are faster")],
+    Koreans: [rate("stone", 20, "stone miners +{p}%"), cost(any(INF, RANGED), 50, "infantry and ranged units −{p}% wood", ["wood"]),
+              cost(WARSHIP, 20, "warships −{p}% wood", ["wood"])],
+    Magyars: [cost(SCOUT, 15, "Scout Cavalry-line −{p}%"), team(faster(MOUNTED_ARCHER, 25, "mounted archers train {p}% faster"))],
+    Malay: [cost(named("Battle Elephant", "Elite Battle Elephant"), [0, 0, 25, 35], "Battle Elephants −{p}%")],
+    Malians: [rate("gold", 10, "gold +{p}% per drop-off"), cost(BLD, 15, "buildings −{p}% wood", ["wood"])],
+    Mapuche: [rate("berries", 25, "foragers drop off +{p}% food")],
+    Mayans: [{ k: "farmfood", mult: 1.15, label: "resources (and farms) last 15% longer" }, cost(FOOT_ARCHER, [0, 10, 20, 30], "foot archers −{p}%"), team(cost(named("Palisade Wall", "Stone Wall", "Fortified Wall"), 50, "walls −{p}%"))],
+    Mongols: [rate("hunt", 40, "hunters +{p}%")],
+    Muisca: [cost(named("Settlement"), 33, "Settlements −{p}%")],
+    Persians: [faster(any(VIL, DOCK), [5, 10, 15, 20], "Town Centers and Docks work {p}% faster")],
+    Portuguese: [cost(UNIT, 20, "units −{p}% gold", ["gold"])],
+    Romans: [rate("all", 5, "villagers gather {p}% faster"), faster(BLD, 5, "villagers build {p}% faster"),
+             cost(named("Scorpion", "Heavy Scorpion"), 50, "Scorpions −{p}% gold", ["gold"])],
+    Saracens: [flat(named("Market"), "wood", 100, "Markets −100 wood")],
+    Sicilians: [{ k: "farmfood", upg: 2.25, label: "farm upgrades add 125% more food" }, faster(FORT, 50, "fortifications built {p}% faster"), faster(named("Town Center"), 100, "Town Centers built {p}% faster"), team(cost(named("Transport Ship"), 50, "Transport Ships −{p}%"))],
+    Slavs: [rate("farm", 15, "farmers +{p}%"), cost(WORKSHOP, 15, "Siege Workshop units −{p}%")],
+    Spanish: [faster(BLD, 30, "builders work {p}% faster")],
+    Teutons: [cost(named("Farm"), 40, "Farms −{p}%")],
+    Turks: [rate("gold", 25, "gold miners +{p}%"), team(faster(GUN, 25, "gunpowder units train {p}% faster"))],
+    Vikings: [cost(WARSHIP, [0, 10, 15, 20], "warships −{p}%"), team(cost(named("Dock"), 15, "Docks −{p}%"))],
+    Wei: [cost(named("Traction Trebuchet", "Lou Chuan"), 25, "Traction Trebuchets and Lou Chuans −{p}%")],
+  };
+
+  FX["Ethiopians"] = [team(cost(named("Outpost"), 100, "Outposts cost no stone", ["stone"]))];
+  FX["Gurjaras"] = [team(faster(CAMEL_OR_ELE, 25, "camel and elephant units train {p}% faster"))];
+  FX["Lithuanians"] = [team(faster(named("Monk", "Missionary"), 20, "Monasteries work {p}% faster"))];
+  FX["Chinese"] = [team({ k: "farmfood", mult: 1.1, label: "farms hold 10% more food" })];
+  FX["Wu"] = [team(faster(named("House"), 100, "Houses built {p}% faster"))];
+  // Unique technologies that change unit costs, training times or gather rates (aoe2techtree.net).
+  // Others (combat stats, population, new income sources without a known rate) are left out on purpose.
+  const ut = (name, age, desc, fx) => ({ name, age, desc, fx });
+  const UT = {
+    Berbers: [ut("Kasbah", 3, "Castles work 25% faster", [faster(inGroup("Castle"), 25, "Castles work {p}% faster")])],
+    Bohemians: [ut("Hussite Reforms", 4, "Monks cost food instead of gold", [swap(named("Monk"), "gold", "food", 1, "Monks cost food instead of gold")])],
+    Cumans: [ut("Steppe Husbandry", 3, "Scout Cavalry-line, Steppe Lancers and Cavalry Archers train 100% faster",
+      [faster(named("Scout Cavalry", "Light Cavalry", "Hussar", "Winged Hussar", "Steppe Lancer", "Elite Steppe Lancer", "Cavalry Archer", "Heavy Cavalry Archer"),
+        100, "Scout Cavalry-line, Steppe Lancers and Cavalry Archers train {p}% faster")])],
+    Franks: [
+      ut("Ordonnance Companies", 3, "Mounted Crossbowmen cost 40% less gold",
+        [cost(named("Mounted Crossbowman", "Heavy Mounted Crossbowman"), 40, "Mounted Crossbowmen −{p}% gold", ["gold"])]),
+      ut("Chivalry", 4, "Stables work 40% faster", [faster(STABLE, 40, "Stables work {p}% faster")]),
+    ],
+    Goths: [ut("Perfusion", 4, "Barracks work 100% faster", [faster(BARRACKS, 100, "Barracks work {p}% faster")])],
+    Gurjaras: [ut("Kshatriyas", 3, "Military units cost 25% less food", [cost(MIL, 25, "military units −{p}% food", ["food"])])],
+    Hindustanis: [ut("Grand Trunk Road", 3, "All gold income 10% faster", [rate("gold", 10, "gold income +{p}%")])],
+    Italians: [ut("Silk Road", 3, "Trade Carts and Trade Cogs cost 50% less", [cost(named("Trade Cart", "Trade Cog"), 50, "trade units −{p}%")])],
+    Magyars: [ut("Corvinian Army", 3, "Magyar Huszars cost food instead of gold",
+      [swap(named("Magyar Huszar", "Elite Magyar Huszar"), "gold", "food", 1, "Magyar Huszars cost food instead of gold")])],
+    Malay: [ut("Forced Levy", 4, "Militia-line costs food instead of gold",
+      [swap(named("Militia", "Man-at-Arms", "Long Swordsman", "Two-Handed Swordsman", "Champion"), "gold", "food", 1, "Militia-line costs food instead of gold")])],
+    Mapuche: [ut("Butalmapu", 4, "Castle unique units and Bolas Riders cost 15% less",
+      [cost((u) => (u[1] === "Castle" && has("U")(u)) || named("Bolas Rider", "Elite Bolas Rider")(u), 15, "Castle unique units and Bolas Riders −{p}%")])],
+    Muisca: [ut("Huaracas", 4, "Slingers train 50% faster", [faster(named("Slinger"), 50, "Slingers train {p}% faster")])],
+    Persians: [ut("Kamandaran", 3, "Archer-line costs wood instead of gold",
+      [swap(named("Archer", "Crossbowman", "Arbalester"), "gold", "wood", 1, "Archer-line costs wood instead of gold")])],
+    Poles: [ut("Szlachta Privileges", 3, "Knight-line costs 60% less gold",
+      [cost(named("Knight", "Cavalier", "Paladin"), 60, "Knight-line −{p}% gold", ["gold"])])],
+    Portuguese: [ut("Circumnavigation", 3, "Ships train 33% faster", [faster(DOCK, 33, "ships train {p}% faster")])],
+    Romans: [ut("Comitatenses", 4, "Militia-line, Knight-line and Centurions train 50% faster",
+      [faster(named("Militia", "Man-at-Arms", "Long Swordsman", "Two-Handed Swordsman", "Champion", "Legionary",
+        "Knight", "Cavalier", "Paladin", "Centurion", "Elite Centurion"), 50, "Militia-line, Knight-line and Centurions train {p}% faster")])],
+    Saxons: [ut("Clerical Recruitment", 3, "Monks train 33% faster", [faster(named("Monk"), 33, "Monks train {p}% faster")])],
+    Slavs: [ut("Detinets", 3, "40% of Castle and Watch Tower-line stone paid in wood",
+      [swap(named("Castle", "Watch Tower", "Guard Tower", "Keep"), "stone", "wood", 0.4, "40% of the stone cost paid in wood")])],
+  };
+  const CONSCRIPTION_AGE = 4;
+  // Treadmill Crane (University, Castle Age): builders work 20% faster. Civs without it, per aoe2techtree.net.
+  const CRANE_AGE = 3;
+  const CRANE_MISSING = ["Bengalis", "Bohemians", "Bulgarians", "Celts", "Chinese", "Cumans", "Danes", "Dravidians", "Ethiopians",
+    "Hindustanis", "Huns", "Khmer", "Mongols", "Persians", "Romans", "Saracens", "Sicilians", "Slavs", "Spanish", "Teutons"];
+  const CRANE = faster(BLD, 20, "builders work {p}% faster");
+  const CONSCRIPTION = faster(inGroup("Barracks", "Archery Range", "Stable", "Castle", "Donjon"), 33,
+    "military buildings except Siege Workshops work {p}% faster");
+
+  const CIVS = ["Generic"].concat(CIV_NAMES);
+  const byName = new Map(UNITS.map((u, i) => [u[0], i]));
+  const BUILDING_GROUPS = ["Economic", "Military"];
+  const parentOf = (u) => (BUILDING_GROUPS.indexOf(u[1]) !== -1 ? "Buildings" : "Units");
+  const norm = (s) => s.toLowerCase().replace(/[-\s]+/g, " ").trim();
+  const SEARCH = UNITS.map((u) => [u[0]].concat(members(u), [u[1], parentOf(u)]).map(norm).join(" | "));
+  // Old saves and searches may use a member's own name; map it to its row.
+  const ALIAS = new Map();
+  UNITS.forEach((u) => members(u).forEach((m) => { if (!byName.has(m)) ALIAS.set(m, u[0]); }));
+
+  const state = { rows: [], food: "farm", up: Object.fromEntries(UPS.map((k) => [k, false])), civ: "Generic", allies: [], age: 3, dock: false, ftt: false, consc: false, crane: false, uts: [], postimp: false, bldOn: false,
+    niche: false, src: { wood: "std", gold: "std", stone: "std" } };
+  const MAX_BUILDERS = 20;
+  const MAX_ALLIES = 7;
+  const KEY = "villagers-required.v3";
+
+  const $ = (id) => document.getElementById(id);
+  const tbody = $("rows");
+  const table = $("sheet");
+  const wrap = $("sheet-wrap");
+  const statusEl = $("status");
+  const clearBtn = $("clear");
+
+  /* ---------- persistence ---------- */
+  // Everything at its starting value: nothing for Clear to do, so it's hidden.
+  function isCleared() {
+    return !state.rows.length && state.civ === "Generic" && !state.allies.length && state.age === 3 &&
+      state.food === "farm" && ["wood", "gold", "stone"].every((r) => state.src[r] === "std") && !state.consc && !state.crane && !state.uts.length && !state.postimp &&
+      UPS.every((k) => !state.up[k]);
+  }
+  // Something for Clear Techs to do: any technology that is ticked and in effect.
+  function anyTechOn() {
+    return UPS.some((k) => on(k) && (showStone() || (k !== "sm" && k !== "ssm")) && (reseedShown || (k !== "hcol" && k !== "crop"))) ||
+      (!state.ftt && civTechs().some((t) => state.uts.indexOf(t.name) !== -1 && ageOpen(t.age))) ||
+      (state.consc && ageOpen(CONSCRIPTION_AGE)) || (state.crane && craneOpen() && state.bldOn);
+  }
+  function syncButtons() {
+    $("reset").hidden = isCleared();
+    $("clear-civs").hidden = state.civ === "Generic" && !state.allies.length;
+    document.querySelectorAll(".clear-techs").forEach((b) => { b.hidden = !anyTechOn(); });
+  }
+  function save() {
+    syncButtons();
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* storage unavailable */ }
+  }
+  function load() {
+    try {
+      const cur = localStorage.getItem(KEY);
+      const s = JSON.parse(cur || localStorage.getItem("villagers-required.v2") || localStorage.getItem("villagers-required.v1") || "null");
+      if (!s) return;
+      if (Array.isArray(s.rows)) {
+        state.rows = [];
+        s.rows.forEach((r) => {
+          if (!r) return;
+          // Older saves used member names ("Champion") or "Militia line" / "Samurai line" style names.
+          const plain = String(r.name).replace(/[- ]line(?= \(|$)/, "");
+          const name = byName.has(r.name) ? r.name : ALIAS.get(r.name) || ALIAS.get(plain);
+          if (!name) return;
+          const count = Math.max(0, Math.min(99, parseInt(r.count, 10) || 0));
+          const builders = Math.max(1, Math.min(MAX_BUILDERS, parseInt(r.builders, 10) || 1));
+          const same = state.rows.find((x) => x.name === name);
+          if (same) same.count = Math.min(99, same.count + count);
+          else state.rows.push({ name, count, builders });
+        });
+      }
+      if (s.food === "farm" || FOOD[s.food] || NICHE.food.some((o) => o.id === s.food)) state.food = s.food;
+      if (s.up) UPS.forEach((k) => { state.up[k] = !!s.up[k]; });
+      if (CIVS.indexOf(s.civ) !== -1) state.civ = s.civ;
+      if (Array.isArray(s.allies)) {
+        state.allies = s.allies.filter((c, i, arr) => CIV_NAMES.indexOf(c) !== -1 && arr.indexOf(c) === i).slice(0, MAX_ALLIES);
+      }
+      if (cur && s.age >= 0 && s.age <= 3) state.age = s.age | 0;
+      state.dock = !!s.dock;
+      state.ftt = !!s.ftt;
+      state.consc = !!s.consc;
+      state.crane = !!s.crane;
+      state.postimp = !!s.postimp;
+      state.bldOn = !!s.bldOn;
+      state.niche = !!s.niche;
+      if (s.src) ["wood", "gold", "stone"].forEach((r) => { if (typeof s.src[r] === "string") state.src[r] = s.src[r]; });
+      if (!FOOD[state.food] && state.food !== "farm" && !NICHE.food.some((o) => o.id === s.food)) state.food = "farm";
+      if (Array.isArray(s.uts)) state.uts = s.uts.filter((n) => typeof n === "string");   // older saves keep the new Imperial default
+    } catch (e) { /* ignore bad data */ }
+  }
+
+  /* ---------- civ effects ---------- */
+  const fxOf = (civ) => FX[civ] || [];
+  // Everything that applies: your civ's bonuses (incl. its team bonus) plus each ally's team bonus.
+  // Team bonuses don't stack, so an ally of your own civ adds nothing new.
+  // Full Tech Tree switches off every civ bonus, team bonus and unique technology.
+  // Generic is exempt: it has no box, and allies' team bonuses still count there.
+  const fttOn = () => state.ftt && state.civ !== "Generic";
+  function activeFx() {
+    const out = [];
+    if (!fttOn()) {
+      fxOf(state.civ).forEach((e) => out.push({ e, from: null }));
+      state.allies.forEach((a) => {
+        if (a !== state.civ) fxOf(a).forEach((e) => { if (e.team) out.push({ e, from: a }); });
+      });
+      civTechs().forEach((t) => {
+        if (state.uts.indexOf(t.name) !== -1 && ageOpen(t.age)) t.fx.forEach((e) => out.push({ e, tech: t.name }));
+      });
+    }
+    if (state.consc && ageOpen(CONSCRIPTION_AGE)) out.push({ e: CONSCRIPTION, tech: "Conscription" });
+    if (state.crane && craneOpen() && state.bldOn) out.push({ e: CRANE, tech: "Treadmill Crane" });
+    return out;
+  }
+  const civTechs = () => (state.civ === "Generic" ? [] : UT[state.civ] || []);
+  const hasCrane = () => state.civ === "Generic" || state.ftt || CRANE_MISSING.indexOf(state.civ) === -1;
+  const craneOpen = () => hasCrane() && ageOpen(CRANE_AGE);
+  const hasBuildingRow = () => state.rows.some((r) => BLD(UNITS[byName.get(r.name)]));
+  const source = (x) => (x.tech ? ` (${x.tech})` : x.from ? ` (from ${x.from} Ally)` : x.e.team ? " (team bonus)" : "");
+  // Units an ally's team bonus makes available (e.g. Genitours from a Berber ally).
+  function allyUnlockAge(name) {
+    let best = 0;
+    if (fttOn()) return 0;
+    state.allies.forEach((a) => fxOf(a).forEach((e) => {
+      if (e.k === "unlock" && e.ages[name]) best = best ? Math.min(best, e.ages[name]) : e.ages[name];
+    }));
+    return best;
+  }
+  const pct = (e) => (Array.isArray(e.p) ? e.p[state.age] : e.p);
+  // Age (1-4) in which the selected civ can first make this unit or building; 0 = not in its tech tree.
+  // With Full Tech Tree on, every non-unique unit and building is open to the civ (from its usual age).
+  const ageOf = (i) => {
+    const u = UNITS[i];
+    if (state.civ === "Generic") return u[9];
+    const own = +u[8].charAt(CIV_NAMES.indexOf(state.civ));
+    let age = state.ftt && !has("U")(u) ? u[9] : own;
+    const un = allyUnlockAge(u[0]);
+    if (un && (!age || un < age)) age = un;
+    return age;
+  };
+  const available = (i) => { const a = ageOf(i); return a > 0 && a <= state.age + 1; };
+  // The Dock, what it trains, and the buildings that only exist alongside it.
+  const isDock = (u) => u[1] === "Dock" || u[0] === "Dock" || u[0] === "Harbor" || u[0] === "Fish Trap";
+
+  function effective(u) {
+    const c = { wood: u[2], food: u[3], gold: u[4], stone: u[5] };
+    let t = u[6];
+    const applied = [];
+    activeFx().forEach((x) => {
+      const e = x.e;
+      if (e.k !== "cost" && e.k !== "flat" && e.k !== "time" && e.k !== "swap") return;
+      if (!e.m(u)) return;
+      const p = pct(e);
+      if (!p) return;
+      if (e.k === "cost") (e.res || RES).forEach((r) => { c[r] = c[r] * (1 - p / 100); });
+      else if (e.k === "flat") c[e.res] = Math.max(0, c[e.res] - e.v);
+      else if (e.k === "swap") { const moved = c[e.from] * e.frac; c[e.from] -= moved; c[e.to] += moved; }
+      else t = t / (1 + p / 100);
+      applied.push(fill(e.label, p) + source(x));
+    });
+    RES.forEach((r) => { c[r] = Math.round(c[r]); });
+    return { c, t, applied };
+  }
+
+  function fill(label, p) {
+    const s = label.replace("{p}", p);
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
+  function farmKey() {
+    let k = on("hc") ? "hc" : on("wb") ? "wb" : "";
+    if (on("hp")) k = k ? k + "+hp" : "hp";
+    return k;
+  }
+
+  function rates() {
+    const fx = activeFx().map((x) => x.e);
+    const tableFx = fx.find((e) => e.k === "farm");
+    const farmT = FARM_TABLES[tableFx ? tableFx.t : "generic"];
+    let food = state.food === "farm" ? farmT[farmKey()] / 60 : FOOD[state.food];
+    const m = (keys) => keys.reduce((p, k) => (on(k) ? p * MULT[k] : p), 1);
+    const r = {
+      wood: BASE.wood * m(["dba", "bs", "tms"]),
+      food,
+      gold: BASE.gold * m(["gm", "gsm"]),
+      stone: BASE.stone * m(["sm", "ssm"]),
+    };
+    // Food rate of one (non-farm) source with every applicable bonus; Varangian gold is 10% of it.
+    const foodRate = (src) => fx.reduce((v, e) => (e.k === "rate" && (e.src === "all" || e.src === "food" || e.src === src) ? v * (1 + pct(e) / 100) : v), FOOD[src]);
+    fx.forEach((e) => {
+      if (e.k !== "rate") return;
+      const f = 1 + pct(e) / 100;
+      if (e.src === "all") RES.forEach((k) => { r[k] *= f; });
+      else if (e.src === "food") r.food *= f;
+      else if (RES.indexOf(e.src) !== -1) r[e.src] *= f;
+      else if (e.src === state.food) r.food *= f;
+    });
+    // Niche incomes replace the standard rate for their resource.
+    const gtr = activeFx().some((x) => x.tech === "Grand Trunk Road");
+    RES.forEach((res) => {
+      const o = nicheOf(res);
+      if (!o) return;
+      let v = o.from ? foodRate(o.from) * o.mult : o.perMin / 60;
+      if (res === "gold" && gtr) v *= 1.1;                       // all gold income +10%
+      if (o.id === "relic") fx.forEach((e) => { if (e.k === "relicgold") v *= e.mult; });
+      r[res] = v;
+    });
+    return r;
+  }
+  // The niche source picked for a resource (null for the standard one).
+  function nicheOf(res) {
+    const id = res === "food" ? state.food : state.src[res];
+    return NICHE[res].find((o) => o.id === id) || null;
+  }
+  const kindOf = (res) => (nicheOf(res) || { kind: "vils" }).kind;
+  function nicheAvail(o) {
+    if (o.age > state.age + 1) return false;
+    if (!o.civs || state.civ === "Generic") return true;
+    if (state.ftt) return !!o.unique && o.civs.indexOf(state.civ) !== -1;
+    if (o.civs.indexOf(state.civ) !== -1) return true;
+    return !!o.team && state.allies.some((c) => o.civs.indexOf(c) !== -1);
+  }
+
+  /* ---------- Post-Imp: only the latest version of each upgrade line ---------- */
+  const KIDS = {}, LINE_OF = {}, LINE_NODES = [];
+  EDGES.forEach(([p, c]) => { (KIDS[p] = KIDS[p] || []).push(c); });
+  (function groupLines() {
+    const nb = {};
+    EDGES.forEach(([p, c]) => { (nb[p] = nb[p] || []).push(c); (nb[c] = nb[c] || []).push(p); });
+    Object.keys(nb).forEach((start) => {
+      if (LINE_OF[start] !== undefined) return;
+      const id = LINE_NODES.length, stack = [start], nodes = [];
+      LINE_OF[start] = id;
+      while (stack.length) {
+        const n = stack.pop();
+        nodes.push(n);
+        nb[n].forEach((m) => { if (LINE_OF[m] === undefined) { LINE_OF[m] = id; stack.push(m); } });
+      }
+      LINE_NODES.push(nodes);
+    });
+  })();
+  const unique = (m) => !!(MEMBERS[m] && MEMBERS[m][0]);
+  function memberHas(m) {
+    const info = MEMBERS[m];
+    if (!info) return false;
+    if (state.civ === "Generic") return true;
+    if (state.ftt && !info[0]) return true;
+    if (!fttOn() && allyUnlockAge(m)) return true;
+    return info[1].charAt(CIV_NAMES.indexOf(state.civ)) === "1";
+  }
+  function descendants(n, out = new Set()) {
+    (KIDS[n] || []).forEach((k) => { if (!out.has(k)) { out.add(k); descendants(k, out); } });
+    return out;
+  }
+  // For each line: which entries to hide as early versions, and what the others are called.
+  function postImpView() {
+    const view = { hidden: new Set(), name: new Map(), search: new Map() };
+    const entriesOf = new Map();
+    UNITS.forEach((u, i) => {
+      const id = LINE_OF[members(u)[0]];
+      if (id !== undefined) (entriesOf.get(id) || entriesOf.set(id, []).get(id)).push(i);
+    });
+    entriesOf.forEach((idxs, id) => {
+      const nodes = LINE_NODES[id];
+      const mixed = nodes.some(unique) && nodes.some((n) => !unique(n));
+      // Generic follows the regular line (Champion, not Legionary); unique replacements stay as extras.
+      const avail = state.civ === "Generic" ? nodes.filter((n) => !mixed || !unique(n)) : nodes.filter(memberHas);
+      const frontier = avail.filter((n) => ![...descendants(n)].some((d) => avail.indexOf(d) !== -1));
+      const text = nodes.map(norm).join(" | ");
+      idxs.forEach((i) => {
+        const ms = members(UNITS[i]);
+        if (state.civ === "Generic" && mixed && ms.every(unique)) return;
+        const latest = ms.filter((m) => frontier.indexOf(m) !== -1).sort((x, y) => unique(x) - unique(y))[0];
+        if (!latest) { view.hidden.add(i); return; }
+        view.name.set(i, latest);
+        view.search.set(i, text + " | " + norm(UNITS[i][1]) + " | " + norm(parentOf(UNITS[i])));
+      });
+    });
+    return view;
+  }
+  // ---- One entry per unit line in the table ----
+  const ENTRY_OF = new Map();
+  UNITS.forEach((u, i) => members(u).forEach((m) => { if (!ENTRY_OF.has(m)) ENTRY_OF.set(m, i); }));
+  const lineOf = (i) => LINE_OF[members(UNITS[i])[0]];
+  // Rows that belong to the same upgrade line (and are made in the same building group) as entry i.
+  function sameLineRows(i) {
+    const id = lineOf(i);
+    if (id === undefined) return [];
+    return state.rows.filter((r) => {
+      const j = byName.get(r.name);
+      return j !== i && lineOf(j) === id && UNITS[j][1] === UNITS[i][1];
+    });
+  }
+  // Next version up the line for the selected civ and age: { target, why } or null if this is already the last one.
+  function upgradeOf(i) {
+    const ms = members(UNITS[i]);
+    const queue = [];
+    ms.forEach((m) => (KIDS[m] || []).forEach((k) => { if (ms.indexOf(k) === -1) queue.push(k); }));
+    if (!queue.length) return null;
+    const first = queue[0], seen = new Set();
+    while (queue.length) {
+      const n = queue.shift();
+      if (seen.has(n)) continue;
+      seen.add(n);
+      if (memberHas(n) && ENTRY_OF.has(n)) {
+        const t = ENTRY_OF.get(n), a = ageOf(t);
+        if (a > 0 && a <= state.age + 1) return { target: t, node: n, why: "" };
+        return { target: -1, node: n, why: `${n} needs ${AGES[(a || 4) - 1]}` };
+      }
+      (KIDS[n] || []).forEach((k) => queue.push(k));
+    }
+    return { target: -1, node: first, why: `${state.civ} can't upgrade to ${first}` };
+  }
+
+  let piView = null;
+  const view = () => (state.postimp ? (piView = piView || postImpView()) : null);
+  const invalidateView = () => { piView = null; };
+  const displayName = (i) => (state.postimp && view().name.get(i)) || UNITS[i][0];
+
+  /* ---------- formatting ---------- */
+  const fmt = (n) => (Math.round(n * 10) / 10).toFixed(1);
+  // Villagers come in whole numbers: always round up (small epsilon guards float noise).
+  const vils = (n) => Math.max(0, Math.ceil(n - 1e-9));
+  const fmtT = (t) => (Math.abs(t - Math.round(t)) < 0.05 ? String(Math.round(t)) : t.toFixed(1));
+  const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+
+  // n villagers build a building in 3t / (n + 2), where t is the time for one builder.
+  const withBuilders = (t, n) => (n > 1 ? (3 * t) / (n + 2) : t);
+  const rowTime = (u, e, row) => (BLD(u) ? withBuilders(e.t, row.builders || 1) : e.t);
+
+  function costMeta(u, withTitle, builders) {
+    const e = effective(u);
+    if (BLD(u) && builders > 1) {
+      e.t = withBuilders(e.t, builders);
+      e.applied.push(`${builders} builders`);
+    }
+    const parts = RES.map((r, i) => {
+      const v = e.c[r];
+      if (!v) return "";
+      const cls = "t-" + r + (v !== u[i + 2] ? " mod" : "");
+      return `<b class="${cls}">${v}${LETTER[r]}</b>`;
+    }).filter(Boolean);
+    const tMod = Math.abs(e.t - u[6]) > 1e-9;
+    let html = `${parts.join(" ")} / <span${tMod ? ' class="mod"' : ""}>${fmtT(e.t)}s</span>`;
+    if (withTitle && e.applied.length) {
+      const base = RES.map((r, i) => (u[i + 2] ? u[i + 2] + LETTER[r] : "")).filter(Boolean).join(" ") + " / " + u[6] + "s";
+      html = `<span title="${esc(`Base ${base}. ${e.applied.join("; ")}.`)}">${html}</span>`;
+    }
+    return html;
+  }
+
+  /* ---------- farm reseeding ---------- */
+  // Food in one farm: 175, +75 Horse Collar, +125 Heavy Plow, +175 Crop Rotation, then civ and team bonuses.
+  function farmFood() {
+    let upg = (on("hcol") ? 75 : 0) + (on("hp") ? 125 : 0) + (on("crop") ? 175 : 0), mult = 1;
+    activeFx().forEach((x) => {
+      if (x.e.k !== "farmfood") return;
+      if (x.e.upg) upg *= x.e.upg;
+      if (x.e.mult) mult *= x.e.mult;
+    });
+    return (175 + upg) * mult;
+  }
+  const pastures = () => !fttOn() && fxOf(state.civ).some((e) => e.k === "farm" && e.t === "pasture");
+  let reseedShown = false;
+  // Each farmer rebuilds their farm when it runs out: once every (build time + time to gather it).
+  // Lumberjacks needed = farmers × farm wood ÷ that cycle ÷ wood per lumberjack per second.
+  function reseed(r, tot) {
+    const tr = $("reseed-row");
+    if (!tr) return;
+    const farmers = state.food === "farm" && !pastures() ? vils(tot.food) : 0;
+    const show = farmers > 0;
+    tr.hidden = !show;
+    if (show) {
+      const e = effective(UNITS[byName.get("Farm")]);
+      const cycle = e.t + farmFood() / r.food;
+      const lumberjacks = (farmers * e.c.wood) / cycle / r.wood;
+      tot.wood += lumberjacks;
+      $("reseed-meta").innerHTML = `<b class="t-wood">${farmers * e.c.wood}w</b> / ${fmtT(cycle)}s`;
+      $("reseed-meta").title = `${farmers} farm${farmers === 1 ? "" : "s"} × ${e.c.wood}w, each holding ${Math.round(farmFood())} food: ${fmtT(e.t)}s to rebuild + ${fmtT(cycle - e.t)}s to gather`;
+      const td = $("reseed-wood");
+      td.textContent = vils(lumberjacks);
+      td.title = `${lumberjacks.toFixed(2)} ${unitWord("wood")}`;
+    }
+    if (show !== reseedShown) { reseedShown = show; requestAnimationFrame(fit); }
+  }
+
+  const unitWord = (res) => ({ vils: "villagers", feitoria: "Feitorias", relic: "relics", livestock: "livestock" })[kindOf(res)];
+
+  /* ---------- totals ---------- */
+  function update() {
+    const r = rates();
+    RES.forEach((res) => {
+      const [plural, one] = KIND[kindOf(res)];
+      $("rate-" + res).textContent = fmt(r[res] * 60);
+      $("rate-" + res + "-t").title = `Gathered per ${one} per minute`;
+      $("head-" + res).textContent = plural === "vils" ? `# ${res.charAt(0).toUpperCase() + res.slice(1)} vils` : `# ${plural}`;
+    });
+    const tot = { wood: 0, food: 0, gold: 0, stone: 0 };
+    let builders = 0;
+    tbody.querySelectorAll("tr[data-name]").forEach((tr) => {
+      const row = state.rows.find((x) => x.name === tr.dataset.name);
+      const u = UNITS[byName.get(row.name)];
+      const e = effective(u);
+      const t = rowTime(u, e, row);
+      if (BLD(u)) builders += row.count * (row.builders || 1);
+      RES.forEach((res) => {
+        const c = e.c[res];
+        const td = tr.querySelector("td." + res);
+        if (!c) { td.textContent = "–"; td.classList.add("zero"); td.removeAttribute("title"); return; }
+        const v = (row.count * c) / t / r[res];
+        tot[res] += v;
+        td.textContent = vils(v);
+        td.classList.toggle("zero", row.count === 0);
+        td.title = `${v.toFixed(2)} ${unitWord(res)}`;
+      });
+    });
+    reseed(r, tot);
+    // Totals round up the exact sum: villagers on one resource are shared between units.
+    // Only villagers count towards Villagers required (not Feitorias, relics or livestock).
+    let grand = 0, exact = 0;
+    RES.forEach((res) => {
+      const n = vils(tot[res]);
+      if (kindOf(res) === "vils") { grand += n; exact += tot[res]; }
+      const td = $("tot-" + res);
+      td.textContent = n;
+      td.title = `${tot[res].toFixed(2)} ${unitWord(res)}`;
+      td.classList.toggle("zero", n === 0);
+    });
+    // Builders are villagers too.
+    grand += builders;
+    exact += builders;
+    $("tot-bld").textContent = hasBuildingRow() ? builders : "";
+    $("grand").textContent = grand;
+    $("grand").title = `${exact.toFixed(2)} villagers` + (builders ? `, including ${builders} builder${builders === 1 ? "" : "s"}` : "");
+    $("tot-count").textContent = state.rows.reduce((s, r) => s + r.count, 0);
+  }
+
+  /* ---------- table ---------- */
+  function upgradeButton(i) {
+    const up = upgradeOf(i);
+    if (!up) return "";
+    const ok = up.target >= 0;
+    const title = ok ? `Upgrade to ${displayNameOf(up.target, up.node)}` : up.why;
+    return `<button type="button" class="upg" data-upgrade${ok ? "" : " disabled"} title="${esc(title)}">Upgrade</button>`;
+  }
+  // Name to show for an upgrade target: the version itself when the entry covers several.
+  const displayNameOf = (t, node) => (UNITS[t][10] ? node : displayName(t));
+
+  // Farm Reseeding: not in the dropdown; appears on its own while farms are the food source and farmers are needed.
+  // It has no # Builders or # Buildings, so its name cell spans those columns and the checkboxes get room.
+  function reseedRowHtml() {
+    const box = (k, label) => `<label class="opt"><input type="checkbox" data-up="${k}"${on(k) ? " checked" : ""}${techOpen(k) ? "" : " disabled"}> ${label}</label>`;
+    return `<tr class="reseed" id="reseed-row" hidden>
+          <td class="rm"></td>
+          <th scope="row" colspan="3"><span class="uname">Farm Reseeding</span><span class="meta meta-row" id="reseed-meta"></span>
+            <div class="reseed-techs">${box("hcol", "Horse Collar")}${box("hp", "Heavy Plow")}${box("crop", "Crop Rotation")}</div></th>
+          <td class="num wood" id="reseed-wood"></td><td class="num food zero">–</td><td class="num gold zero">–</td><td class="num stone zero">–</td>
+        </tr>`;
+  }
+
+  function stepperHtml(field, v, min, max, label) {
+    return `<div class="stepper" data-field="${field}">` +
+      `<button type="button" class="step" data-step="-1" aria-label="${label}: one fewer"${v <= min ? " disabled" : ""}>−</button>` +
+      `<input type="number" inputmode="numeric" min="${min}" max="${max}" step="1" value="${v}" aria-label="${label}">` +
+      `<button type="button" class="step" data-step="1" aria-label="${label}: one more"${v >= max ? " disabled" : ""}>+</button></div>`;
+  }
+
+  function renderRows() {
+    invalidateView();
+    {
+      tbody.innerHTML = state.rows.map((row) => {
+        const i = byName.get(row.name);
+        const u = UNITS[i];
+        const safe = esc(row.name);
+        const a = ageOf(i);
+        const why = a === 0 ? `not in ${state.civ} tech tree` : a > state.age + 1 ? `needs ${AGES[a - 1]}` : "";
+        const na = why ? ` <span class="na">${esc(why)}</span>` : "";
+        return `<tr data-name="${safe}"${why ? ` class="na" title="${esc(why.charAt(0).toUpperCase() + why.slice(1))}"` : ""}>
+          <td class="rm"><button type="button" aria-label="Remove ${safe}" title="Remove">×</button></td>
+          <th scope="row"><span class="uname"${u[10] ? ` title="${esc(u[10].join(", "))}"` : ""}>${esc(displayName(i))}</span>${upgradeButton(i)}<span class="meta meta-row">${costMeta(u, true, row.builders)}${na}</span></th>
+          <td class="bld-cell">${BLD(u) ? stepperHtml("builders", row.builders || 1, 1, MAX_BUILDERS, `Builders per ${safe}`) : ""}</td>
+          <td class="count"><div class="stepper" data-field="count">
+            <button type="button" class="step" data-step="-1" aria-label="One building fewer for ${safe}"${row.count <= 0 ? " disabled" : ""}>−</button><input type="number" inputmode="numeric" min="0" max="99" step="1" value="${row.count}" aria-label="Buildings producing ${safe}"><button type="button" class="step" data-step="1" aria-label="One building more for ${safe}"${row.count >= 99 ? " disabled" : ""}>+</button>
+          </div></td>
+          <td class="num wood"></td><td class="num food"></td><td class="num gold"></td><td class="num stone"></td>
+        </tr>`;
+      }).join("") + reseedRowHtml();
+    }
+    clearBtn.hidden = state.rows.length === 0;
+    $("crane").closest(".opt").hidden = !state.bldOn;
+    update();
+  }
+
+  // The # Builders column shows with the Buildings box ticked or a building in the table.
+  const showBuilders = () => state.bldOn || hasBuildingRow();
+  const showStone = () => state.bldOn || hasBuildingRow();
+  function applyLayout() {
+    const w = window.innerWidth, bld = showBuilders(), root = document.documentElement.classList;
+    root.toggle("show-bld", bld);
+    root.toggle("mid", w <= 1320 || (bld && w <= 1600));
+    root.toggle("narrow", w <= 1150 || (bld && w <= 1320));
+    // Only buildings cost stone: without them the Stone column and its settings are hidden.
+    root.toggle("no-stone", !showStone());
+    const title = document.getElementById("adder-title"), head = document.getElementById("unit-head");
+    if (title) title.textContent = state.bldOn ? "Add a unit or building" : "Add a unit";
+    if (head) head.textContent = state.bldOn ? "Unit/Building" : "Unit";
+  }
+
+  // Shrink the table text until every row fits; the page never scrolls.
+  function fit() {
+    applyLayout();
+    const w = window.innerWidth;
+    let fs = w < 600 ? 13.5 : document.documentElement.classList.contains("narrow") ? 14 : 15;
+    const techs = $("techs");
+    // On small screens the technologies sit in a strip above the table and take part of its height.
+    const strip = () => getComputedStyle(techs).order === "-1";
+    const room = () => wrap.clientHeight - (strip() ? techs.offsetHeight : 0);
+    table.style.setProperty("--fs", fs + "px");
+    while (table.offsetHeight > room() && fs > 9) {
+      fs -= 0.5;
+      table.style.setProperty("--fs", fs + "px");
+    }
+    return table.offsetHeight <= room();
+  }
+
+  let statusTimer;
+  function say(msg, warn) {
+    clearTimeout(statusTimer);
+    statusEl.textContent = msg;
+    statusEl.classList.toggle("warn", !!warn);
+    statusTimer = setTimeout(() => { statusEl.textContent = ""; statusEl.classList.remove("warn"); }, warn ? 6000 : 3000);
+  }
+
+  function rowEl(name) { return tbody.querySelector(`tr[data-name="${CSS.escape(name)}"]`); }
+  function flash(name) {
+    const tr = rowEl(name);
+    if (!tr) return;
+    tr.classList.remove("flash");
+    void tr.offsetWidth;
+    tr.classList.add("flash");
+  }
+
+  function addUnit(i) {
+    const name = UNITS[i][0];
+    const existing = state.rows.find((r) => r.name === name);
+    if (existing) {
+      existing.count = Math.min(99, existing.count + 1);
+      rowEl(name).querySelector('.stepper[data-field="count"] input').value = existing.count;
+      syncSteps(rowEl(name), existing.count);
+      update();
+      say(`${name}: now ${existing.count} building${existing.count === 1 ? "" : "s"}.`);
+    } else if (sameLineRows(i).length) {
+      // Only one entry per unit line: the new one takes the old one's place and count.
+      const old = sameLineRows(i), keep = old[0], was = displayName(byName.get(keep.name));
+      old.slice(1).forEach((r) => { keep.count = Math.min(99, keep.count + r.count); state.rows.splice(state.rows.indexOf(r), 1); });
+      keep.name = name;
+      renderRows();
+      fit();
+      say(`${displayName(i)} replaced ${was}.`);
+    } else {
+      state.rows.push({ name, count: 1, builders: 1 });
+      renderRows();
+      if (!fit()) {
+        state.rows.pop();
+        renderRows();
+        fit();
+        say("The sheet is full. Remove a row to add another.", true);
+        return;
+      }
+      say(`${name} added.`);
+    }
+    flash(name);
+    save();
+  }
+
+  tbody.addEventListener("input", (e) => {
+    if (e.target.type !== "number") return;
+    const tr = e.target.closest("tr"), field = fieldOf(e.target), [min, max] = FIELDS[field];
+    const row = state.rows.find((r) => r.name === tr.dataset.name);
+    const v = parseInt(e.target.value, 10);
+    row[field] = Number.isFinite(v) ? Math.max(min, Math.min(max, v)) : min;
+    syncStepper(e.target.closest(".stepper"), row[field]);
+    if (field === "builders") refreshRowMeta(tr, row);
+    update();
+    save();
+  });
+  tbody.addEventListener("change", (e) => {
+    if (e.target.dataset.up) {
+      setUp(e.target.dataset.up, e.target.checked);
+      if (!e.target.checked) setPostImp(false);
+      syncSettings();
+      update();
+      save();
+      return;
+    }
+    if (e.target.type !== "number") return;
+    const field = fieldOf(e.target);
+    const row = state.rows.find((r) => r.name === e.target.closest("tr").dataset.name);
+    if (e.target.value === "") row[field] = 1;
+    e.target.value = row[field];
+    syncStepper(e.target.closest(".stepper"), row[field]);
+    update();
+    save();
+  });
+  const FIELDS = { count: [0, 99], builders: [1, MAX_BUILDERS] };
+  const fieldOf = (el) => el.closest(".stepper").dataset.field;
+  function syncStepper(stepper, n) {
+    const [min, max] = FIELDS[stepper.dataset.field];
+    stepper.querySelector('.step[data-step="-1"]').disabled = n <= min;
+    stepper.querySelector('.step[data-step="1"]').disabled = n >= max;
+  }
+  function refreshRowMeta(tr, row) {
+    const u = UNITS[byName.get(row.name)];
+    const meta = tr.querySelector(".meta-row");
+    const na = meta.querySelector(".na");
+    meta.innerHTML = costMeta(u, true, row.builders) + (na ? " " + na.outerHTML : "");
+  }
+  const syncSteps = (tr, n) => syncStepper(tr.querySelector('.stepper[data-field="count"]'), n);
+  tbody.addEventListener("click", (e) => {
+    const upg = e.target.closest(".upg");
+    if (upg) {
+      const tr = upg.closest("tr"), row = state.rows.find((r) => r.name === tr.dataset.name);
+      const up = upgradeOf(byName.get(row.name));
+      if (!up || up.target < 0) return;
+      const from = displayName(byName.get(row.name)), toName = UNITS[up.target][0];
+      const there = state.rows.find((r) => r.name === toName);
+      if (there) {
+        there.count = Math.min(99, there.count + row.count);
+        state.rows.splice(state.rows.indexOf(row), 1);
+      } else {
+        row.name = toName;
+      }
+      renderRows();
+      fit();
+      save();
+      say(`${from} upgraded to ${displayName(up.target)}.`);
+      flash(toName);
+      return;
+    }
+    const step = e.target.closest(".step");
+    if (step) {
+      const tr = step.closest("tr"), stepper = step.closest(".stepper"), field = stepper.dataset.field;
+      const row = state.rows.find((r) => r.name === tr.dataset.name);
+      const [min, max] = FIELDS[field];
+      row[field] = Math.max(min, Math.min(max, (row[field] || min) + +step.dataset.step));
+      stepper.querySelector("input").value = row[field];
+      syncStepper(stepper, row[field]);
+      if (field === "builders") refreshRowMeta(tr, row);
+      update();
+      save();
+      if (step.disabled) stepper.querySelector("input").focus();   // keep focus in the row at the limit
+      return;
+    }
+    const btn = e.target.closest("td.rm button");
+    if (!btn) return;
+    const idx = state.rows.findIndex((r) => r.name === btn.closest("tr").dataset.name);
+    const removed = state.rows.splice(idx, 1)[0];
+    renderRows();
+    fit();
+    save();
+    say(`${removed.name} removed.`);
+    const next = tbody.querySelectorAll("td.rm button")[Math.min(idx, state.rows.length - 1)];
+    (next || $("unit-search")).focus();
+  });
+  clearBtn.addEventListener("click", () => {
+    state.rows = [];
+    renderRows();
+    fit();
+    save();
+    say("Table cleared.");
+    $("unit-search").focus();
+  });
+
+  /* ---------- settings ---------- */
+  const hasTech = (k) => state.civ === "Generic" || state.ftt || !(NO_TECH[k] || []).includes(state.civ);
+  const techAge = (k) => ((!fttOn() && (TECH_AGE_CIV[state.civ] || {})[k]) || TECH_AGE[k]);
+  const ageOpen = (age) => age <= state.age + 1;
+  // A remembered tick only counts while the tech exists for the civ and the selected age allows it.
+  const techOpen = (k) => hasTech(k) && ageOpen(techAge(k));
+  const on = (k) => state.up[k] && techOpen(k);
+
+  // Fill the source dropdowns: food always, wood/gold/stone only with Niche Incomes on.
+  function renderSources() {
+    RES.forEach((res) => {
+      const o = nicheOf(res);
+      if (o && (!state.niche || !nicheAvail(o))) {             // no longer possible: back to the standard source
+        if (res === "food") state.food = "farm"; else state.src[res] = "std";
+      }
+    });
+    const pasture = !fttOn() && fxOf(state.civ).some((e) => e.k === "farm" && e.t === "pasture");
+    const opt = (v, label, tip, cur) => `<option value="${v}"${v === cur ? " selected" : ""}${tip ? ` title="${esc(tip)}"` : ""}>${esc(label)}</option>`;
+    const niche = (res, cur) => (state.niche ? NICHE[res].filter(nicheAvail).map((o) => opt(o.id, o.label, o.tip, cur)).join("") : "");
+    const fs = $("food-source");
+    fs.innerHTML = FOOD_STD.map(([v, l]) => opt(v, v === "farm" && pasture ? "Pasture" : l, v === "fish" ? "Villagers fishing from the shore" : "", state.food)).join("") + niche("food", state.food);
+    fs.value = state.food;
+    ["wood", "gold", "stone"].forEach((res) => {
+      const sel = $("src-" + res);
+      sel.hidden = !state.niche;
+      sel.innerHTML = opt("std", STD_SRC[res], "", state.src[res]) + niche(res, state.src[res]);
+      sel.value = state.src[res];
+    });
+  }
+
+  function syncSettings() {
+    renderSources();
+    UPS.forEach((k) => { if (!hasTech(k)) state.up[k] = false; });   // missing techs switch off
+    document.querySelectorAll("[data-up]").forEach((cb) => {
+      const k = cb.dataset.up, ok = techOpen(k);
+      cb.checked = on(k);
+      cb.disabled = !ok;
+      cb.closest(".opt").classList.toggle("na", !ok);
+      cb.closest(".opt").title = tip(!hasTech(k) ? `${state.civ} can't research ${TECH_NAME[k]}`
+        : ok ? "" : `Available from ${AGES[techAge(k) - 1]}`, TECH_DESC[k]);
+    });
+
+    const pasture = !fttOn() && fxOf(state.civ).some((e) => e.k === "farm" && e.t === "pasture");
+
+    const farm = state.food === "farm";
+    $("farm-ups").classList.toggle("off", !farm);
+    $("farm-ups").querySelectorAll("input").forEach((cb) => {
+      if (!farm) cb.disabled = true;
+    });
+    document.querySelectorAll('input[name="age"]').forEach((r) => { r.checked = +r.value === state.age; });
+  }
+  function setUp(key, val) {
+    if (val && !techOpen(key)) return;
+    state.up[key] = val;
+    if (val && REQUIRES[key]) setUp(REQUIRES[key], true);
+    if (!val) Object.keys(REQUIRES).forEach((k) => { if (REQUIRES[k] === key && state.up[k]) setUp(k, false); });
+  }
+  document.querySelector(".lanes").addEventListener("change", (e) => {
+    const t = e.target;
+    if (t.dataset.up) { setUp(t.dataset.up, t.checked); if (!t.checked) setPostImp(false); }
+    else if (t.name === "food") state.food = t.value;
+    else if (t.dataset.src) state.src[t.dataset.src] = t.value;
+    else return;
+    syncSettings();
+    update();
+    save();
+  });
+  $("age").addEventListener("change", (e) => {
+    if (e.target.name !== "age") return;
+    state.age = +e.target.value;
+    if (state.age !== 3) setPostImp(false);
+    syncSettings();
+    renderTechs();
+    renderCivFx();
+    renderRows();
+    fit();
+    save();
+    if (unitCombo.isOpen()) { unitCombo.render(); unitInput.focus({ preventScroll: true }); }
+  });
+
+  function fxText(e, x) {
+    if (e.p === undefined) return fill(e.label, "") + source(x);
+    const p = pct(e);
+    if (p) return fill(e.label, p) + source(x);
+    const first = e.p.findIndex((v) => v);
+    return `<span class="off">${fill(e.label, e.p[first])} from ${AGES[first]}</span>`;
+  }
+
+  function renderCivFx() {
+    const el = $("civ-fx");
+    if (fttOn()) {
+      el.textContent = "Civilization bonuses, team bonuses, and unique technologies are inhibited when Full Tech Tree is enabled.";
+      el.title = el.textContent;
+      return;
+    }
+    const own = state.civ;
+    const out = [];
+    if (own !== "Generic") {
+      const parts = fxOf(own).filter((e) => e.k !== "unlock").map((e) => fxText(e, { e, from: null }));
+      out.push(`<strong>${own}:</strong> ` + (parts.length ? parts.join("; ") + "." : "No applicable civ bonuses."));
+    }
+    if (state.allies.length) {
+      const parts = [];
+      state.allies.forEach((a) => {
+        if (a !== own) fxOf(a).filter((e) => e.team).forEach((e) => parts.push(fxText(e, { e, from: a })));
+      });
+      out.push(parts.length ? parts.join("; ") + "." : "No applicable team bonuses from allies.");
+    }
+    el.innerHTML = out.length ? out.join(" ") : "No civilization bonuses applied.";
+    el.title = el.textContent;
+  }
+
+  function renderTechs() {
+    $("ut-list").innerHTML = civTechs().map((t) => {
+      const open = ageOpen(t.age) && !state.ftt;
+      const title = tip(state.ftt ? "Not available with Full Tech Tree" : open ? "" : `Available from ${AGES[t.age - 1]}`, t.desc);
+      return `<label class="opt${open ? "" : " na"}" title="${esc(title)}"><input type="checkbox" data-ut="${esc(t.name)}"${state.uts.indexOf(t.name) !== -1 && open ? " checked" : ""}${open ? "" : " disabled"}>
+        <span><span class="tn">${esc(t.name)}</span><span class="te">${esc(t.desc)}</span></span></label>`;
+    }).join("");
+    if (!hasCrane()) state.crane = false;   // the civ can't research it: switch off, like the eco upgrades
+    const cr = $("crane"), crOpen = craneOpen();
+    cr.closest(".opt").hidden = !state.bldOn;
+    cr.checked = state.crane && crOpen;
+    cr.disabled = !crOpen;
+    cr.closest(".opt").classList.toggle("na", !crOpen);
+    cr.closest(".opt").title = tip(!hasCrane() ? `${state.civ} can't research Treadmill Crane`
+      : crOpen ? "" : `Available from ${AGES[CRANE_AGE - 1]}`, CRANE_DESC);
+    const c = $("consc"), open = ageOpen(CONSCRIPTION_AGE);
+    c.checked = state.consc && open;
+    c.disabled = !open;
+    c.closest(".opt").classList.toggle("na", !open);
+    c.closest(".opt").title = tip(open ? "" : `Available from ${AGES[CONSCRIPTION_AGE - 1]}`, CONSC_DESC);
+  }
+  $("techs").addEventListener("change", (e) => {
+    const t = e.target;
+    if (t.classList.contains("postimp-box") || t.classList.contains("niche-box")) return;   // handled separately
+    if (t.id === "consc") state.consc = t.checked;
+    else if (t.id === "crane") state.crane = t.checked;
+    else if (t.dataset.ut) {
+      state.uts = state.uts.filter((n) => n !== t.dataset.ut);
+      if (t.checked) state.uts.push(t.dataset.ut);
+    } else return;
+    if (!t.checked) setPostImp(false);
+    renderRows();
+    fit();
+    save();
+  });
+
+  // Generic already lists everything, so the box is hidden there and starts unticked for a real civ.
+  function syncFtt() {
+    const gen = state.civ === "Generic";
+    fttBox.closest("label").hidden = gen;
+    fttBox.checked = !gen && state.ftt;
+  }
+
+  function setCiv(civ) {
+    state.civ = civ;
+    if (civ === "Generic") state.ftt = false;
+    if (state.postimp) postImpTechs();
+    syncFtt();
+    renderTechs();
+    renderCivFx();
+    syncSettings();
+    renderRows();
+    fit();
+    save();
+  }
+
+  /* ---------- searchable dropdowns ---------- */
+  function combo(o) {
+    const input = o.input, list = o.list;
+    let items = [], active = -1;
+    const isOpen = () => !list.hidden;
+    function open() {
+      if (!isOpen()) { list.hidden = false; input.setAttribute("aria-expanded", "true"); }
+      const r = input.getBoundingClientRect();
+      list.style.maxHeight = Math.max(140, window.innerHeight - r.bottom - 16) + "px";
+      render();
+    }
+    function close() {
+      list.hidden = true;
+      input.setAttribute("aria-expanded", "false");
+      input.removeAttribute("aria-activedescendant");
+      active = -1;
+    }
+    function render() {
+      const q = o.query();
+      items = o.items(q);
+      if (!items.length) {
+        list.innerHTML = `<li class="none" role="presentation">${o.empty(q)}</li>`;
+        active = -1;
+        input.removeAttribute("aria-activedescendant");
+        return;
+      }
+      let html = "", grp = null, parent = null;
+      items.forEach((it, pos) => {
+        if (o.multi) {
+          html += `<li role="option" id="${o.id}-${pos}" data-pos="${pos}" aria-selected="${!!it.selected}"${it.disabled ? ' aria-disabled="true"' : ""}${it.title ? ` title="${esc(it.title)}"` : ""}><span class="ck"></span><span class="nm">${esc(it.label)}</span>${it.meta || ""}</li>`;
+          return;
+        }
+        if (it.parent && it.parent !== parent) { parent = it.parent; grp = null; html += `<li class="parent" role="presentation">${parent}</li>`; }
+        if (it.group && it.group !== grp) { grp = it.group; html += `<li class="grp" role="presentation">${grp}</li>`; }
+        html += `<li role="option" id="${o.id}-${pos}" data-pos="${pos}" aria-selected="false"${it.title ? ` title="${esc(it.title)}"` : ""}><span class="nm">${esc(it.label)}</span>${it.meta || ""}</li>`;
+      });
+      list.innerHTML = html;
+      const start = o.start(items, q);
+      list.scrollTop = 0;
+      setActive(start, true);
+    }
+    function setActive(pos, scroll) {
+      const prev = list.querySelector(".active");
+      if (prev) { prev.classList.remove("active"); if (!o.multi) prev.setAttribute("aria-selected", "false"); }
+      active = pos;
+      if (pos < 0 || pos >= items.length) { input.removeAttribute("aria-activedescendant"); return; }
+      const el = $(`${o.id}-${pos}`);
+      el.classList.add("active");
+      if (!o.multi) el.setAttribute("aria-selected", "true");
+      input.setAttribute("aria-activedescendant", el.id);
+      if (scroll) {
+        // Scroll only the list, never the page.
+        let top = el.offsetTop, prev = el.previousElementSibling;
+        while (prev && prev.getAttribute("role") === "presentation") { top = prev.offsetTop; prev = prev.previousElementSibling; }
+        const bottom = el.offsetTop + el.offsetHeight;
+        if (top < list.scrollTop) list.scrollTop = top;
+        else if (bottom > list.scrollTop + list.clientHeight) list.scrollTop = bottom - list.clientHeight;
+      }
+    }
+    function choose(pos) {
+      if (pos < 0 || pos >= items.length) return;
+      const v = items[pos].value;
+      if (!o.multi) { o.choose(v); close(); return; }
+      // Multi-select: toggle and keep the list open for more picks.
+      if (items[pos].disabled) {
+        if (o.refuse) o.refuse(v);
+        input.value = "";
+        render();
+        return;
+      }
+      o.choose(v);
+      input.value = "";
+      render();
+      setActive(Math.max(0, items.findIndex((it) => it.value === v)), true);
+    }
+    input.addEventListener("input", open);
+    // Reopening a picker that still has focus: get the box ready for a fresh search.
+    input.addEventListener("click", () => { if (!isOpen()) { if (o.prime) o.prime(); open(); } });
+    input.addEventListener("keydown", (e) => {
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          if (!isOpen()) { if (o.prime) o.prime(); open(); if (active < 0) setActive(0, true); }
+          else setActive(Math.min(items.length - 1, active + 1), true);
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          if (isOpen()) setActive(Math.max(0, active - 1), true);
+          break;
+        case "PageDown":
+          if (isOpen()) { e.preventDefault(); setActive(Math.min(items.length - 1, active + 8), true); }
+          break;
+        case "PageUp":
+          if (isOpen()) { e.preventDefault(); setActive(Math.max(0, active - 8), true); }
+          break;
+        case "Enter":
+          e.preventDefault();
+          if (isOpen() && active >= 0) choose(active);
+          else open();
+          break;
+        case "Escape":
+          if (isOpen()) { e.preventDefault(); close(); }
+          if (o.cancel) o.cancel(); else input.value = "";
+          break;
+        case "Tab":
+          close();
+          break;
+      }
+    });
+    list.addEventListener("mousedown", (e) => e.preventDefault());
+    list.addEventListener("click", (e) => {
+      const li = e.target.closest('[role="option"]');
+      if (li) choose(+li.dataset.pos);
+    });
+    list.addEventListener("mousemove", (e) => {
+      const li = e.target.closest('[role="option"]');
+      if (li && +li.dataset.pos !== active) setActive(+li.dataset.pos, false);
+    });
+    document.addEventListener("pointerdown", (e) => {
+      if (!isOpen() || input.parentNode.contains(e.target)) return;
+      if (o.keepOpen && e.target.closest(o.keepOpen)) return;   // controls that only filter the list
+      close();
+      if (o.cancel) o.cancel();
+    });
+    // Clicking those controls must not take focus from the search box either.
+    if (o.keepOpen) document.querySelectorAll(o.keepOpen).forEach((el) => el.addEventListener("mousedown", (e) => e.preventDefault()));
+    input.addEventListener("blur", () => setTimeout(() => {
+      const el = document.activeElement;
+      if (el === input || (o.keepOpen && el && el.closest && el.closest(o.keepOpen))) return;
+      close();
+      if (o.cancel) o.cancel();
+    }, 150));
+    return { isOpen, open, close, render };
+  }
+
+  const unitInput = $("unit-search");
+  const unitCombo = combo({
+    input: unitInput, list: $("unit-list"), id: "uopt", keepOpen: ".adder-opts, #age, .postimp-opt",
+    query: () => norm(unitInput.value),
+    items: (q) => {
+      const tokens = q.split(" ").filter(Boolean);
+      const inTable = new Set(state.rows.map((r) => r.name));
+      const out = [];
+      const pv = view();
+      SEARCH.forEach((s0, i) => {
+        const u = UNITS[i];
+        if (pv && pv.hidden.has(i)) return;
+        const s = (pv && pv.search.get(i)) || s0;
+        if (!available(i) || (!state.dock && isDock(u)) || (!state.bldOn && BLD(u)) || !tokens.every((t) => s.includes(t))) return;
+        // When the query only matches a member (e.g. "champion"), show which one.
+        let hint = "";
+        const shown = displayName(i);
+        const names = pv && pv.search.get(i) ? LINE_NODES[LINE_OF[members(u)[0]]] : members(u);
+        if (tokens.length && !tokens.every((t) => norm(shown).includes(t))) {
+          const m = names.find((x) => tokens.every((t) => norm(x).includes(t)));
+          if (m && m !== shown) hint = `<span class="alias">${esc(m)}</span>`;
+        }
+        // Under its own building heading the "(Donjon)"-style suffix is redundant.
+        const suffix = ` (${u[1]})`;
+        const label = shown.endsWith(suffix) ? shown.slice(0, -suffix.length) : shown;
+        out.push({ value: i, label, names, group: u[1], parent: parentOf(u), title: u[10] ? u[10].join(", ") : "",
+          meta: hint + (inTable.has(u[0]) ? '<span class="added">in table</span>' : "") + `<span class="meta">${costMeta(u, false)}</span>` });
+      });
+      return out;
+    },
+    start: (items, q) => {
+      if (!q) return -1;
+      const i = items.findIndex((it) => it.names.concat(it.label).some((m) => norm(m).startsWith(q)));
+      return i < 0 ? 0 : i;
+    },
+    empty: () => {
+      const who = state.civ === "Generic" ? "" : ` for ${esc(state.civ)}`;
+      return unitInput.value.trim()
+        ? `Nothing matches “${esc(unitInput.value)}”${who} up to ${AGES[state.age]}.`
+        : `Nothing available${who} in ${AGES[state.age]}.`;
+    },
+    choose: (i) => { addUnit(i); unitInput.value = ""; },
+  });
+
+  const civInput = $("civ-search");
+  // Select the civ name for a fresh search, after the click has placed the caret. Only while the box still
+  // has focus: select() would otherwise pull focus back from another picker the user just clicked.
+  const selectCivText = () => setTimeout(() => { if (document.activeElement === civInput) civInput.select(); }, 0);
+  const civCombo = combo({
+    input: civInput, list: $("civ-list"), id: "copt",
+    query: () => (civInput.value === state.civ ? "" : norm(civInput.value)),
+    items: (q) => CIVS.filter((c) => norm(c).includes(q)).map((c) => ({
+      value: c,
+      label: c === "Generic" ? "Generic (no bonuses)" : c,
+      meta: c === state.civ ? '<span class="cur">selected</span>' : "",
+    })),
+    start: (items, q) => {
+      if (!q) return items.findIndex((it) => it.value === state.civ);
+      const i = items.findIndex((it) => norm(it.value).startsWith(q));
+      return i < 0 ? 0 : i;
+    },
+    empty: () => "No civilization by that name.",
+    choose: (c) => { setCiv(c); civInput.value = c; },
+    cancel: () => {
+      if (civCombo.isOpen()) return;
+      civInput.value = state.civ;
+      selectCivText();
+    },
+    prime: selectCivText,
+  });
+  civInput.addEventListener("focus", () => civInput.select());
+  // Clicking into the box while it still shows the current civ selects it, so typing starts a new search.
+  civInput.addEventListener("click", () => { if (civInput.value === state.civ) selectCivText(); });
+
+  const allyInput = $("ally-search");
+  const allySummary = () => state.allies.join(", ");
+  function toggleAlly(c) {
+    if (c === "") state.allies = [];
+    else if (state.allies.indexOf(c) !== -1) state.allies = state.allies.filter((x) => x !== c);
+    else if (state.allies.length < MAX_ALLIES) state.allies = state.allies.concat(c);
+    allyInput.title = allySummary();
+    renderCivFx();
+    renderRows();
+    fit();
+    save();
+  }
+  const allyCombo = combo({
+    input: allyInput, list: $("ally-list"), id: "aopt", multi: true,
+    query: () => norm(allyInput.value),
+    items: (q) => {
+      const full = state.allies.length >= MAX_ALLIES;
+      const out = q ? [] : [{ value: "", label: "None", selected: state.allies.length === 0 }];
+      CIV_NAMES.forEach((c) => {
+        if (!norm(c).includes(q)) return;
+        const sel = state.allies.indexOf(c) !== -1;
+        const tb = fxOf(c).filter((e) => e.team).map((e) => fill(e.label, e.p === undefined ? "" : e.p)).join("; ");
+        out.push({ value: c, label: c, selected: sel, disabled: full && !sel,
+          title: full && !sel ? `Up to ${MAX_ALLIES} allies` : tb ? `Team bonus: ${tb}` : "Its team bonus doesn't change these numbers",
+          meta: `<span class="tb">${tb ? esc(tb) : "–"}</span>` });
+      });
+      return out;
+    },
+    start: (items, q) => (q ? Math.max(0, items.findIndex((it) => norm(it.value).startsWith(q))) : 0),
+    empty: () => "No civilization by that name.",
+    choose: toggleAlly,
+    refuse: () => say(`Up to ${MAX_ALLIES} allies. Untick one to add another.`, true),
+    cancel: () => { if (!allyCombo.isOpen()) allyInput.value = document.activeElement === allyInput ? "" : allySummary(); },
+    prime: () => { allyInput.value = ""; },
+  });
+  allyInput.addEventListener("focus", () => { allyInput.value = ""; allyInput.placeholder = "Search civilizations"; });
+  allyInput.addEventListener("blur", () => { allyInput.placeholder = "None"; });
+
+  const fttBox = $("full-tree");
+  fttBox.addEventListener("change", () => {
+    state.ftt = fttBox.checked;
+    if (state.postimp) postImpTechs();
+    syncSettings();
+    renderTechs();
+    renderCivFx();
+    renderRows();
+    fit();
+    save();
+    if (unitCombo.isOpen()) { unitCombo.render(); unitInput.focus({ preventScroll: true }); }
+  });
+
+  const bldBox = $("include-bld");
+  bldBox.addEventListener("change", () => {
+    state.bldOn = bldBox.checked;
+    renderTechs();
+    renderRows();
+    fit();
+    save();
+    if (unitCombo.isOpen()) { unitCombo.render(); unitInput.focus({ preventScroll: true }); }
+  });
+
+  const dockBox = $("include-dock");
+  dockBox.addEventListener("change", () => {
+    state.dock = dockBox.checked;
+    save();
+    if (unitCombo.isOpen()) { unitCombo.render(); unitInput.focus({ preventScroll: true }); }
+  });
+
+  let raf = 0;
+  window.addEventListener("resize", () => {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => {
+      fit();
+      if (unitCombo.isOpen()) unitCombo.open();
+      if (civCombo.isOpen()) civCombo.open();
+    });
+  });
+
+  /* ---------- Clear and Post-Imp ---------- */
+  function refreshAll() {
+    civInput.value = state.civ;
+    allyInput.value = allySummary();
+    allyInput.title = allySummary();
+    dockBox.checked = state.dock;
+    bldBox.checked = state.bldOn;
+    document.querySelectorAll(".postimp-box").forEach((b) => { b.checked = state.postimp; });
+    document.querySelectorAll(".niche-box").forEach((b) => { b.checked = state.niche; });
+    syncFtt();
+    syncSettings();
+    renderTechs();
+    renderCivFx();
+    renderRows();
+    fit();
+    save();
+  }
+
+  $("reset").addEventListener("click", () => {
+    unitCombo.close(); allyCombo.close(); civCombo.close();
+    unitInput.value = "";
+    // Include Dock, Buildings and Full Tech Tree are view options: Clear All leaves them as they are.
+    // (Full Tech Tree hides with Generic and starts unticked for the next civ, as usual.)
+    Object.assign(state, { rows: [], civ: "Generic", allies: [], age: 3, food: "farm", ftt: false, consc: false, crane: false, uts: [], postimp: false,
+      src: { wood: "std", gold: "std", stone: "std" } });
+    UPS.forEach((k) => { state.up[k] = false; });
+    refreshAll();
+    clearTimeout(statusTimer);
+    statusEl.textContent = "";
+    statusEl.classList.remove("warn");
+  });
+
+  // Niche Incomes: shows the wood/gold/stone source dropdowns and adds niche options to food.
+  document.querySelectorAll(".niche-box").forEach((box) => box.addEventListener("change", () => {
+    state.niche = box.checked;
+    document.querySelectorAll(".niche-box").forEach((b) => { b.checked = state.niche; });
+    syncSettings();
+    update();
+    fit();
+    save();
+  }));
+
+  // Clear Civs: Generic, no allies. Everything else stays.
+  $("clear-civs").addEventListener("click", () => {
+    allyCombo.close(); civCombo.close();
+    state.allies = [];
+    allyInput.value = "";
+    allyInput.title = "";
+    civInput.value = "Generic";
+    setCiv("Generic");
+    if (unitCombo.isOpen()) unitCombo.render();
+  });
+
+  // Clear Techs: untick every technology (which also ends Post-Imp).
+  document.querySelectorAll(".clear-techs").forEach((btn) => btn.addEventListener("click", () => {
+    UPS.forEach((k) => { state.up[k] = false; });
+    state.uts = [];
+    state.consc = false;
+    state.crane = false;
+    setPostImp(false);
+    refreshAll();
+    if (unitCombo.isOpen()) unitCombo.render();
+  }));
+
+  // Post-Imp: Imperial Age, every available technology on, and only the latest unit versions in the dropdown.
+  function postImpTechs() {
+    state.age = 3;
+    UPS.forEach((k) => { if (hasTech(k)) state.up[k] = true; });
+    if (!state.ftt) civTechs().forEach((t) => { if (state.uts.indexOf(t.name) === -1) state.uts.push(t.name); });
+    state.consc = true;
+    if (hasCrane()) state.crane = true;
+  }
+  function setPostImp(on) {
+    if (state.postimp === on) return;
+    state.postimp = on;
+    invalidateView();
+    document.querySelectorAll(".postimp-box").forEach((b) => { b.checked = on; });
+  }
+  document.querySelectorAll(".postimp-box").forEach((box) => box.addEventListener("change", () => {
+    setPostImp(box.checked);
+    if (box.checked) postImpTechs();
+    refreshAll();
+    if (unitCombo.isOpen()) { unitCombo.render(); unitInput.focus({ preventScroll: true }); }
+  }));
+
+  /* ---------- start ---------- */
+  load();
+  // Older saves may hold two entries of one line: keep the first and add the other's count to it.
+  state.rows.slice().forEach((r) => {
+    if (state.rows.indexOf(r) === -1) return;
+    sameLineRows(byName.get(r.name)).forEach((o) => {
+      r.count = Math.min(99, r.count + o.count);
+      state.rows.splice(state.rows.indexOf(o), 1);
+    });
+  });
+  civInput.value = state.civ;
+  allyInput.value = allySummary();
+  allyInput.title = allySummary();
+  dockBox.checked = state.dock;
+  bldBox.checked = state.bldOn;
+  if (state.civ === "Generic") state.ftt = false;
+  document.querySelectorAll(".postimp-box").forEach((b) => { b.checked = state.postimp; });
+  document.querySelectorAll(".niche-box").forEach((b) => { b.checked = state.niche; });
+  syncFtt();
+  syncSettings();
+  renderTechs();
+  renderCivFx();
+  renderRows();
+  fit();
+  syncButtons();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+})();
+</script>
+</body>
+</html>
