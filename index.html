@@ -23,10 +23,13 @@
   --tint-strong: 15%;
 
   --w-count: 7rem;
-  --w-wood: 10rem;
-  --w-food: 16rem;
-  --w-gold: 11rem;
-  --w-stone: 11.5rem;
+  /* The four resource columns share one width: room for the longest income source ("Gurjara Livestock (large)")
+     and a little more, so the resource block sits nearer the middle of the page */
+  --w-res: 12rem;
+  --w-wood: var(--w-res);
+  --w-food: var(--w-res);
+  --w-gold: var(--w-res);
+  --w-stone: var(--w-res);
   --w-rm: 2.5rem;
   --w-tech: 11.5rem;
   --w-bld: 0px;
@@ -316,28 +319,20 @@ fieldset.res legend + * { clear: both; }
 .opt input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .food-grid { display: grid; grid-template-columns: auto auto; column-gap: .9rem; justify-content: start; }
 .food .opt { white-space: nowrap; }
-/* Food source: a plain dropdown (five options, no search needed); farm upgrades sit under it */
-.food-src {
-  margin-right: auto; min-width: 0;
-  font: inherit; font-size: .9em; line-height: 1.2; color: var(--ink); background: var(--surface);
-  border: 1px solid color-mix(in srgb, var(--res) 45%, var(--rule)); border-radius: 3px;
-  padding: .08rem .25rem; cursor: pointer;
-}
-fieldset.food .lg { justify-content: flex-start; gap: .5rem; }
-.food-src:focus-visible, .src-sel:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
-.food-src { max-width: 9.5rem; flex: 0 1 auto; text-overflow: ellipsis; }
-/* Wood, gold and stone sources: a dropdown under the heading, only with Niche Incomes on */
+/* Income source: a plain dropdown under each resource heading (few options, no search needed); farm upgrades sit under Food's */
 .src-sel {
   display: block; width: 100%; max-width: 100%; margin: .05rem 0 .3rem; clear: both;
   font: inherit; font-size: .88em; line-height: 1.2; color: var(--ink); background: var(--surface);
   border: 1px solid color-mix(in srgb, var(--res) 45%, var(--rule)); border-radius: 3px;
   padding: .12rem .25rem; cursor: pointer; text-overflow: ellipsis;
 }
-.src-sel[hidden] { display: none; }
+.src-sel:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+/* Nothing to choose for this resource: the dropdown hides but keeps its space, so nothing moves */
+.src-sel[hidden] { display: block; visibility: hidden; }
 .nested { margin: 0 0 0 .45rem; padding-left: .8rem; border-left: 1px solid color-mix(in srgb, var(--res) 40%, transparent); }
-.nested.off .opt, .opt.na { opacity: .42; cursor: default; }
+.nested.off .opt, .ups.off .opt, .opt.na { opacity: .42; cursor: default; }
 .opt.na input { cursor: default; }
-.nested.off .opt input { cursor: default; }
+.nested.off .opt input, .ups.off .opt input { cursor: default; }
 
 /* Table */
 .sheet-wrap { position: relative; flex: 1; min-height: 0; overflow: hidden; }
@@ -484,7 +479,7 @@ col.c-rm    { width: var(--w-rm); }
 
 /* Mid widths */
 /* Mid layout: up to 1320px wide, or up to 1600px while the # Builders column shows */
-  html.mid { --w-tech: 10rem; --w-count: 6.4rem; --w-wood: 8.6rem; --w-food: 14rem; --w-gold: 9.4rem; --w-stone: 9.8rem; --w-rm: 2rem; }
+  html.mid { --w-tech: 10rem; --w-count: 6.4rem; --w-res: 11rem; --w-rm: 2rem; }
   html.mid fieldset.res { font-size: .84rem; padding: .5rem .55rem .55rem; }
   html.mid .bl-long { display: none; }
   html.mid .bl-short { display: inline; }
@@ -503,13 +498,14 @@ col.c-rm    { width: var(--w-rm); }
   html.narrow .clear-techs-alt, html.narrow .clear-techs-alt[hidden] { display: inline-block; align-self: flex-start; margin-bottom: .2rem; }
   html.narrow .sheet thead th { white-space: normal; overflow: visible; line-height: 1.15; vertical-align: bottom; }
   html.narrow { --w-tech: 9.5rem; --w-count: 6.4rem; --w-wood: 5rem; --w-food: 5rem; --w-gold: 5rem; --w-stone: 5rem; --w-rm: 2rem; }
+  /* The unit adder gets its own row; the four resources stay side by side under it, in the table's order */
   html.narrow .lanes {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-template-areas: "add add add" "food food food" "wood gold stone";
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-areas: "add add add add" "wood food gold stone";
   }
   html.narrow .adder { grid-area: add; grid-column: 1 / -1; padding: .55rem .6rem .45rem; }
-  html.narrow fieldset.res.food { grid-area: food; border-left: 0; }
   html.narrow fieldset.res.wood { grid-area: wood; border-left: 0; }
+  html.narrow fieldset.res.food { grid-area: food; }
   html.narrow fieldset.res.gold { grid-area: gold; }
   html.narrow fieldset.res.stone { grid-area: stone; }
   html.narrow .food-grid { grid-template-columns: auto auto; column-gap: 1.6rem; }
@@ -558,9 +554,15 @@ col.c-rm    { width: var(--w-rm); }
   html.narrow #civ-fx { flex-basis: 100%; }
   html.narrow .age { flex: 1 1 100%; flex-wrap: wrap; gap: .15rem .7rem; }
   html.narrow .age label { gap: .25rem; white-space: nowrap; }
-  html.narrow fieldset.res { font-size: .8rem; padding: .4rem .45rem .45rem; }
-  html.narrow .lg strong { font-size: .95rem; }
-  html.narrow .rate { font-size: .78rem; }
+  /* Four resource boxes side by side on a phone: tight boxes, the rate under the name, long labels wrap (hyphenated) */
+  html.narrow fieldset.res { font-size: .8rem; padding: .4rem .3rem .45rem; }
+  html.narrow fieldset.res .lg { flex-direction: column; align-items: flex-start; gap: 0; }
+  html.narrow .lg strong { font-size: .95rem; line-height: 1.15; }
+  html.narrow .src-sel { margin: 0 0 .15rem; padding: .04rem .15rem; font-size: .84em; }
+  html.narrow .rate { font-size: .74rem; }
+  html.narrow fieldset.res .nested { margin-left: .1rem; padding-left: .35rem; }
+  html.narrow fieldset.res .opt { gap: .25rem; align-items: flex-start; white-space: normal; -webkit-hyphens: auto; hyphens: auto; }
+  html.narrow fieldset.res .opt input { width: .85rem; height: .85rem; margin-top: .1rem; }
   html.narrow .food-grid { column-gap: .8rem; }
   html.narrow .others { grid-template-columns: auto; }
   html.narrow .sheet th, html.narrow .sheet td { padding-left: .4em; padding-right: .4em; }
@@ -568,8 +570,6 @@ col.c-rm    { width: var(--w-rm); }
   html.narrow .short { display: inline; }
   html.narrow .techs { font-size: .8rem; gap: .1rem .8rem; padding: .3rem .45rem; }
   html.narrow .adder-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-  html.narrow /* Small phones: every line counts, html.narrow the page never scrolls */
-  .lanes { grid-template-columns: 1.25fr 1fr 1fr; }
   html.narrow .clear-techs-alt[hidden] { display: none; }
   html.narrow .gl-long { display: none; }
   html.narrow .gl-short { display: inline; }
@@ -660,7 +660,7 @@ col.c-rm    { width: var(--w-rm); }
       <fieldset class="res wood">
         <legend><span class="lg"><strong>Wood</strong><span class="rate" id="rate-wood-t" title="Gathered per villager per minute"><b id="rate-wood">0</b>/min</span></span></legend>
         <select class="src-sel" id="src-wood" data-src="wood" aria-label="Wood source" hidden></select>
-        <div>
+        <div class="ups" id="wood-ups">
           <label class="opt"><input type="checkbox" data-up="dba"> Double-Bit Axe</label>
           <label class="opt"><input type="checkbox" data-up="bs"> Bow Saw</label>
           <label class="opt"><input type="checkbox" data-up="tms"> Two-Man Saw</label>
@@ -668,18 +668,11 @@ col.c-rm    { width: var(--w-rm); }
       </fieldset>
 
       <fieldset class="res food">
-        <legend><span class="lg"><strong>Food</strong>
-          <select id="food-source" name="food" class="food-src" aria-label="Food source">
-            <option value="farm" id="farm-option">Farm</option>
-            <option value="berries">Berries</option>
-            <option value="hunt">Hunt</option>
-            <option value="sheep">Sheep</option>
-            <option value="fish" title="Villagers fishing from the shore">Fishing</option>
-          </select>
-          <span class="rate" id="rate-food-t" title="Gathered per villager per minute"><b id="rate-food">0</b>/min</span></span></legend>
+        <legend><span class="lg"><strong>Food</strong><span class="rate" id="rate-food-t" title="Gathered per villager per minute"><b id="rate-food">0</b>/min</span></span></legend>
+        <select class="src-sel" id="food-source" name="food" aria-label="Food source"></select>
         <div class="nested" id="farm-ups">
           <label class="opt"><input type="checkbox" data-up="hp"> Heavy Plow</label>
-          <label class="opt"><input type="checkbox" data-up="wb"> Wheelbarrow</label>
+          <label class="opt"><input type="checkbox" data-up="wb"> Wheel&shy;barrow</label>
           <label class="opt"><input type="checkbox" data-up="hc"> Hand Cart</label>
         </div>
       </fieldset>
@@ -687,7 +680,7 @@ col.c-rm    { width: var(--w-rm); }
       <fieldset class="res gold">
         <legend><span class="lg"><strong>Gold</strong><span class="rate" id="rate-gold-t" title="Gathered per villager per minute"><b id="rate-gold">0</b>/min</span></span></legend>
         <select class="src-sel" id="src-gold" data-src="gold" aria-label="Gold source" hidden></select>
-        <div>
+        <div class="ups" id="gold-ups">
           <label class="opt"><input type="checkbox" data-up="gm"> <span><span class="long">Gold </span>Mining</span></label>
           <label class="opt"><input type="checkbox" data-up="gsm"> <span><span class="long">Gold </span>Shaft Mining</span></label>
         </div>
@@ -696,14 +689,13 @@ col.c-rm    { width: var(--w-rm); }
       <fieldset class="res stone">
         <legend><span class="lg"><strong>Stone</strong><span class="rate" id="rate-stone-t" title="Gathered per villager per minute"><b id="rate-stone">0</b>/min</span></span></legend>
         <select class="src-sel" id="src-stone" data-src="stone" aria-label="Stone source" hidden></select>
-        <div>
+        <div class="ups" id="stone-ups">
           <label class="opt"><input type="checkbox" data-up="sm"> <span><span class="long">Stone </span>Mining</span></label>
           <label class="opt"><input type="checkbox" data-up="ssm"> <span><span class="long">Stone </span>Shaft Mining</span></label>
         </div>
       </fieldset>
       <div class="postimp-cell">
         <label class="postimp-opt" title="Imperial Age with every available technology, latest unit versions only"><input type="checkbox" class="postimp-box"> Post-Imp</label>
-        <label class="postimp-opt niche-opt" title="Choose unusual income sources (relics, Feitorias, civ-specific incomes) for each resource"><input type="checkbox" class="niche-box"> Niche Incomes</label>
         <button type="button" class="pagebtn clear-techs" title="Untick every technology">Clear Techs</button>
       </div>
     </div>
@@ -745,7 +737,6 @@ col.c-rm    { width: var(--w-rm); }
       </table>
       <aside class="techs" id="techs" aria-label="Technologies">
         <label class="postimp-opt postimp-alt" title="Imperial Age with every available technology, latest unit versions only"><input type="checkbox" class="postimp-box"> Post-Imp</label>
-        <label class="postimp-opt postimp-alt niche-opt" title="Choose unusual income sources (relics, Feitorias, civ-specific incomes) for each resource"><input type="checkbox" class="niche-box"> Niche Incomes</label>
         <button type="button" class="pagebtn clear-techs clear-techs-alt" title="Untick every technology">Clear Techs</button>
         <div id="ut-list"></div>
         <label class="opt"><input type="checkbox" id="consc"> <span class="tn">Conscription</span></label>
@@ -1250,8 +1241,9 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     khmer:   { "": 21.48, hp: 22.11, wb: 23.56, "wb+hp": 23.77, hc: 23.79, "hc+hp": 24.0 },
     pasture: { "": 22.89, hp: 22.89, wb: 23.96, "wb+hp": 23.96, hc: 25.26, "hc+hp": 25.26 },
   };
-  // Niche income sources, per minute (rates tested by hand). kind = what one unit of the source is.
-  // civs: who has it (team: allies count too), age: earliest age, unique: a unique building (kept under Full Tech Tree).
+  // Alternative income sources, per minute (rates tested by hand). They join a resource's source dropdown whenever available.
+  // kind = what one unit of the source is. civs: who has it (none = every civ; team: allies count too),
+  // age: earliest age, unique: a unique building (kept under Full Tech Tree).
   const NICHE = {
     wood: [
       { id: "pforager", label: "Portuguese Forager", perMin: 5, kind: "vils", civs: ["Portuguese"], age: 1, tip: "Portuguese foragers also generate wood" },
@@ -1262,10 +1254,10 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       { id: "feitoria", label: "Feitoria", perMin: 97, kind: "feitoria", civs: ["Portuguese"], age: 4, unique: true, tip: "Portuguese Feitoria" },
       { id: "gurjara", label: "Gurjara Livestock", perMin: 6, kind: "livestock", civs: ["Gurjaras"], age: 1, tip: "Livestock garrisoned in a Gurjara Mill" },
       { id: "gurjara-l", label: "Gurjara Livestock (large)", perMin: 8, kind: "livestock", civs: ["Gurjaras"], age: 1, tip: "Large livestock garrisoned in a Gurjara Mill" },
-      { id: "brelic", label: "Burgundian Relic", perMin: 20, kind: "relic", civs: ["Burgundians"], team: true, age: 3, tip: "Burgundian team bonus: relics also generate food" },
+      { id: "brelic", label: "Burgundian Relic", perMin: 20, kind: "relic", civs: ["Burgundians"], team: true, age: 1, tip: "Burgundian team bonus: relics also generate food" },
     ],
     gold: [
-      { id: "relic", label: "Relic", perMin: 30, kind: "relic", age: 3, tip: "A garrisoned relic" },
+      { id: "relic", label: "Relic", perMin: 30, kind: "relic", age: 1, tip: "A garrisoned relic" },
       { id: "vshep", label: "Varangian Shepherd", from: "sheep", mult: 0.1, kind: "vils", civs: ["Varangians"], age: 1, tip: "Gold at 10% of the shepherding rate" },
       { id: "vhunt", label: "Varangian Hunter", from: "hunt", mult: 0.1, kind: "vils", civs: ["Varangians"], age: 1, tip: "Gold at 10% of the hunting rate" },
       { id: "vfish", label: "Varangian Fisherman", from: "fish", mult: 0.1, kind: "vils", civs: ["Varangians"], age: 1, tip: "Gold at 10% of the fishing rate" },
@@ -1463,7 +1455,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   UNITS.forEach((u) => members(u).forEach((m) => { if (!byName.has(m)) ALIAS.set(m, u[0]); }));
 
   const state = { rows: [], food: "farm", up: Object.fromEntries(UPS.map((k) => [k, false])), civ: "Generic", allies: [], age: 3, dock: false, ftt: false, regional: false, consc: false, crane: false, uts: [], postimp: false, bldOn: false,
-    niche: false, src: { wood: "std", gold: "std", stone: "std" } };
+    src: { wood: "std", gold: "std", stone: "std" } };
   const MAX_BUILDERS = 20;
   const MAX_ALLIES = 7;
   const KEY = "villagers-required.v3";
@@ -1531,7 +1523,6 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       state.crane = !!s.crane;
       state.postimp = !!s.postimp;
       state.bldOn = !!s.bldOn;
-      state.niche = !!s.niche;
       if (s.src) ["wood", "gold", "stone"].forEach((r) => { if (typeof s.src[r] === "string") state.src[r] = s.src[r]; });
       if (!FOOD[state.food] && state.food !== "farm" && !NICHE.food.some((o) => o.id === s.food)) state.food = "farm";
       if (Array.isArray(s.uts)) state.uts = s.uts.filter((n) => typeof n === "string");   // older saves keep the new Imperial default
@@ -2127,24 +2118,26 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   const techOpen = (k) => hasTech(k) && ageOpen(techAge(k));
   const on = (k) => state.up[k] && techOpen(k);
 
-  // Fill the source dropdowns: food always, wood/gold/stone only with Niche Incomes on.
+  // Fill the source dropdowns with the standard source(s) plus every alternative income available right now.
+  // Wood, gold or stone with nothing to choose hides its dropdown (its space is kept).
   function renderSources() {
     RES.forEach((res) => {
       const o = nicheOf(res);
-      if (o && (!state.niche || !nicheAvail(o))) {             // no longer possible: back to the standard source
+      if (o && !nicheAvail(o)) {             // no longer possible: back to the standard source
         if (res === "food") state.food = "farm"; else state.src[res] = "std";
       }
     });
     const pasture = !fttOn() && fxOf(state.civ).some((e) => e.k === "farm" && e.t === "pasture");
     const opt = (v, label, tip, cur) => `<option value="${v}"${v === cur ? " selected" : ""}${tip ? ` title="${esc(tip)}"` : ""}>${esc(label)}</option>`;
-    const niche = (res, cur) => (state.niche ? NICHE[res].filter(nicheAvail).map((o) => opt(o.id, o.label, o.tip, cur)).join("") : "");
+    const alts = (res) => NICHE[res].filter(nicheAvail);
+    const altOpts = (res, cur) => alts(res).map((o) => opt(o.id, o.label, o.tip, cur)).join("");
     const fs = $("food-source");
-    fs.innerHTML = FOOD_STD.map(([v, l]) => opt(v, v === "farm" && pasture ? "Pasture" : l, v === "fish" ? "Villagers fishing from the shore" : "", state.food)).join("") + niche("food", state.food);
+    fs.innerHTML = FOOD_STD.map(([v, l]) => opt(v, v === "farm" && pasture ? "Pasture" : l, v === "fish" ? "Villagers fishing from the shore" : "", state.food)).join("") + altOpts("food", state.food);
     fs.value = state.food;
     ["wood", "gold", "stone"].forEach((res) => {
       const sel = $("src-" + res);
-      sel.hidden = !state.niche;
-      sel.innerHTML = opt("std", STD_SRC[res], "", state.src[res]) + niche(res, state.src[res]);
+      sel.hidden = !alts(res).length;
+      sel.innerHTML = opt("std", STD_SRC[res], "", state.src[res]) + altOpts(res, state.src[res]);
       sel.value = state.src[res];
     });
   }
@@ -2167,6 +2160,12 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     $("farm-ups").classList.toggle("off", !farm);
     $("farm-ups").querySelectorAll("input").forEach((cb) => {
       if (!farm) cb.disabled = true;
+    });
+    // Wood, gold and stone upgrades only speed up the standard gatherers: greyed out for any other source (ticks kept).
+    ["wood", "gold", "stone"].forEach((res) => {
+      const std = state.src[res] === "std", ups = $(res + "-ups");
+      ups.classList.toggle("off", !std);
+      if (!std) ups.querySelectorAll("input").forEach((cb) => { cb.disabled = true; });
     });
     document.querySelectorAll('input[name="age"]').forEach((r) => { r.checked = +r.value === state.age; });
   }
@@ -2254,7 +2253,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   }
   $("techs").addEventListener("change", (e) => {
     const t = e.target;
-    if (t.classList.contains("postimp-box") || t.classList.contains("niche-box")) return;   // handled separately
+    if (t.classList.contains("postimp-box")) return;   // handled separately
     if (t.id === "consc") state.consc = t.checked;
     else if (t.id === "crane") state.crane = t.checked;
     else if (t.dataset.ut) {
@@ -2424,6 +2423,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     return { isOpen, open, close, render };
   }
 
+  // Armenians and Georgians have no Monastery: their Monks and Warrior Priests come from the Fortified Church.
+  const groupName = (g) => (g === "Monastery" && (state.civ === "Armenians" || state.civ === "Georgians") ? "Fortified Church" : g);
   const unitInput = $("unit-search");
   const unitCombo = combo({
     input: unitInput, list: $("unit-list"), id: "uopt", keepOpen: ".adder-opts, #age, .postimp-opt",
@@ -2451,7 +2452,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
         // Under its own building heading the "(Donjon)"-style suffix is redundant.
         const suffix = ` (${u[1]})`;
         const label = shown.endsWith(suffix) ? shown.slice(0, -suffix.length) : shown;
-        out.push({ value: i, label, names, group: u[1], parent: parentOf(u), title: u[10] ? u[10].join(", ") : "",
+        out.push({ value: i, label, names, group: groupName(u[1]), parent: parentOf(u), title: u[10] ? u[10].join(", ") : "",
           meta: hint + (inTable.has(u[0]) ? '<span class="added">in table</span>' : "") + `<span class="meta">${costMeta(u, false)}</span>` });
       });
       return out;
@@ -2507,6 +2508,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     else if (state.allies.indexOf(c) !== -1) state.allies = state.allies.filter((x) => x !== c);
     else if (state.allies.length < MAX_ALLIES) state.allies = state.allies.concat(c);
     allyInput.title = allySummary();
+    syncSettings();   // an ally's team bonus can add an income (Burgundian relic food)
     renderCivFx();
     renderRows();
     fit();
@@ -2594,7 +2596,6 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     dockBox.checked = state.dock;
     bldBox.checked = state.bldOn;
     document.querySelectorAll(".postimp-box").forEach((b) => { b.checked = state.postimp; });
-    document.querySelectorAll(".niche-box").forEach((b) => { b.checked = state.niche; });
     syncFtt();
     syncSettings();
     renderTechs();
@@ -2617,16 +2618,6 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     statusEl.textContent = "";
     statusEl.classList.remove("warn");
   });
-
-  // Niche Incomes: shows the wood/gold/stone source dropdowns and adds niche options to food.
-  document.querySelectorAll(".niche-box").forEach((box) => box.addEventListener("change", () => {
-    state.niche = box.checked;
-    document.querySelectorAll(".niche-box").forEach((b) => { b.checked = state.niche; });
-    syncSettings();
-    update();
-    fit();
-    save();
-  }));
 
   // Clear Civs: Generic, no allies. Everything else stays.
   $("clear-civs").addEventListener("click", () => {
@@ -2688,7 +2679,6 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   bldBox.checked = state.bldOn;
   if (state.civ === "Generic") state.ftt = false;
   document.querySelectorAll(".postimp-box").forEach((b) => { b.checked = state.postimp; });
-  document.querySelectorAll(".niche-box").forEach((b) => { b.checked = state.niche; });
   syncFtt();
   syncSettings();
   renderTechs();
