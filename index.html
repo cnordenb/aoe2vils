@@ -201,6 +201,8 @@ html.hdr-measure .clear-slot { flex: 0 0 auto; }
 .meta .mod { text-decoration: underline dotted; text-underline-offset: 2px; }
 .meta .na { color: var(--food); font-style: italic; }
 .sheet tr.na .uname { color: var(--food); font-style: italic; }
+/* # Buildings 0: name, cost and time grey out, like the row's zero cells */
+.sheet tr.idle:not(.na) .uname, .sheet tr.idle:not(.na) .meta-row, .sheet tr.idle:not(.na) .meta-row b { color: color-mix(in srgb, var(--muted) 55%, transparent); }
 
 /* The sheet: controls row + table share one column grid, so each resource runs as a lane */
 .board {
@@ -267,7 +269,9 @@ html.hdr-measure .clear-slot { flex: 0 0 auto; }
 .combo-toggle:hover::before { border-color: var(--ink); }
 .combo input[aria-expanded="true"] ~ .combo-toggle::before { transform: translateY(-25%) rotate(-135deg); }
 .combo input:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; border-color: transparent; }
-.adder-foot { display: flex; justify-content: flex-end; align-items: baseline; min-height: 1.3em; font-size: .85rem; }   /* keeps its height: Clear table comes and goes without moving anything */
+.adder-foot { display: flex; justify-content: space-between; align-items: center; gap: .6rem; min-height: 1.3em; font-size: .85rem; }   /* keeps its height: Clear table comes and goes without moving anything */
+.adder-foot .adder-opts { margin-right: auto; }   /* Farm Reseeding / House Building on the left, Clear table on the right */
+.adder-foot .linkbtn[hidden] { display: inline-block; visibility: hidden; }   /* keeps its space, so the checkboxes don't move */
 .linkbtn {
   font: inherit; color: var(--muted); background: none; border: 0; padding: 0;
   text-decoration: underline; text-underline-offset: 2px; cursor: pointer;
@@ -369,6 +373,15 @@ html.narrow .wide-only { display: none; }
 /* Nothing to choose for this resource: the dropdown hides but keeps its space, so nothing moves */
 .src-sel[hidden] { display: block; visibility: hidden; }
 .nested { margin: 0 0 0 .45rem; padding-left: .8rem; border-left: 1px solid color-mix(in srgb, var(--res) 40%, transparent); }
+/* Relics: a count under the gold upgrades, sized to fit the line Gold has spare (Food's box sets the height) */
+#relics { display: flex; align-items: center; gap: .3rem; white-space: nowrap; }
+#relics .stepper { --sh: 1.2rem; font-size: .85rem; }
+#relics .stepper input { width: 1.7em; padding: 0; }
+#relics .relic-out { color: var(--muted); font-size: .8rem; }
+#relics.na { opacity: .42; }   /* before Castle Age */
+html.narrow #relics { flex-wrap: wrap; gap: .1rem .25rem; }
+html.narrow #relics .stepper { --sh: 1.05rem; font-size: .75rem; }
+html.tab-te #relics { visibility: hidden; }   /* relics don't count in Transition Eco */
 .nested .opt.off, .ups.off .opt, .opt.na { opacity: .42; cursor: default; }
 .opt.na input { cursor: default; }
 .nested .opt.off input, .ups.off .opt input { cursor: default; }
@@ -462,12 +475,17 @@ col.c-rm    { width: var(--w-rm); }
 .sheet td.rm button:hover { color: var(--surface); background: var(--food); }
 .sheet td.rm button:focus-visible { outline: 2px solid var(--focus); }
 .sheet tr.empty td { color: var(--muted); padding: 1.1em .75em; white-space: normal; }
-/* Farm Reseeding: added automatically while farmers are needed */
-.sheet tr.reseed > * { background: color-mix(in srgb, var(--wood) 5%, transparent); }
-.sheet tr.reseed th .uname { font-style: italic; }
+/* Farm Reseeding and House Building: added automatically while farmers are needed / units are trained. Same colours as unit rows; only the name is italic. */
+.sheet tr.reseed th .uname, .sheet tr.houses th .uname { font-style: italic; }
 .reseed-techs { display: flex; flex-wrap: wrap; gap: .1em .8em; margin-top: .15em; font-size: .8em; font-weight: 400; }
-.reseed-techs .opt { gap: .3em; }
+.reseed-techs .opt, .row-opts .opt { gap: .3em; }
 .reseed-techs .opt input { width: .95em; height: .95em; accent-color: var(--food); }
+/* The Farm row's "25s" box: after the cost on the name's line ("Farm 60w / 15s  ☐ 25s"), so the row is no taller than the others */
+.row-opts { display: inline-block; font-size: .8em; font-weight: 400; white-space: nowrap; vertical-align: baseline; }
+.meta + .row-opts { margin-left: .8em; }
+html.narrow .meta + .row-opts { margin-left: 0; }   /* the cost is hidden there: the name's own margin is the gap */
+.row-opts .opt { display: inline-flex; gap: .25em; padding: 0; line-height: 1; vertical-align: -.1em; }
+.row-opts .opt input { font: inherit; width: .95em; height: .95em; accent-color: var(--focus); }   /* font: inherit, or em means the control's own 13.3px */
 .sheet tfoot tr > * {
   border-top: 2px solid var(--ink);
   font-weight: 700;
@@ -590,6 +608,11 @@ col.c-rm    { width: var(--w-rm); }
   html.narrow fieldset.res .opt { gap: .25rem; align-items: flex-start; white-space: normal; -webkit-hyphens: auto; hyphens: auto; }
   html.narrow fieldset.res .opt input { width: .85rem; height: .85rem; margin-top: .1rem; }
   html.narrow .food-grid { column-gap: .8rem; }
+  /* Relics fit the phone Gold box in two lines (three at 360 px): label and −/+, then the gold per minute */
+  html.narrow #relics { row-gap: 0; }
+  html.narrow #relics .stepper { --sh: .95rem; }
+  html.narrow #relics .stepper input { width: 1.3em; }
+  html.narrow #relics .relic-out { font-size: .7rem; line-height: 1.1; }
   html.narrow .others { grid-template-columns: auto; }
   html.narrow .sheet th, html.narrow .sheet td { padding-left: .4em; padding-right: .4em; }
   html.narrow .long { display: none; }
@@ -622,6 +645,9 @@ col.c-rm    { width: var(--w-rm); }
   html.narrow #civ-fx { -webkit-line-clamp: 1; }
   html.narrow fieldset.res { font-size: .8rem; padding: .35rem .45rem .4rem; }
   html.narrow .src-sel { margin: 0 0 .15rem; padding-top: .04rem; padding-bottom: .04rem; }
+  html.narrow #relics .stepper { --sh: .95rem; }
+  html.narrow #relics .stepper input { width: 1.3em; }
+  html.narrow #relics .relic-out { font-size: .7rem; }
 }
 
 /* No buildings (Buildings box off, none in the table): no stone costs, so the Stone column and its settings
@@ -746,6 +772,10 @@ html.tab-te.narrow .lanes { grid-template-areas: "wood food gold stone"; }
           <ul id="unit-list" class="list" role="listbox" aria-label="Units and buildings" hidden></ul>
         </div>
         <div class="adder-foot">
+          <span class="adder-opts">
+            <label class="dockopt" title="Add the lumberjacks who keep the farms rebuilt"><input type="checkbox" id="use-reseed" checked> Farm Reseeding</label>
+            <label class="dockopt" title="Add the lumberjacks who keep up with the Houses the units need"><input type="checkbox" id="use-houses" checked> House Building</label>
+          </span>
           <button type="button" class="linkbtn" id="clear" hidden>Clear table</button>
         </div>
       </div>
@@ -782,6 +812,11 @@ html.tab-te.narrow .lanes { grid-template-areas: "wood food gold stone"; }
         <div class="ups" id="gold-ups">
           <label class="opt"><input type="checkbox" data-up="gm"> <span><span class="long">Gold </span>Mining</span></label>
           <label class="opt"><input type="checkbox" data-up="gsm"> <span><span class="long">Gold </span>Shaft Mining</span></label>
+        </div>
+        <div class="relics" id="relics">
+          <span>Relics</span>
+          <div class="stepper"><button type="button" class="step" data-step="-1" aria-label="Relics: one fewer">−</button><input type="number" inputmode="numeric" min="0" max="99" step="1" value="0" aria-label="Relics"><button type="button" class="step" data-step="1" aria-label="Relics: one more">+</button></div>
+          <span class="relic-out" id="relic-out"></span>
         </div>
       </fieldset>
 
@@ -1384,10 +1419,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       { id: "feitoria", label: "Feitoria", perMin: 97, kind: "feitoria", civs: ["Portuguese"], age: 4, unique: true, tip: "Portuguese Feitoria" },
       { id: "gurjara", label: "Gurjara Livestock", perMin: 6, kind: "livestock", civs: ["Gurjaras"], age: 1, tip: "Livestock garrisoned in a Gurjara Mill" },
       { id: "gurjara-l", label: "Gurjara Livestock (large)", perMin: 8, kind: "livestock", civs: ["Gurjaras"], age: 1, tip: "Large livestock garrisoned in a Gurjara Mill" },
-      { id: "brelic", label: "Burgundian Relic", perMin: 20, kind: "relic", civs: ["Burgundians"], team: true, age: 1, tip: "Burgundian team bonus: relics also generate food" },
     ],
     gold: [
-      { id: "relic", label: "Relic", perMin: 30, kind: "relic", age: 1, tip: "A garrisoned relic" },
       { id: "vshep", label: "Varangian Shepherd", from: "sheep", mult: 0.1, kind: "vils", civs: ["Varangians"], age: 1, tip: "Gold at 10% of the shepherding rate" },
       { id: "vhunt", label: "Varangian Hunter", from: "hunt", mult: 0.1, kind: "vils", civs: ["Varangians"], age: 1, tip: "Gold at 10% of the hunting rate" },
       { id: "vfish", label: "Varangian Fisherman", from: "fish", mult: 0.1, kind: "vils", civs: ["Varangians"], age: 1, tip: "Gold at 10% of the fishing rate" },
@@ -1402,7 +1435,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   };
   const STD_SRC = { wood: "Lumberjack", gold: "Gold Miner", stone: "Stone Miner" };
   const FOOD_STD = [["farm", "Farm"], ["berries", "Berries"], ["hunt", "Hunt"], ["sheep", "Sheep"], ["fish", "Fisherman"], ["fship", "Fishing Ship"]];
-  const KIND = { vils: ["vils", "villager"], feitoria: ["Feitorias", "Feitoria"], relic: ["Relics", "relic"], livestock: ["Livestock", "livestock animal"],
+  const KIND = { vils: ["vils", "villager"], feitoria: ["Feitorias", "Feitoria"], livestock: ["Livestock", "livestock animal"],
     fship: ["Fishing Ships", "Fishing Ship"] };
 
   const MULT = { gm: 1.15, gsm: 1.15, sm: 1.15, ssm: 1.15 };
@@ -1497,8 +1530,10 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     Franks: [rate("berries", 15, "foragers +{p}%"), cost(named("Castle"), [0, 0, 15, 25], "Castles −{p}%")],
     Goths: [cost(INF, [15, 20, 25, 30], "infantry −{p}%"), team(faster(BARRACKS, 20, "Barracks work {p}% faster"))],
     Hindustanis: [cost(VIL, [8, 13, 18, 23], "Villagers −{p}%")],
-    Huns: [cost(named("Cavalry Archer", "Heavy Cavalry Archer"), [0, 0, 10, 20], "Cavalry Archers −{p}%"), team(faster(STABLE, 20, "Stables work {p}% faster"))],
-    Inca: [cost(MIL, [15, 20, 25, 30], "military units −{p}% food", ["food"]), cost(BLD, 15, "buildings −{p}% stone", ["stone"])],
+    Huns: [cost(named("Cavalry Archer", "Heavy Cavalry Archer"), [0, 0, 10, 20], "Cavalry Archers −{p}%"), team(faster(STABLE, 20, "Stables work {p}% faster")),
+           { k: "nohouses", label: "no houses needed" }],
+    Inca: [cost(MIL, [15, 20, 25, 30], "military units −{p}% food", ["food"]), cost(BLD, 15, "buildings −{p}% stone", ["stone"]),
+           { k: "housepop", v: 5, label: "Houses provide +5 population" }],
     Italians: [cost(GUN, 20, "gunpowder units −{p}%"), cost(named("Fishing Ship"), 15, "Fishing Ships −{p}%"),
                team({ k: "unlock", ages: { Condottiero: 4 }, label: "Condottiero at the Barracks in Imperial Age" })],
     Japanese: [cost(named("Mill", "Lumber Camp", "Mining Camp"), 50, "Mills, Lumber and Mining Camps −{p}%"), rate("fship", [5, 10, 15, 20], "Fishing Ships work {p}% faster")],
@@ -1533,11 +1568,16 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   FX["Gurjaras"] = [team(faster(CAMEL_OR_ELE, 25, "camel and elephant units train {p}% faster"))];
   FX["Lithuanians"] = [team(faster(named("Monk", "Missionary"), 20, "Monasteries work {p}% faster"))];
   FX["Chinese"] = [team({ k: "farmfood", mult: 1.1, label: "farms hold 10% more food" })];
+  FX["Burgundians"] = [team({ k: "relicfood", perMin: 20, label: "relics also generate 20 food per minute" })];
   FX["Wu"] = [team(faster(named("House"), 100, "Houses built {p}% faster"))];
   // Unique technologies that change unit costs, training times or gather rates (aoe2techtree.net).
   // Others (combat stats, population, new income sources without a known rate) are left out on purpose.
   const ut = (name, age, desc, fx) => ({ name, age, desc, fx });
+  // Population space a unit takes, less p% (House Building only).
+  const lessPop = (m, p, label) => ({ k: "pop", m, p, label });
   const UT = {
+    Bengalis: [ut("Mahayana", 4, "Villagers and Monks take 10% less population space",
+      [lessPop(named("Villager", "Monk"), 10, "Villagers and Monks take {p}% less population space")])],
     Berbers: [ut("Kasbah", 3, "Castles work 25% faster", [faster(inGroup("Castle"), 25, "Castles work {p}% faster")])],
     Bohemians: [ut("Hussite Reforms", 4, "Monks cost food instead of gold", [swap(named("Monk"), "gold", "food", 1, "Monks cost food instead of gold")])],
     Cumans: [ut("Steppe Husbandry", 3, "Scout Cavalry-line, Steppe Lancers and Cavalry Archers train 100% faster",
@@ -1548,6 +1588,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
         [cost(named("Mounted Crossbowman", "Heavy Mounted Crossbowman"), 40, "Mounted Crossbowmen −{p}% gold", ["gold"])]),
       ut("Chivalry", 4, "Stables work 40% faster", [faster(STABLE, 40, "Stables work {p}% faster")]),
     ],
+    Georgians: [ut("Aznauri Cavalry", 4, "Mounted units take 20% less population space",
+      [lessPop(has("M"), 20, "mounted units take {p}% less population space")])],
     Goths: [ut("Perfusion", 4, "Barracks work 100% faster", [faster(BARRACKS, 100, "Barracks work {p}% faster")])],
     Gurjaras: [ut("Kshatriyas", 3, "Military units cost 25% less food", [cost(MIL, 25, "military units −{p}% food", ["food"])])],
     Hindustanis: [ut("Grand Trunk Road", 3, "All gold income 10% faster", [rate("gold", 10, "gold income +{p}%")])],
@@ -1591,10 +1633,21 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   UNITS.forEach((u) => members(u).forEach((m) => { if (!byName.has(m)) ALIAS.set(m, u[0]); }));
 
   const state = { rows: [], food: "farm", up: Object.fromEntries(UPS.map((k) => [k, false])), civ: "Generic", allies: [], age: 3, dock: false, ftt: false, regional: false, consc: false, crane: false, uts: [], postimp: false, bldOn: false,
-    src: { wood: "std", gold: "std", stone: "std" },
+    src: { wood: "std", gold: "std", stone: "std" }, relics: 0, useReseed: true, useHouses: true,
     tab: "vr", te: { research: 1, vils: { wood: 0, food: 0, gold: 0, stone: 0 } } };
   const TE_MAX = 200;
-  const MAX_BUILDERS = 20;
+  // Building footprints in tiles per side (game data, DE update 147949), and the most builders that fit around each size (user).
+  const SIZE = {
+    "Palisade Wall": 1, "Stone Wall-line": 1, "Watch Tower-line": 1, "Bombard Tower": 1, Outpost: 1, "Mule Cart": 1, "Fish Trap": 1,
+    House: 2, Mill: 2, "Lumber Camp": 2, "Mining Camp": 2, Donjon: 2, Pasture: 2,   // Pasture: its foundation (the finished pasture is 4×4)
+    Barracks: 3, "Archery Range": 3, Stable: 3, Blacksmith: 3, Dock: 3, Harbor: 3, Farm: 3, Monastery: 3, "Fortified Church": 3, Krepost: 3, Folwark: 3,
+    Settlement: 3,   // newer than that data (user)
+    "Town Center": 4, Market: 4, Castle: 4, "Siege Workshop": 4, University: 4, Caravanserai: 4,
+    Wonder: 5, Feitoria: 5 };
+  const BUILDERS_BY_SIZE = { 1: 14, 2: 22, 3: 33, 4: 44, 5: 53 };
+  // The gates are 4×1, so they get their own limit (user).
+  const MAX_BUILDERS = { Gate: 38, "Palisade Gate": 38, Farm: 1 };   // a Farm: one builder's build time, but no builder counted (FARM)
+  const maxBuilders = (name) => MAX_BUILDERS[name] || BUILDERS_BY_SIZE[SIZE[name]] || 20;
   const MAX_ALLIES = 7;
   const KEY = "villagers-required.v3";
 
@@ -1608,7 +1661,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   // Everything at its starting value: nothing for Clear to do, so it's hidden.
   function isCleared() {
     return !state.rows.length && state.civ === "Generic" && !state.allies.length && state.age === 3 &&
-      state.food === "farm" && ["wood", "gold", "stone"].every((r) => state.src[r] === "std") && !state.consc && !state.crane && !state.uts.length && !state.postimp &&
+      state.food === "farm" && ["wood", "gold", "stone"].every((r) => state.src[r] === "std") && !state.relics && !state.consc && !state.crane && !state.uts.length && !state.postimp &&
       UPS.every((k) => !state.up[k]) && state.te.research === 1 && RES.every((r) => !state.te.vils[r]);
   }
   // Something for Clear Techs to do: any technology that is ticked and in effect.
@@ -1643,10 +1696,10 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
           const name = byName.has(r.name) ? r.name : ALIAS.get(r.name) || ALIAS.get(plain);
           if (!name) return;
           const count = Math.max(0, Math.min(99, parseInt(r.count, 10) || 0));
-          const builders = Math.max(1, Math.min(MAX_BUILDERS, parseInt(r.builders, 10) || 1));
+          const builders = Math.max(1, Math.min(maxBuilders(name), parseInt(r.builders, 10) || 1));
           const same = state.rows.find((x) => x.name === name);
           if (same) same.count = Math.min(99, same.count + count);
-          else state.rows.push({ name, count, builders });
+          else state.rows.push(Object.assign({ name, count, builders }, r.perVil ? { perVil: true } : {}));
         });
       }
       if (FOOD_STD.some(([v]) => v === s.food) || NICHE.food.some((o) => o.id === s.food)) state.food = s.food;
@@ -1659,13 +1712,17 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       }
       if (cur && s.age >= 0 && s.age <= 3) state.age = s.age | 0;
       state.dock = !!s.dock;
+      state.useReseed = s.useReseed !== false;   // on unless turned off (older saves have neither)
+      state.useHouses = s.useHouses !== false;
       state.ftt = !!s.ftt;
       state.regional = !!s.regional;
       state.consc = !!s.consc;
       state.crane = !!s.crane;
       state.postimp = !!s.postimp;
       state.bldOn = !!s.bldOn;
-      if (s.src) ["wood", "gold", "stone"].forEach((r) => { if (typeof s.src[r] === "string") state.src[r] = s.src[r]; });
+      // Only sources that still exist (Relic used to be a gold source).
+      if (s.src) ["wood", "gold", "stone"].forEach((r) => { if (NICHE[r].some((o) => o.id === s.src[r])) state.src[r] = s.src[r]; });
+      state.relics = Math.max(0, Math.min(99, parseInt(s.relics, 10) || 0));
       if (s.te) {
         if ([1, 2, 3].indexOf(s.te.research) !== -1) state.te.research = s.te.research;
         if (s.te.vils) RES.forEach((r) => { const v = parseInt(s.te.vils[r], 10); if (Number.isFinite(v)) state.te.vils[r] = Math.max(0, Math.min(TE_MAX, v)); });
@@ -1679,7 +1736,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   const fxOf = (civ) => FX[civ] || [];
   // Bonuses worth listing in the current tab. Transition Eco only cares about gathering and age-ups;
   // Villagers Required about everything else (and not age-ups).
-  const TE_KINDS = ["rate", "farm", "relicgold", "ageup", "agebonus"];
+  const TE_KINDS = ["rate", "farm", "ageup", "agebonus"];   // relics don't count in Transition Eco
   const relevant = (e) => (inTE() ? TE_KINDS.indexOf(e.k) !== -1 : e.k !== "ageup" && e.k !== "agebonus");
   // Everything that applies: your civ's bonuses (incl. its team bonus) plus each ally's team bonus.
   // Team bonuses don't stack, so an ally of your own civ adds nothing new.
@@ -1740,7 +1797,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   function effective(u) {
     const c = { wood: u[2], food: u[3], gold: u[4], stone: u[5] };
     let t = u[6];
-    const applied = [];
+    const applied = [], timeFx = [];   // timeFx: the applied time effects, also listed in applied
     activeFx().forEach((x) => {
       const e = x.e;
       if (e.k !== "cost" && e.k !== "flat" && e.k !== "time" && e.k !== "swap") return;
@@ -1750,11 +1807,11 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       if (e.k === "cost") (e.res || RES).forEach((r) => { c[r] = c[r] * (1 - p / 100); });
       else if (e.k === "flat") c[e.res] = Math.max(0, c[e.res] - e.v);
       else if (e.k === "swap") { const moved = c[e.from] * e.frac; c[e.from] -= moved; c[e.to] += moved; }
-      else t = t / (1 + p / 100);
+      else { t = t / (1 + p / 100); timeFx.push(fill(e.label, p) + source(x)); }
       applied.push(fill(e.label, p) + source(x));
     });
     RES.forEach((r) => { c[r] = Math.round(c[r]); });
-    return { c, t, applied };
+    return { c, t, applied, timeFx };
   }
 
   function fill(label, p) {
@@ -1800,10 +1857,22 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       if (!o) return;
       let v = o.from === "wood" ? lumber * o.mult : o.from ? foodRate(o.from) * o.mult : o.perMin / 60;
       if (res === "gold" && gtr) v *= 1.1;                       // all gold income +10%
-      if (o.id === "relic") fx.forEach((e) => { if (e.k === "relicgold") v *= e.mult; });
       r[res] = v;
     });
     return r;
+  }
+  // Relics need Monks: none before Castle Age. The count is kept for later, like an age-locked tick.
+  const RELIC_AGE = 3;
+  const relicsNow = () => (ageOpen(RELIC_AGE) ? state.relics : 0);
+  // Per second from the relics in the Gold box: 30 gold each (Aztec team bonus +33%, Grand Trunk Road +10%),
+  // plus 20 food each with a Burgundian civ or ally.
+  function relicIncome(n = relicsNow()) {
+    const xs = activeFx();
+    let gold = (n * 30) / 60;
+    xs.forEach((x) => { if (x.e.k === "relicgold") gold *= x.e.mult; });
+    if (xs.some((x) => x.tech === "Grand Trunk Road")) gold *= 1.1;
+    const food = xs.reduce((f, x) => (x.e.k === "relicfood" ? f + (n * x.e.perMin) / 60 : f), 0);
+    return { gold, food };
   }
   // The niche source picked for a resource (null for the standard one).
   function nicheOf(res) {
@@ -1917,18 +1986,27 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
 
   /* ---------- formatting ---------- */
   const fmt = (n) => (Math.round(n * 10) / 10).toFixed(1);
-  // Villagers come in whole numbers: always round up (small epsilon guards float noise).
+  // Villagers come in whole numbers: the totals always round up (small epsilon guards float noise).
+  // Each row shows its share to one decimal (fmt), since the villagers are shared between rows.
   const vils = (n) => Math.max(0, Math.ceil(n - 1e-9));
   const fmtT = (t) => (Math.abs(t - Math.round(t)) < 0.05 ? String(Math.round(t)) : t.toFixed(1));
   const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 
   // n villagers build a building in 3t / (n + 2), where t is the time for one builder.
   const withBuilders = (t, n) => (n > 1 ? (3 * t) / (n + 2) : t);
-  const rowTime = (u, e, row) => (BLD(u) ? withBuilders(e.t, row.builders || 1) : e.t);
+  // Farm row with "One per Villager": each new Villager builds its farm, so one every Villager training time (25 s)
+  // instead of every build time (15 s).
+  const FARM = named("Farm");
+  const farmPerVil = (u, row) => FARM(u) && !!(row && row.perVil);
+  const villagerTime = () => effective(UNITS[byName.get("Villager")]).t;
+  const rowTime = (u, e, row) => (farmPerVil(u, row) ? villagerTime() : BLD(u) ? withBuilders(e.t, row.builders || 1) : e.t);
 
-  function costMeta(u, withTitle, builders) {
-    const e = effective(u);
-    if (BLD(u) && builders > 1) {
+  function costMeta(u, withTitle, row) {
+    const e = effective(u), builders = (row && row.builders) || 1;
+    if (farmPerVil(u, row)) {
+      e.t = villagerTime();   // build-speed bonuses no longer set the pace
+      e.applied = e.applied.filter((a) => e.timeFx.indexOf(a) === -1).concat(`One per Villager: a Villager every ${fmtT(e.t)}s`);
+    } else if (BLD(u) && builders > 1) {
       e.t = withBuilders(e.t, builders);
       e.applied.push(`${builders} builders`);
     }
@@ -1968,7 +2046,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   function reseed(r, tot) {
     const tr = $("reseed-row");
     if (!tr) return;
-    const farmers = state.food === "farm" ? vils(tot.food) : 0;
+    const farmers = state.useReseed && state.food === "farm" ? vils(tot.food) : 0;
     const show = farmers > 0;
     tr.hidden = !show;
     if (show) {
@@ -1982,13 +2060,45 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       $("reseed-meta").title = `${plots} ${noun}${plots === 1 ? "" : "s"} × ${e.c.wood}w, each holding ${Math.round(food)} food` +
         `${past ? " for 2 villagers" : ""}: ${fmtT(e.t)}s to rebuild + ${fmtT(cycle - e.t)}s to gather`;
       const td = $("reseed-wood");
-      td.textContent = vils(lumberjacks);
+      td.textContent = fmt(lumberjacks);
       td.title = `${lumberjacks.toFixed(2)} ${unitWord("wood")}`;
     }
     if (show !== reseedShown) { reseedShown = show; requestAnimationFrame(fit); }
   }
 
-  const unitWord = (res) => ({ vils: "villagers", feitoria: "Feitorias", relic: "relics", livestock: "livestock", fship: "Fishing Ships" })[kindOf(res)];
+  /* ---------- house building ---------- */
+  // Every unit trained takes population space: 1, half for Karambit Warriors, less with Mahayana or Aznauri Cavalry.
+  const HALF_POP = named("Karambit Warrior", "Elite Karambit Warrior");
+  function unitPop(u) {
+    let pop = HALF_POP(u) ? 0.5 : 1;
+    activeFx().forEach((x) => { if (x.e.k === "pop" && x.e.m(u)) pop *= 1 - pct(x.e) / 100; });
+    return pop;
+  }
+  // A House gives 5 population (10 for Inca); Huns need none.
+  const housePop = () => activeFx().reduce((p, x) => (x.e.k === "housepop" ? p + x.e.v : p), 5);
+  let houseShown = false;
+  // One House every (population per house ÷ population trained per second). A lumberjack builds it, so besides
+  // its wood, the build time is lumberjack time lost: lumberjacks needed = houses per second × (wood ÷ wood rate + build time).
+  function houseBuilding(r, tot, popRate) {
+    const tr = $("house-row");
+    if (!tr) return;
+    const show = state.useHouses && popRate > 0 && !activeFx().some((x) => x.e.k === "nohouses");
+    tr.hidden = !show;
+    if (show) {
+      const e = effective(UNITS[byName.get("House")]), pop = housePop();
+      const every = pop / popRate;
+      const lumber = e.c.wood / every / r.wood, building = e.t / every;
+      tot.wood += lumber + building;
+      $("house-meta").innerHTML = `<b class="t-wood">${e.c.wood}w</b> / ${fmtT(every)}s`;
+      $("house-meta").title = `A House (${pop} population) every ${fmtT(every)}s: ${e.c.wood}w, and ${fmtT(e.t)}s of a lumberjack's time to build it`;
+      const td = $("house-wood");
+      td.textContent = fmt(lumber + building);
+      td.title = `${(lumber + building).toFixed(2)} ${unitWord("wood")}: ${lumber.toFixed(2)} for the wood + ${building.toFixed(2)} building`;
+    }
+    if (show !== houseShown) { houseShown = show; requestAnimationFrame(fit); }
+  }
+
+  const unitWord = (res) => ({ vils: "villagers", feitoria: "Feitorias", livestock: "livestock", fship: "Fishing Ships" })[kindOf(res)];
 
   /* ---------- totals ---------- */
   function update() {
@@ -2002,42 +2112,64 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
         : `# ${plural.replace("Fishing ", '<span class="wide-only">Fishing </span>')}`;
     });
     const tot = { wood: 0, food: 0, gold: 0, stone: 0 };
-    let builders = 0;
+    let builders = 0, shipBuilders = 0, popRate = 0;
     tbody.querySelectorAll("tr[data-name]").forEach((tr) => {
       const row = state.rows.find((x) => x.name === tr.dataset.name);
       const u = UNITS[byName.get(row.name)];
+      tr.classList.toggle("idle", row.count === 0);   // # Buildings 0: the name greys out
       const e = effective(u);
       const t = rowTime(u, e, row);
-      if (BLD(u)) builders += row.count * (row.builders || 1);
+      if (!BLD(u)) popRate += (row.count * unitPop(u)) / t;
+      else if (!FARM(u)) {   // a Farm is built by the villager who will farm it (moved or new): no builders counted
+        const n = row.count * (row.builders || 1);
+        builders += n;
+        if (u[0] === "Fish Trap") shipBuilders += n;   // Fishing Ships build Fish Traps
+      }
       RES.forEach((res) => {
         const c = e.c[res];
         const td = tr.querySelector("td." + res);
         if (!c) { td.textContent = "–"; td.classList.add("zero"); td.removeAttribute("title"); return; }
         const v = (row.count * c) / t / r[res];
         tot[res] += v;
-        td.textContent = vils(v);
+        td.textContent = fmt(v);
         td.classList.toggle("zero", row.count === 0);
         td.title = `${v.toFixed(2)} ${unitWord(res)}`;
       });
     });
+    // Relics bring in part of the gold (and, for Burgundians, food) needed: fewer gatherers there.
+    // Before Farm Reseeding, which counts the farmers left.
+    const relic = relicIncome(), covered = { wood: 0, food: 0, gold: 0, stone: 0 }, rs = relicsNow() === 1 ? "" : "s";
+    ["gold", "food"].forEach((res) => {
+      covered[res] = Math.min(tot[res], relic[res] / r[res]);
+      tot[res] -= covered[res];
+    });
+    const perMin = (v) => (v >= 100 ? String(Math.round(v)) : fmtT(v));
+    $("relic-out").textContent = `${perMin(relic.gold * 60)}g/min`;
+    const each = relicIncome(1);
+    $("relics").title = tip(ageOpen(RELIC_AGE) ? "" : `Available from ${AGES[RELIC_AGE - 1]}`, `Each relic brings in ${fmt(each.gold * 60)} gold` +
+      (each.food ? ` and ${fmt(each.food * 60)} food` : "") + " per minute, taken off what the units need");
     reseed(r, tot);
+    houseBuilding(r, tot, popRate);
     // Totals round up the exact sum: villagers on one resource are shared between units.
-    // Only villagers count towards Villagers required (not Feitorias, relics, livestock or Fishing Ships).
+    // Only villagers count towards Villagers required (not Feitorias, livestock or Fishing Ships).
     let grand = 0, exact = 0;
     RES.forEach((res) => {
       const n = vils(tot[res]);
       if (kindOf(res) === "vils") { grand += n; exact += tot[res]; }
       const td = $("tot-" + res);
       td.textContent = n;
-      td.title = `${tot[res].toFixed(2)} ${unitWord(res)}`;
+      td.title = `${tot[res].toFixed(2)} ${unitWord(res)}` +
+        (covered[res] ? `, after ${relicsNow()} relic${rs} cover ${covered[res].toFixed(2)}` : "");
       td.classList.toggle("zero", n === 0);
     });
-    // Builders are villagers too.
-    grand += builders;
-    exact += builders;
+    // Builders are villagers too, except the Fishing Ships building Fish Traps.
+    const vilBuilders = builders - shipBuilders;
+    grand += vilBuilders;
+    exact += vilBuilders;
     $("tot-bld").textContent = hasBuildingRow() ? builders : "";
+    $("tot-bld").title = shipBuilders ? `Including ${shipBuilders} Fishing Ship${shipBuilders === 1 ? "" : "s"} building Fish Traps` : "";
     $("grand").textContent = grand;
-    $("grand").title = `${exact.toFixed(2)} villagers` + (builders ? `, including ${builders} builder${builders === 1 ? "" : "s"}` : "");
+    $("grand").title = `${exact.toFixed(2)} villagers` + (vilBuilders ? `, including ${vilBuilders} builder${vilBuilders === 1 ? "" : "s"}` : "");
     $("tot-count").textContent = state.rows.reduce((s, r) => s + r.count, 0);
     updateTE(r);
   }
@@ -2100,12 +2232,30 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   // Farm Reseeding: not in the dropdown; appears on its own while farms are the food source and farmers are needed.
   // Khitans get Pasture Reseeding instead. It has no # Builders or # Buildings, so its name cell spans those columns and the checkboxes get room.
   function reseedRowHtml() {
-    const box = (k) => `<label class="opt" title="${esc(techTitle(k))}"><input type="checkbox" data-up="${k}"${on(k) ? " checked" : ""}${techOpen(k) ? "" : " disabled"}> ${techName(k)}</label>`;
+    // Greyed like the settings boxes (syncSettings() does it there): this row is rebuilt after that runs.
+    const box = (k) => `<label class="opt${techOpen(k) ? "" : " na"}" title="${esc(techTitle(k))}"><input type="checkbox" data-up="${k}"${on(k) ? " checked" : ""}${techOpen(k) ? "" : " disabled"}> ${techName(k)}</label>`;
     return `<tr class="reseed" id="reseed-row" hidden>
           <td class="rm"></td>
           <th scope="row" colspan="3"><span class="uname">${pastures() ? "Pasture" : "Farm"} Reseeding</span><span class="meta meta-row" id="reseed-meta"></span>
             <div class="reseed-techs">${box("hcol")}${box("hp")}${box("crop")}</div></th>
           <td class="num wood" id="reseed-wood"></td><td class="num food zero">–</td><td class="num gold zero">–</td><td class="num stone zero">–</td>
+        </tr>`;
+  }
+
+  // The Farm row's "One per Villager" box (the time follows the Villager's training time).
+  function farmOptHtml(u, row) {
+    if (!FARM(u)) return "";
+    const vt = fmtT(villagerTime());
+    return `<span class="row-opts"><label class="opt" title="Build a Farm with every new Villager: one every ${vt}s instead of every build time">` +
+      `<input type="checkbox" data-pervil${row.perVil ? " checked" : ""}> ${vt}s</label></span>`;
+  }
+
+  // House Building: not in the dropdown either; appears on its own while units are trained (and the civ needs Houses).
+  function houseRowHtml() {
+    return `<tr class="houses" id="house-row" hidden>
+          <td class="rm"></td>
+          <th scope="row" colspan="3"><span class="uname">House Building</span><span class="meta meta-row" id="house-meta"></span></th>
+          <td class="num wood" id="house-wood"></td><td class="num food zero">–</td><td class="num gold zero">–</td><td class="num stone zero">–</td>
         </tr>`;
   }
 
@@ -2128,14 +2278,14 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
         const na = why ? ` <span class="na">${esc(why)}</span>` : "";
         return `<tr data-name="${safe}"${why ? ` class="na" title="${esc(why.charAt(0).toUpperCase() + why.slice(1))}"` : ""}>
           <td class="rm"><button type="button" aria-label="Remove ${safe}" title="Remove">×</button></td>
-          <th scope="row"><span class="uname"${u[10] ? ` title="${esc(u[10].join(", "))}"` : ""}>${esc(displayName(i))}</span>${upgradeButton(i)}<span class="meta meta-row">${costMeta(u, true, row.builders)}${na}</span></th>
-          <td class="bld-cell">${BLD(u) ? stepperHtml("builders", row.builders || 1, 1, MAX_BUILDERS, `Builders per ${safe}`) : ""}</td>
+          <th scope="row"><span class="uname"${u[10] ? ` title="${esc(u[10].join(", "))}"` : ""}>${esc(displayName(i))}</span>${upgradeButton(i)}<span class="meta meta-row">${costMeta(u, true, row)}${na}</span>${farmOptHtml(u, row)}</th>
+          <td class="bld-cell">${BLD(u) && !FARM(u) ? stepperHtml("builders", row.builders || 1, 1, maxBuilders(row.name), `Builders per ${safe}`) : ""}</td>
           <td class="count"><div class="stepper" data-field="count">
             <button type="button" class="step" data-step="-1" aria-label="One building fewer for ${safe}"${row.count <= 0 ? " disabled" : ""}>−</button><input type="number" inputmode="numeric" min="0" max="99" step="1" value="${row.count}" aria-label="Buildings producing ${safe}"><button type="button" class="step" data-step="1" aria-label="One building more for ${safe}"${row.count >= 99 ? " disabled" : ""}>+</button>
           </div></td>
           <td class="num wood"></td><td class="num food"></td><td class="num gold"></td><td class="num stone"></td>
         </tr>`;
-      }).join("") + reseedRowHtml();
+      }).join("") + reseedRowHtml() + houseRowHtml();
     }
     clearBtn.hidden = state.rows.length === 0;
     $("crane").closest(".opt").hidden = !state.bldOn || inTE();
@@ -2232,7 +2382,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
 
   tbody.addEventListener("input", (e) => {
     if (e.target.type !== "number") return;
-    const tr = e.target.closest("tr"), field = fieldOf(e.target), [min, max] = FIELDS[field];
+    const tr = e.target.closest("tr"), field = fieldOf(e.target), [min, max] = limits(e.target.closest(".stepper"));
     const row = state.rows.find((r) => r.name === tr.dataset.name);
     const v = parseInt(e.target.value, 10);
     row[field] = Number.isFinite(v) ? Math.max(min, Math.min(max, v)) : min;
@@ -2242,6 +2392,14 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     save();
   });
   tbody.addEventListener("change", (e) => {
+    if (e.target.hasAttribute("data-pervil")) {
+      const tr = e.target.closest("tr"), row = state.rows.find((r) => r.name === tr.dataset.name);
+      row.perVil = e.target.checked;
+      refreshRowMeta(tr, row);
+      update();
+      save();
+      return;
+    }
     if (e.target.dataset.up) {
       setUp(e.target.dataset.up, e.target.checked);
       if (!e.target.checked) setPostImp(false);
@@ -2259,10 +2417,11 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     update();
     save();
   });
-  const FIELDS = { count: [0, 99], builders: [1, MAX_BUILDERS], te: [0, TE_MAX] };
+  // A stepper's limits are its input's min and max (the builder limit depends on the building).
+  const limits = (stepper) => { const inp = stepper.querySelector("input"); return [+inp.min, +inp.max]; };
   const fieldOf = (el) => el.closest(".stepper").dataset.field;
   function syncStepper(stepper, n) {
-    const [min, max] = FIELDS[stepper.dataset.field];
+    const [min, max] = limits(stepper);
     stepper.querySelector('.step[data-step="-1"]').disabled = n <= min;
     stepper.querySelector('.step[data-step="1"]').disabled = n >= max;
   }
@@ -2270,7 +2429,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     const u = UNITS[byName.get(row.name)];
     const meta = tr.querySelector(".meta-row");
     const na = meta.querySelector(".na");
-    meta.innerHTML = costMeta(u, true, row.builders) + (na ? " " + na.outerHTML : "");
+    meta.innerHTML = costMeta(u, true, row) + (na ? " " + na.outerHTML : "");
   }
   const syncSteps = (tr, n) => syncStepper(tr.querySelector('.stepper[data-field="count"]'), n);
   tbody.addEventListener("click", (e) => {
@@ -2296,7 +2455,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     if (step) {
       const tr = step.closest("tr"), stepper = step.closest(".stepper"), field = stepper.dataset.field;
       const row = state.rows.find((r) => r.name === tr.dataset.name);
-      const [min, max] = FIELDS[field];
+      const [min, max] = limits(stepper);
       row[field] = Math.max(min, Math.min(max, (row[field] || min) + +step.dataset.step));
       stepper.querySelector("input").value = row[field];
       syncStepper(stepper, row[field]);
@@ -2388,6 +2547,13 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       ups.classList.toggle("off", !std);
       if (!std) ups.querySelectorAll("input").forEach((cb) => { cb.disabled = true; });
     });
+    // Relics: shown as 0 and locked before Castle Age.
+    const relicOpen = ageOpen(RELIC_AGE);
+    relicBox.classList.toggle("na", !relicOpen);
+    relicInput.disabled = !relicOpen;
+    relicInput.value = relicsNow();
+    syncStepper(relicBox.querySelector(".stepper"), relicsNow());
+    if (!relicOpen) relicBox.querySelectorAll(".step").forEach((b) => { b.disabled = true; });
     document.querySelectorAll('input[name="age"]').forEach((r) => { r.checked = +r.value === state.age; });
   }
   function setUp(key, val) {
@@ -2405,6 +2571,27 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     syncSettings();
     update();
     save();
+  });
+  // Relics (Gold box): 0–99, by −/+ or typed.
+  const relicBox = $("relics"), relicInput = relicBox.querySelector("input");
+  function setRelics(v) {
+    state.relics = Math.max(0, Math.min(99, v));
+    syncStepper(relicBox.querySelector(".stepper"), state.relics);
+    update();
+    save();
+  }
+  relicBox.addEventListener("click", (e) => {
+    const step = e.target.closest(".step");
+    if (!step) return;
+    setRelics(state.relics + +step.dataset.step);
+    relicInput.value = state.relics;
+    if (step.disabled) relicInput.focus();   // keep focus in the box at the limit
+  });
+  relicInput.addEventListener("input", () => { const v = parseInt(relicInput.value, 10); if (Number.isFinite(v)) setRelics(v); });
+  relicInput.addEventListener("change", () => {
+    const v = parseInt(relicInput.value, 10);
+    setRelics(Number.isFinite(v) ? v : 0);
+    relicInput.value = state.relics;
   });
   $("age").addEventListener("change", (e) => {
     if (e.target.name !== "age") return;
@@ -2739,7 +2926,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     else if (state.allies.indexOf(c) !== -1) state.allies = state.allies.filter((x) => x !== c);
     else if (state.allies.length < MAX_ALLIES) state.allies = state.allies.concat(c);
     allyInput.title = allySummary();
-    syncSettings();   // an ally's team bonus can add an income (Burgundian relic food)
+    syncSettings();   // an ally can unlock an income or change a tech
     renderCivFx();
     renderRows();
     fit();
@@ -2808,6 +2995,11 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     if (unitCombo.isOpen()) { unitCombo.render(); unitInput.focus({ preventScroll: true }); }
   });
 
+  // Farm Reseeding / House Building: opt out of either row (and its lumberjacks). Preferences, like Include Dock: Clear All leaves them.
+  const reseedBox = $("use-reseed"), housesBox = $("use-houses");
+  reseedBox.addEventListener("change", () => { state.useReseed = reseedBox.checked; update(); save(); });
+  housesBox.addEventListener("change", () => { state.useHouses = housesBox.checked; update(); save(); });
+
   let raf = 0;
   window.addEventListener("resize", () => {
     cancelAnimationFrame(raf);
@@ -2874,6 +3066,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     allyInput.title = allySummary();
     dockBox.checked = state.dock;
     bldBox.checked = state.bldOn;
+    reseedBox.checked = state.useReseed;
+    housesBox.checked = state.useHouses;
     document.querySelectorAll(".postimp-box").forEach((b) => { b.checked = state.postimp; });
     syncFtt();
     syncSettings();
@@ -2891,7 +3085,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     // Include Dock, Buildings, Full Tech Tree and Include Regional & Unique are view options: Clear All leaves them as they are.
     // (Full Tech Tree hides with Generic and starts unticked for the next civ, as usual.)
     Object.assign(state, { rows: [], civ: "Generic", allies: [], age: 3, food: "farm", ftt: false, consc: false, crane: false, uts: [], postimp: false,
-      src: { wood: "std", gold: "std", stone: "std" }, te: { research: 1, vils: { wood: 0, food: 0, gold: 0, stone: 0 } } });
+      src: { wood: "std", gold: "std", stone: "std" }, relics: 0, te: { research: 1, vils: { wood: 0, food: 0, gold: 0, stone: 0 } } });
     UPS.forEach((k) => { state.up[k] = false; });
     refreshAll();
   });
@@ -2954,6 +3148,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   allyInput.title = allySummary();
   dockBox.checked = state.dock;
   bldBox.checked = state.bldOn;
+  reseedBox.checked = state.useReseed;
+  housesBox.checked = state.useHouses;
   if (state.civ === "Generic") state.ftt = false;
   document.querySelectorAll(".postimp-box").forEach((b) => { b.checked = state.postimp; });
   syncFtt();
