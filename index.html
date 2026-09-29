@@ -1355,7 +1355,9 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
 
   /* ---------- gathering ---------- */
   // Base work rates per villager per second (generic civ).
-  const BASE = { wood: 0.39, gold: 0.38, stone: 0.36 };
+  const BASE = { gold: 0.38, stone: 0.36 };
+  // Lumberjack wood per minute by the best upgrade owned (each needs the one before).
+  const LUMBER = { "": 23.3, dba: 27.9, bs: 33.2, tms: 36.6 };
   const FOOD = { berries: 0.31, hunt: 0.41, sheep: 0.33, fish: 0.43 };
   // Fishing Ship food per minute: none, Fishing Lines, Gillnets (which needs Fishing Lines).
   const FISH_SHIP = { "": 14.4, fl: 15.84, gn: 17.42 };
@@ -1371,13 +1373,14 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   // Alternative income sources, per minute (rates tested by hand). They join a resource's source dropdown whenever available.
   // kind = what one unit of the source is. civs: who has it (none = every civ; team: allies count too),
   // age: earliest age, unique: a unique building (kept under Full Tech Tree).
+  // from + mult instead of perMin: a share of another rate (a food source's, or "wood" for the lumberjack rate).
   const NICHE = {
     wood: [
       { id: "pforager", label: "Portuguese Forager", perMin: 5, kind: "vils", civs: ["Portuguese"], age: 1, tip: "Portuguese foragers also generate wood" },
       { id: "feitoria", label: "Feitoria", perMin: 42, kind: "feitoria", civs: ["Portuguese"], age: 4, unique: true, tip: "Portuguese Feitoria" },
     ],
     food: [
-      { id: "shu", label: "Shu Lumberjack", perMin: 1, kind: "vils", civs: ["Shu"], age: 1, tip: "Shu lumberjacks also generate food" },
+      { id: "shu", label: "Shu Lumberjack", from: "wood", mult: 0.06859, kind: "vils", civs: ["Shu"], age: 1, tip: "Shu lumberjacks also generate food: 6.859% of their wood rate" },
       { id: "feitoria", label: "Feitoria", perMin: 97, kind: "feitoria", civs: ["Portuguese"], age: 4, unique: true, tip: "Portuguese Feitoria" },
       { id: "gurjara", label: "Gurjara Livestock", perMin: 6, kind: "livestock", civs: ["Gurjaras"], age: 1, tip: "Livestock garrisoned in a Gurjara Mill" },
       { id: "gurjara-l", label: "Gurjara Livestock (large)", perMin: 8, kind: "livestock", civs: ["Gurjaras"], age: 1, tip: "Large livestock garrisoned in a Gurjara Mill" },
@@ -1402,7 +1405,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   const KIND = { vils: ["vils", "villager"], feitoria: ["Feitorias", "Feitoria"], relic: ["Relics", "relic"], livestock: ["Livestock", "livestock animal"],
     fship: ["Fishing Ships", "Fishing Ship"] };
 
-  const MULT = { dba: 1.2, bs: 1.2, tms: 1.1, gm: 1.15, gsm: 1.15, sm: 1.15, ssm: 1.15 };
+  const MULT = { gm: 1.15, gsm: 1.15, sm: 1.15, ssm: 1.15 };
   const REQUIRES = { bs: "dba", tms: "bs", gsm: "gm", ssm: "sm", hc: "wb", hp: "hcol", crop: "hp", gn: "fl" };
   const UPS = ["dba", "bs", "tms", "hp", "wb", "hc", "fl", "gn", "gm", "gsm", "sm", "ssm", "hcol", "crop"];
   const TECH_DESC = {
@@ -1773,7 +1776,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     let food = state.food === "farm" ? farmT[farmKey()] / 60 : ship ? FISH_SHIP[on("gn") ? "gn" : on("fl") ? "fl" : ""] / 60 : FOOD[state.food];
     const m = (keys) => keys.reduce((p, k) => (on(k) ? p * MULT[k] : p), 1);
     const r = {
-      wood: BASE.wood * m(["dba", "bs", "tms"]),
+      wood: LUMBER[on("tms") ? "tms" : on("bs") ? "bs" : on("dba") ? "dba" : ""] / 60,
       food,
       gold: BASE.gold * m(["gm", "gsm"]),
       stone: BASE.stone * m(["sm", "ssm"]),
@@ -1788,12 +1791,14 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       else if (RES.indexOf(e.src) !== -1) r[e.src] *= f;
       else if (e.src === state.food) r.food *= f;
     });
-    // Niche incomes replace the standard rate for their resource.
+    // Niche incomes replace the standard rate for their resource. Shu lumberjack food is a share of the lumberjack rate
+    // (upgrades and bonuses included), even while another wood source is picked.
     const gtr = activeFx().some((x) => x.tech === "Grand Trunk Road");
+    const lumber = r.wood;
     RES.forEach((res) => {
       const o = nicheOf(res);
       if (!o) return;
-      let v = o.from ? foodRate(o.from) * o.mult : o.perMin / 60;
+      let v = o.from === "wood" ? lumber * o.mult : o.from ? foodRate(o.from) * o.mult : o.perMin / 60;
       if (res === "gold" && gtr) v *= 1.1;                       // all gold income +10%
       if (o.id === "relic") fx.forEach((e) => { if (e.k === "relicgold") v *= e.mult; });
       r[res] = v;
