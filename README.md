@@ -23,7 +23,7 @@ Hosted on []().
 - Check how unique technologies affect villagers required
 - Check how any specific combination of team bonuses affect villagers required
 
-This website promises your ability to quickly and easily accomplish any and all of the tasks above while:
+This website promises your ability to quickly and easily accomplish any and all of the tasks above while having:
 - No ads.
 - No load time.
 - No scrolling.
