@@ -42,4 +42,8 @@ You can open an [issue](https://github.com/cnordenb/aoe2vils/issues/new) on gith
 
 ## Support
 
-The hosting and domain expenses are relatively low - some €20 per year. If you want to show appreciation for aoe2vils and support its upkeep you can donate a small amount at [ko-fi.com/hjoerleif](https://ko-fi.com/hjoerleif). New or returning to AoE2 and want some help? You can [book me](https://www.fiverr.com/s/aekAZma) for some beginner-friendly and very cheap coaching.
+The hosting and domain expenses are relatively low - some €20 per year. If you want to show appreciation for aoe2vils and support its upkeep you can donate a small amount at [ko-fi.com/hjoerleif](https://ko-fi.com/hjoerleif).  
+
+New or returning to AoE2 and want some help? You can [book me](https://www.fiverr.com/s/aekAZma) for some beginner-friendly and very cheap coaching.  
+
+Or you can just check out [my YouTube channel](https://www.youtube.com/hjoerleif) if you want yet more AoE2 content to watch
