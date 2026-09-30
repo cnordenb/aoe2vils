@@ -1,5 +1,28 @@
 # aoe2vils
 
+Calculation webapp tool for estimating villagers required and transition eco in Age of Empires II: Definitive Edition.
+
+Hosted on []().
+
+## Usage
+
+- Check how many villagers are required on which resources to sustain unit production of any unit and unit combination
+- Check how civ and team bonuses affect villagers required
+- Check how niche income types like Burgundian relics or Polish stone miners affect villagers required
+- Check how many villagers are required on stone to keep building castles
+- Check how the number of builders affect build time of buildings
+- Check how much resources any villager configuration will get you on the way to next age
+- Check how upgrades affect resource income and continuous expenses like farm reseeding
+- Check villagers required for custom unit or building of user-defined resource costs and creation time
+- Check villagers required with user-defined gather rates
+- Check how often you need to build a new house depending on your unit productions
+- Check how different ages can affect unit creation times
+- Check how technologies like Shipwright and Conscription technologies affect villagers required
+- Check how unique technologies affect villagers required
+- Check how any specific combination of team bonuses affect villagers required
+
+## Acknowledgments
+
 Inspired by Survivalist's [original webapp](https://aoe2-de-tools.herokuapp.com/villagers-required/).
 
 Special thanks to HSZemi and Siege Engineers for their [aoe2techtree](https://github.com/SiegeEngineers/aoe2techtree) which made it a great deal easier to make aoe2vils.
