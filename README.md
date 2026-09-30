@@ -6,7 +6,7 @@ Hosted on []().
 
 ## Usage
 
-- Check how many villagers are required on which resources to sustain unit production of any unit and unit combination
+- Check how many villagers are required on which resources to sustain unit production of any and unit combination
 - Check how civ and team bonuses affect villagers required
 - Check how niche income types like Burgundian relics or Polish stone miners affect villagers required
 - Check how many villagers are required on stone to keep building castles
