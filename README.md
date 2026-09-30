@@ -1,30 +1,8 @@
 # aoe2vils
 
-Simple but powerful calculation webapp tool for estimating villagers required and transition eco in Age of Empires II: Definitive Edition.  
-  
-No cookies, no ads, no animations, no page scrolling, no pop-ups, no images, no texts - just the spreadsheet in front of you and all the tools you need to configure it down to the tiniest detail and most specific set of circumstances.
-Search from all of the game's units at once or browse from the only 2-3 available to a specific civ in dark age. Apply any possible combination of relevant team bonuses and available techs.  
+Calculation webapp tool for estimating villagers required and transition eco in Age of Empires II: Definitive Edition.  
 
-Hosted on []().
-
-## Usage
-
-- Check how many villagers are required on which resources to sustain unit production of any and unit combination
-- Check how your civ bonuses affect villagers required
-- Check how niche income types like Burgundian relics or Polish stone miners affect villagers required
-- Check how many villagers are required on stone to keep building castles
-- Check how the number of builders affect build time of buildings
-- Check how much resources any villager configuration will get you on the way to next age
-- Check how many villagers are required on wood for farm reseeding
-- Check how upgrades affect resource income and continuous expenses like farm reseeding
-- Check how many villagers required for custom unit or building of user-defined resource costs and creation time
-- Check how many villagers required with user-defined gather rates
-- Check how often you need to build a new house depending on your unit productions
-- Check how different ages can affect unit creation times
-- Check how specific civ bonuses affect costs and creation times for every single age
-- Check how technologies like Shipwright and Conscription technologies affect villagers required
-- Check how unique technologies affect villagers required
-- Check how any specific combination of team bonuses affect villagers required
+Hosted on []()
 
 ## Acknowledgments
 
@@ -36,14 +14,6 @@ Development accelerated with Claude Opus 5.5.
 
 Age of Empires II © Microsoft Corporation. aoe2vils was created under Microsoft's "[Game Content Usage Rules](https://www.xbox.com/en-us/developers/rules)" using assets from Age of Empires II, and it is not endorsed by or affiliated with Microsoft.
 
-## Bug report or feedback
-
-You can open an [issue](https://github.com/cnordenb/aoe2vils/issues/new) on github or you can reach out on discord where my username is hjoerleif.
-
 ## Support
 
 The hosting and domain expenses are relatively low - some €20 per year. If you want to show appreciation for aoe2vils and support its upkeep you can donate a small amount at [ko-fi.com/hjoerleif](https://ko-fi.com/hjoerleif).  
-
-New or returning to AoE2 and want some help? You can [book me](https://www.fiverr.com/s/aekAZma) for some beginner-friendly and very cheap coaching.  
-
-Or you can just check out [my YouTube channel](https://www.youtube.com/hjoerleif) if you want yet more AoE2 content to watch
