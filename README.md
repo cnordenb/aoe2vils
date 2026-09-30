@@ -12,9 +12,10 @@ Hosted on []().
 - Check how many villagers are required on stone to keep building castles
 - Check how the number of builders affect build time of buildings
 - Check how much resources any villager configuration will get you on the way to next age
+- Check how many villagers are required on wood for farm reseeding
 - Check how upgrades affect resource income and continuous expenses like farm reseeding
-- Check villagers required for custom unit or building of user-defined resource costs and creation time
-- Check villagers required with user-defined gather rates
+- Check how many villagers required for custom unit or building of user-defined resource costs and creation time
+- Check how many villagers required with user-defined gather rates
 - Check how often you need to build a new house depending on your unit productions
 - Check how different ages can affect unit creation times
 - Check how technologies like Shipwright and Conscription technologies affect villagers required
