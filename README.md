@@ -1,8 +1,9 @@
 # aoe2vils
 
 Simplistic calculation webapp tool for estimating villagers required and transition eco in Age of Empires II: Definitive Edition.  
+  
 No cookies, no ads, no animations, no page scrolling, no images, no texts - just the spreadsheet in front of you and all the tools you need to manage it.
-Search from all of the game's units at once or browse from the only 2-3 available to a specific civ in dark age. Apply any combination of relevant civ bonuses and available techs.
+Search from all of the game's units at once or browse from the only 2-3 available to a specific civ in dark age. Apply any combination of relevant civ bonuses and available techs.  
 
 Hosted on []().
 
