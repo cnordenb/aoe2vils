@@ -4,6 +4,8 @@ Calculation webapp tool for estimating villagers required and transition eco in 
 
 Hosted on []()
 
+All gather rates manually verified and tested in-game on patch 185872.
+
 ## Acknowledgments
 
 Inspired by Survivalist's [original webapp](https://aoe2-de-tools.herokuapp.com/villagers-required/).
