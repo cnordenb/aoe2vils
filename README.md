@@ -18,6 +18,7 @@ Hosted on []().
 - Check how many villagers required with user-defined gather rates
 - Check how often you need to build a new house depending on your unit productions
 - Check how different ages can affect unit creation times
+- Check how specific civ bonuses affect costs and creation times for every single age
 - Check how technologies like Shipwright and Conscription technologies affect villagers required
 - Check how unique technologies affect villagers required
 - Check how any specific combination of team bonuses affect villagers required
