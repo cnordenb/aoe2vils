@@ -23,7 +23,7 @@
   --tint-strong: 15%;
 
   --w-count: 7rem;
-  /* The four resource columns share one width: room for the longest income source ("Gurjara Livestock (large)")
+  /* The four resource columns share one width: room for the longest income source (once "Gurjara Livestock (large)")
      and a little more, so the resource block sits nearer the middle of the page */
   --w-res: 12rem;
   --w-wood: var(--w-res);
@@ -160,7 +160,8 @@ html.hdr-measure .clear-slot { flex: 0 0 auto; }
 .pagebtn.accent { color: var(--focus); border-color: color-mix(in srgb, var(--focus) 55%, var(--rule)); }
 .pagebtn.accent:hover { background: color-mix(in srgb, var(--focus) 10%, var(--surface)); border-color: var(--focus); }
 .postimp-cell { grid-column: -2 / -1; padding: .6rem .75rem; border-left: 1px solid var(--rule);
-  display: flex; flex-direction: column; align-items: flex-start; gap: .5rem; }
+  display: flex; flex-direction: column; align-items: flex-start; gap: .5rem;
+  margin-bottom: -1px; background: var(--surface); }   /* covers the settings row's bottom line: one cell with the Technologies below */
 .clear-techs { font-size: .8rem; padding: .25rem .65rem; }
 .clear-techs-alt, .clear-techs-alt[hidden] { display: none; }
 .postimp-opt { display: inline-flex; align-items: center; gap: .45rem; font-weight: 700; font-size: .95rem; cursor: pointer; }
@@ -322,6 +323,23 @@ html.hdr-measure .clear-slot { flex: 0 0 auto; }
 .list .none { padding: .6rem .75rem; color: var(--muted); }
 
 .meta { font-size: .8em; color: var(--muted); white-space: nowrap; }
+/* Custom unit: its costs and training time as small number fields on a second line under the name (the name's line is too
+   short for them at every width); the name's line shows the cost after bonuses, when any apply */
+.cu-fields { display: flex; flex-wrap: wrap; align-items: baseline; gap: .1em .35em; margin-top: .15em; font-size: .75em; color: var(--muted); }
+.cu-f { display: inline-flex; align-items: baseline; gap: .12em; font-weight: 500; cursor: text; }
+.cu-fields .t-wood { color: var(--wood); }
+.cu-fields .t-food { color: var(--food); }
+.cu-fields .t-gold { color: var(--gold); }
+.cu-fields .t-stone { color: var(--stone); }
+.cu-in {
+  width: 2.8em; font: inherit; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--rule); border-radius: 3px; padding: .05em .2em; text-align: right;
+  -moz-appearance: textfield; appearance: textfield;
+}
+.cu-in::-webkit-inner-spin-button, .cu-in::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.cu-in:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.cu-eff { white-space: normal; }   /* the cost after bonuses may wrap in a narrow Unit column */
+
 .meta b { font-weight: 500; }
 .meta .t-wood { color: var(--wood); }
 .meta .t-food { color: var(--food); }
@@ -345,6 +363,14 @@ fieldset.res legend + * { clear: both; }
 .lg strong { color: var(--res); font-size: 1.02rem; }
 .rate { color: var(--muted); font-size: .85rem; white-space: nowrap; }
 .rate b { color: var(--ink); font-weight: 500; }
+/* A custom income: its rate is typed in the heading (0.1–999.9 per villager per minute), the field no taller than the text */
+.rate-in {
+  width: 3.4em; height: 1.2em; font: inherit; font-weight: 500; line-height: 1; color: var(--ink); background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--res) 45%, var(--rule)); border-radius: 3px; padding: 0 .15em; text-align: right;
+  -moz-appearance: textfield; appearance: textfield;
+}
+.rate-in::-webkit-inner-spin-button, .rate-in::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.rate-in:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
 .opt {
   display: flex; align-items: center; gap: .4rem;
   padding: .08rem 0;
@@ -357,11 +383,25 @@ fieldset.res legend + * { clear: both; }
 .opt input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .food-grid { display: grid; grid-template-columns: auto auto; column-gap: .9rem; justify-content: start; }
 .food .opt { white-space: nowrap; }
-#food-ups .opt[hidden] { visibility: hidden; }   /* Heavy Plow for Khitans: keeps its space, so switching civ moves nothing */
-/* Wheelbarrow / Fishing Lines and Hand Cart / Gillnets share a spot (the Fishing Ship source swaps them), sized for the larger */
+/* An upgrade the chosen source doesn't use is hidden but keeps its space (tick kept), so switching source or civ moves nothing */
+#food-ups .opt[hidden] { visibility: hidden; }
+.ups[hidden] { display: block; visibility: hidden; }
+/* Heavy Plow / Fishing Lines and Wheelbarrow / Gillnets share a spot (the Fishing Ship source swaps them), sized for the larger */
 .opt-stack { display: grid; }
 .opt-stack > .opt { grid-area: 1 / 1; }
+/* Fishing Ship: where it fishes, right of the upgrades; hidden for other sources but keeps its space */
+.food-row { display: flex; align-items: flex-start; gap: .7rem; }
+.food-row > * { flex: none; }
+.fish-spot[hidden] { display: block; visibility: hidden; }
+/* With Fishing Ship, the swapped-out Heavy Plow and Wheelbarrow stop reserving their width, leaving the radios room */
+html:not(.fish-dd) #food-ups.ship .opt-stack > .opt[hidden] { display: none; }
+/* No room for the radios (phones, narrow windows; measured by fitFish()): the Food dropdown lists the ship once per spot instead */
+html.fish-dd .food-row { display: block; }
+html.fish-dd .fish-spot { display: none; }
 html.narrow .wide-only { display: none; }
+/* A column heading's own name (# Lumberjacks …) or, where that doesn't fit (th.plain, fitHeads()), the plain one (# Wood vils) */
+.sheet thead .hs, .sheet thead th.plain .hl { display: none; }
+.sheet thead th.plain .hs { display: inline; }
 /* Income source: a plain dropdown under each resource heading (few options, no search needed); farm upgrades sit under Food's */
 .src-sel {
   display: block; width: 100%; max-width: 100%; margin: .05rem 0 .3rem; clear: both;
@@ -370,21 +410,28 @@ html.narrow .wide-only { display: none; }
   padding: .12rem .25rem; cursor: pointer; text-overflow: ellipsis;
 }
 .src-sel:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
-/* Nothing to choose for this resource: the dropdown hides but keeps its space, so nothing moves */
-.src-sel[hidden] { display: block; visibility: hidden; }
-.nested { margin: 0 0 0 .45rem; padding-left: .8rem; border-left: 1px solid color-mix(in srgb, var(--res) 40%, transparent); }
 /* Relics: a count under the gold upgrades, sized to fit the line Gold has spare (Food's box sets the height) */
 #relics { display: flex; align-items: center; gap: .3rem; white-space: nowrap; }
 #relics .stepper { --sh: 1.2rem; font-size: .85rem; }
 #relics .stepper input { width: 1.7em; padding: 0; }
 #relics .relic-out { color: var(--muted); font-size: .8rem; }
 #relics.na { opacity: .42; }   /* before Castle Age */
+/* Gathering that brings in another resource too: Portuguese foragers' wood (Wood box, under the upgrades), Shu lumberjacks'
+   food (Food box, under the upgrades) and Varangian shepherds', hunters' and fishers' gold (Gold box, under Relics). A line exists only for a civ with the bonus (.gone otherwise)
+   and keeps its space for other food sources, so switching food source moves nothing */
+.extra-inc { color: var(--muted); font-size: .85rem; font-style: italic; line-height: 1.25; padding: .08rem 0; text-align: center; white-space: nowrap; }
+/* Where the longest text a line can show doesn't fit on one line, "from …" takes a second line (html.inc-2l), in smaller type
+   if even that is too wide (html.inc-small), and the name a third line of its own if still too wide (html.inc-3l). fitIncome()
+   decides by that longest text, so the height never follows the numbers or the source */
+html.inc-2l .extra-inc .inc-from, html.inc-3l .extra-inc .inc-who { display: block; }
+html.inc-small .extra-inc { font-size: .7rem; }
+.extra-inc[hidden] { display: block; visibility: hidden; }
+.extra-inc.gone { display: none; }
 html.narrow #relics { flex-wrap: wrap; gap: .1rem .25rem; }
 html.narrow #relics .stepper { --sh: 1.05rem; font-size: .75rem; }
 html.tab-te #relics { visibility: hidden; }   /* relics don't count in Transition Eco */
-.nested .opt.off, .ups.off .opt, .opt.na { opacity: .42; cursor: default; }
+.opt.na { opacity: .42; cursor: default; }
 .opt.na input { cursor: default; }
-.nested .opt.off input, .ups.off .opt input { cursor: default; }
 
 /* Table */
 .sheet-wrap { position: relative; flex: 1; min-height: 0; overflow: hidden; }
@@ -432,6 +479,10 @@ col.c-rm    { width: var(--w-rm); }
 .sheet .num { text-align: right; }
 .sheet tbody tr > * { border-bottom: 1px solid color-mix(in srgb, var(--rule) 60%, transparent); }
 .sheet tbody th { font-weight: 500; }
+/* Wide layout: empty rows keep the table at least four rows tall (update() shows the ones needed); a hidden stepper gives a unit row's height */
+tr.filler { display: none; }
+html:not(.narrow) tr.filler:not([hidden]) { display: table-row; }
+tr.filler .stepper { visibility: hidden; }
 .uname { margin-right: .45em; }
 .upg {
   font: inherit; font-size: .72em; font-weight: 700; line-height: 1.2;
@@ -525,7 +576,19 @@ html.narrow .meta + .row-opts { margin-left: 0; }   /* the cost is hidden there:
 .tn { display: block; font-weight: 500; }
 .te { display: block; font-size: .8rem; color: var(--muted); line-height: 1.25; }
 #ut-list { display: flex; flex-direction: column; gap: .35rem; }
-#ut-list:empty { display: none; }
+#ut-list.none { display: none; }
+.ut-slot { display: contents; }   /* the Castle Age / Imperial Age unique tech: a place of its own only in the wide layout */
+/* Wide layout, Villagers Required: every technology keeps its place, in this order: the Castle Age unique tech, the Imperial Age
+   one, Conscription, Shipwright, Treadmill Crane. One that's missing or hidden leaves its gap (a checkbox's height if missing),
+   so ticking Naval or Buildings moves nothing. Villagers required sits level with the Totals row (placeGrand()). */
+html:not(.narrow):not(.tab-te) #ut-list.none { display: flex; }
+html:not(.narrow):not(.tab-te) .ut-slot { display: flex; flex-direction: column; min-height: calc(1.25em + .16rem); }
+html:not(.narrow):not(.tab-te) .techs .opt[hidden] { display: flex; visibility: hidden; }
+html:not(.narrow):not(.tab-te) #shipwright-opt { order: 1; }
+html:not(.narrow):not(.tab-te) #crane-opt { order: 2; }
+html:not(.narrow):not(.tab-te) .grand-box { position: absolute; left: .75rem; right: .75rem; margin: 0; }
+/* ...and the column moves up into the Post-Imp cell (placeTechs()), so the table area mustn't clip it */
+html:not(.narrow):not(.tab-te) .sheet-wrap { overflow: visible; }
 
 /* Mid widths */
 /* Mid layout: up to 1320px wide, or up to 1600px while the # Builders column shows */
@@ -604,7 +667,6 @@ html.narrow .meta + .row-opts { margin-left: 0; }   /* the cost is hidden there:
   html.narrow .lg strong { font-size: .95rem; line-height: 1.15; }
   html.narrow .src-sel { margin: 0 0 .15rem; padding: .04rem .15rem; font-size: .84em; }
   html.narrow .rate { font-size: .74rem; }
-  html.narrow fieldset.res .nested { margin-left: .1rem; padding-left: .35rem; }
   html.narrow fieldset.res .opt { gap: .25rem; align-items: flex-start; white-space: normal; -webkit-hyphens: auto; hyphens: auto; }
   html.narrow fieldset.res .opt input { width: .85rem; height: .85rem; margin-top: .1rem; }
   html.narrow .food-grid { column-gap: .8rem; }
@@ -664,7 +726,7 @@ html.narrow .meta + .row-opts { margin-left: 0; }   /* the cost is hidden there:
 #te-row, .te-box { display: none; }
 html.tab-te #te-row { display: table-row; }
 html.tab-te .te-box { display: flex; }
-html.tab-te #rows, html.tab-te #tot-row, html.tab-te .grand-box, html.tab-te #consc-opt, html.tab-te #crane-opt,
+html.tab-te #rows, html.tab-te #tot-row, html.tab-te .grand-box, html.tab-te #consc-opt, html.tab-te #crane-opt, html.tab-te #shipwright-opt,
 html.tab-te .postimp-alt { display: none; }
 html.tab-te .adder, html.tab-te .age, html.tab-te .postimp-cell .postimp-opt,
 html.tab-te .sheet thead th:nth-child(-n+4) { visibility: hidden; }
@@ -757,7 +819,7 @@ html.tab-te.narrow .lanes { grid-template-areas: "wood food gold stone"; }
         <div class="adder-head">
           <label for="unit-search" class="adder-title" id="adder-title">Add a unit</label>
           <span class="adder-opts">
-            <label class="dockopt"><input type="checkbox" id="include-dock"> Include Dock</label>
+            <label class="dockopt"><input type="checkbox" id="include-dock"> Naval</label>
             <label class="dockopt"><input type="checkbox" id="include-bld"> Buildings</label>
             <span class="opt-slot">
               <label class="dockopt" title="All non-unique units, buildings and technologies, without civilization bonuses, team bonuses or unique technologies"><input type="checkbox" id="full-tree"> Full Tech Tree</label>
@@ -773,42 +835,51 @@ html.tab-te.narrow .lanes { grid-template-areas: "wood food gold stone"; }
         </div>
         <div class="adder-foot">
           <span class="adder-opts">
-            <label class="dockopt" title="Add the lumberjacks who keep the farms rebuilt"><input type="checkbox" id="use-reseed" checked> Farm Reseeding</label>
-            <label class="dockopt" title="Add the lumberjacks who keep up with the Houses the units need"><input type="checkbox" id="use-houses" checked> House Building</label>
+            <label class="dockopt" title="Take wood expense of farm reseeding into account"><input type="checkbox" id="use-reseed" checked> Farm Reseeding</label>
+            <label class="dockopt" title="Take wood expense of house building into account"><input type="checkbox" id="use-houses" checked> House Building</label>
           </span>
           <button type="button" class="linkbtn" id="clear" hidden>Clear table</button>
         </div>
       </div>
 
       <fieldset class="res wood">
-        <legend><span class="lg"><strong>Wood</strong><span class="rate" id="rate-wood-t" title="Gathered per villager per minute"><b id="rate-wood">0</b>/min</span></span></legend>
-        <select class="src-sel" id="src-wood" data-src="wood" aria-label="Wood source" hidden></select>
+        <legend><span class="lg"><strong>Wood</strong><span class="rate" id="rate-wood-t" title="Gathered per villager per minute"><b id="rate-wood">0</b><input type="number" class="rate-in" id="rate-in-wood" data-rate="wood" min="0.1" max="999.9" step="0.1" inputmode="decimal" aria-label="Wood gathered per villager per minute" hidden>/min</span></span></legend>
+        <select class="src-sel" id="src-wood" data-src="wood" aria-label="Wood source"></select>
         <div class="ups" id="wood-ups">
           <label class="opt"><input type="checkbox" data-up="dba"> Double-Bit Axe</label>
           <label class="opt"><input type="checkbox" data-up="bs"> Bow Saw</label>
           <label class="opt"><input type="checkbox" data-up="tms"> Two-Man Saw</label>
         </div>
+        <div class="extra-inc" id="forage" hidden>+<span id="forage-out">0</span> w/min <span class="inc-from">from <span class="inc-who">Foragers</span></span></div>
       </fieldset>
 
       <fieldset class="res food">
-        <legend><span class="lg"><strong>Food</strong><span class="rate" id="rate-food-t" title="Gathered per villager per minute"><b id="rate-food">0</b>/min</span></span></legend>
+        <legend><span class="lg"><strong>Food</strong><span class="rate" id="rate-food-t" title="Gathered per villager per minute"><b id="rate-food">0</b><input type="number" class="rate-in" id="rate-in-food" data-rate="food" min="0.1" max="999.9" step="0.1" inputmode="decimal" aria-label="Food gathered per villager per minute" hidden>/min</span></span></legend>
         <select class="src-sel" id="food-source" name="food" aria-label="Food source"></select>
-        <div class="nested" id="food-ups">
-          <label class="opt"><input type="checkbox" data-up="hp"> Heavy Plow</label>
-          <div class="opt-stack">
-            <label class="opt"><input type="checkbox" data-up="wb"> Wheel&shy;barrow</label>
-            <label class="opt" hidden><input type="checkbox" data-up="fl"> Fishing Lines</label>
-          </div>
-          <div class="opt-stack">
+        <div class="food-row">
+          <div id="food-ups">
+            <div class="opt-stack">
+              <label class="opt"><input type="checkbox" data-up="hp"> Heavy Plow</label>
+              <label class="opt" hidden><input type="checkbox" data-up="fl"> Fishing Lines</label>
+            </div>
+            <div class="opt-stack">
+              <label class="opt"><input type="checkbox" data-up="wb"> Wheel&shy;barrow</label>
+              <label class="opt" hidden><input type="checkbox" data-up="gn"> Gillnets</label>
+            </div>
             <label class="opt"><input type="checkbox" data-up="hc"> Hand Cart</label>
-            <label class="opt" hidden><input type="checkbox" data-up="gn"> Gillnets</label>
+          </div>
+          <div class="fish-spot" id="fish-spot" role="radiogroup" aria-label="Where the Fishing Ships fish" hidden>
+            <label class="opt" title="Shore fish"><input type="radio" name="fish" value="shore"> Shore</label>
+            <label class="opt" title="Deep-sea fish"><input type="radio" name="fish" value="deep"> Deep</label>
+            <label class="opt" title="Fish Traps (shore fish rate for now)"><input type="radio" name="fish" value="trap"> Trap</label>
           </div>
         </div>
+        <div class="extra-inc" id="wood-food" hidden>+<span id="wood-food-out">0</span> f/min <span class="inc-from">from <span class="inc-who">Lumberjacks</span></span></div>
       </fieldset>
 
       <fieldset class="res gold">
-        <legend><span class="lg"><strong>Gold</strong><span class="rate" id="rate-gold-t" title="Gathered per villager per minute"><b id="rate-gold">0</b>/min</span></span></legend>
-        <select class="src-sel" id="src-gold" data-src="gold" aria-label="Gold source" hidden></select>
+        <legend><span class="lg"><strong>Gold</strong><span class="rate" id="rate-gold-t" title="Gathered per villager per minute"><b id="rate-gold">0</b><input type="number" class="rate-in" id="rate-in-gold" data-rate="gold" min="0.1" max="999.9" step="0.1" inputmode="decimal" aria-label="Gold gathered per villager per minute" hidden>/min</span></span></legend>
+        <select class="src-sel" id="src-gold" data-src="gold" aria-label="Gold source"></select>
         <div class="ups" id="gold-ups">
           <label class="opt"><input type="checkbox" data-up="gm"> <span><span class="long">Gold </span>Mining</span></label>
           <label class="opt"><input type="checkbox" data-up="gsm"> <span><span class="long">Gold </span>Shaft Mining</span></label>
@@ -818,11 +889,12 @@ html.tab-te.narrow .lanes { grid-template-areas: "wood food gold stone"; }
           <div class="stepper"><button type="button" class="step" data-step="-1" aria-label="Relics: one fewer">−</button><input type="number" inputmode="numeric" min="0" max="99" step="1" value="0" aria-label="Relics"><button type="button" class="step" data-step="1" aria-label="Relics: one more">+</button></div>
           <span class="relic-out" id="relic-out"></span>
         </div>
+        <div class="extra-inc" id="food-gold" hidden>+<span id="food-gold-out">0</span> g/min <span class="inc-from">from <span class="inc-who" id="food-gold-who">Shepherds</span></span></div>
       </fieldset>
 
       <fieldset class="res stone">
-        <legend><span class="lg"><strong>Stone</strong><span class="rate" id="rate-stone-t" title="Gathered per villager per minute"><b id="rate-stone">0</b>/min</span></span></legend>
-        <select class="src-sel" id="src-stone" data-src="stone" aria-label="Stone source" hidden></select>
+        <legend><span class="lg"><strong>Stone</strong><span class="rate" id="rate-stone-t" title="Gathered per villager per minute"><b id="rate-stone">0</b><input type="number" class="rate-in" id="rate-in-stone" data-rate="stone" min="0.1" max="999.9" step="0.1" inputmode="decimal" aria-label="Stone gathered per villager per minute" hidden>/min</span></span></legend>
+        <select class="src-sel" id="src-stone" data-src="stone" aria-label="Stone source"></select>
         <div class="ups" id="stone-ups">
           <label class="opt"><input type="checkbox" data-up="sm"> <span><span class="long">Stone </span>Mining</span></label>
           <label class="opt"><input type="checkbox" data-up="ssm"> <span><span class="long">Stone </span>Shaft Mining</span></label>
@@ -889,6 +961,7 @@ html.tab-te.narrow .lanes { grid-template-areas: "wood food gold stone"; }
         <div id="ut-list"></div>
         <label class="opt" id="consc-opt"><input type="checkbox" id="consc"> <span class="tn">Conscription</span></label>
         <label class="opt" id="crane-opt" hidden><input type="checkbox" id="crane"> <span class="tn">Treadmill Crane</span></label>
+        <label class="opt" id="shipwright-opt" hidden><input type="checkbox" id="shipwright"> <span class="tn">Shipwright</span></label>
         <div class="grand-box"><span class="grand-label"><span class="gl-long">Villagers required</span><span class="gl-short">Villagers</span></span><b id="grand">0</b></div>
         <!-- Transition Eco: what the villagers gather while the age is researched -->
         <div class="te-box" id="te-box">
@@ -951,7 +1024,7 @@ const UNITS = [
   ["Archer", "Archery Range", 25, 0, 45, 0, 35, "ALR", "22222222222222222222222222222222222222222222222222222222", 2],
   ["Crossbowman / Arbalester", "Archery Range", 25, 0, 45, 0, 27, "ALR", "33333303333333333333333333333333333333333333330333333333", 3, ["Crossbowman", "Arbalester"]],
   ["Skirmisher", "Archery Range", 35, 25, 0, 0, 26, "ALR", "22222222222222222222222222222222222222222222222222222222", 2],
-  ["Elite Skirmisher / Imperial Skirmisher", "Archery Range", 35, 25, 0, 0, 22, "ALR", "33333333333333333333333333333333333333333333333333033333", 3, ["Elite Skirmisher", "Imperial Skirmisher"]],
+  ["Elite Skirmisher", "Archery Range", 35, 25, 0, 0, 22, "ALR", "33333333333333333333333333333333333333333333333333033333", 3, ["Elite Skirmisher", "Imperial Skirmisher"]],
   ["Cavalry Archer", "Archery Range", 40, 0, 60, 0, 37, "AMLR", "30030030330330030330330033333333300303003303030300303003", 3],
   ["Heavy Cavalry Archer", "Archery Range", 40, 0, 60, 0, 30, "AMLR", "00040040440040040440440044344440400404004404040400404000", 4],
   ["Mounted Crossbowman", "Archery Range", 40, 0, 65, 0, 40, "AMLR", "00003303003003003000000300000000000000330030303030030300", 3],
@@ -967,7 +1040,7 @@ const UNITS = [
   ["Xianbei Raider", "Archery Range", 65, 0, 35, 0, 29, "AMLRU", "00000000000000000000000000000000000000000000000000000030", 3],
   ["Scout Cavalry-line", "Stable", 0, 80, 0, 0, 30, "MSL", "20222222222222222222220222222222200202222222222220222222", 2, ["Scout Cavalry", "Light Cavalry", "Hussar", "Winged Hussar"]],
   ["Knight-line", "Stable", 0, 60, 75, 0, 30, "MSL", "30033333333333033330030330033333300303333330333330333300", 3, ["Knight", "Cavalier", "Paladin", "Savar"]],
-  ["Camel Rider-line", "Stable", 0, 55, 60, 0, 22, "MSLC", "00030000030030030002300000300000300303000300000300300000", 3, ["Camel Scout", "Camel Rider", "Heavy Camel Rider"]],
+  ["(Heavy) Camel Rider", "Stable", 0, 55, 60, 0, 22, "MSLC", "00030000030030030002300000300000300303000300000300300000", 3, ["Camel Scout", "Camel Rider", "Heavy Camel Rider"]],
   ["Imperial Camel Rider", "Stable", 0, 55, 60, 0, 20, "MSLCU", "00000000000000000000400000000000000000000000000000000000", 4],
   ["(Elite) Battle Elephant", "Stable", 0, 100, 70, 0, 24, "MSLE", "00300000300000300000000000030003000000000000000000003000", 3, ["Battle Elephant", "Elite Battle Elephant"]],
   ["Steppe Lancer", "Stable", 0, 70, 40, 0, 24, "MSL", "00000000000030000000000003300000000300000000000300000000", 3],
@@ -976,13 +1049,13 @@ const UNITS = [
   ["(Heavy) Hei Guang Cavalry", "Stable", 0, 65, 65, 0, 28, "MSL", "00000000000000000000000000000000000000000003000000000033", 3, ["Hei Guang Cavalry", "Heavy Hei Guang Cavalry"]],
   ["Xolotl Warrior", "Stable", 0, 60, 75, 0, 30, "MSL", "03000000000000000000003000000000033030000000000003000000", 3],
   ["(Elite) Tarkan (Stable)", "Stable", 0, 60, 60, 0, 14, "MSLU", "00000000000000000000030000000000000000000000000000000000", 3, ["Tarkan (Stable)", "Elite Tarkan (Stable)"]],
-  ["Ram-line", "Siege Workshop", 160, 0, 75, 0, 36, "WXL", "33033333333323033330033333333333333333333333333333333333", 3, ["Battering Ram", "Capped Ram", "Siege Ram"]],
-  ["Armored Elephant-line", "Siege Workshop", 0, 120, 95, 0, 36, "MWXLE", "00300000000000300003300000000000000000000000000000000000", 3, ["Armored Elephant", "Siege Elephant"]],
+  ["Battering Ram-line", "Siege Workshop", 160, 0, 75, 0, 36, "WXL", "33033333333323033330033333333333333333333333333333333333", 3, ["Battering Ram", "Capped Ram", "Siege Ram"]],
+  ["Armored/Siege Elephant", "Siege Workshop", 0, 120, 95, 0, 36, "MWXLE", "00300000000000300003300000000000000000000000000000000000", 3, ["Armored Elephant", "Siege Elephant"]],
   ["Mangonel-line", "Siege Workshop", 160, 0, 135, 0, 46, "WXL", "33333333333033333333333330030333333333333333333333333333", 3, ["Mangonel", "Onager", "Siege Onager"]],
   ["(Heavy) Scorpion", "Siege Workshop", 75, 0, 75, 0, 30, "WXL", "33333333333333333333333333333333333333333330333333333333", 3, ["Scorpion", "Heavy Scorpion"]],
   ["(Heavy) Rocket Cart", "Siege Workshop", 135, 0, 155, 0, 40, "GWXL", "00000000000300000000000003303000000000000000000000000000", 3, ["Rocket Cart", "Heavy Rocket Cart"]],
   ["Siege Tower", "Siege Workshop", 100, 0, 120, 0, 36, "WXL", "33333333333333333333333333333333333333333333333333333333", 3],
-  ["Bombard Cannon-line", "Siege Workshop", 225, 0, 225, 0, 56, "GWXL", "00044004440000444044400404004404400004440400004040404000", 4, ["Bombard Cannon", "Houfnice"]],
+  ["Bombard Cannon", "Siege Workshop", 225, 0, 225, 0, 56, "GWXL", "00044004440000444044400404004404400004440400004040404000", 4, ["Bombard Cannon", "Houfnice"]],
   ["Traction Trebuchet", "Siege Workshop", 175, 0, 210, 0, 70, "WXL", "00000000000000000000000000000000000000000004000000000044", 4],
   ["Mounted Trebuchet", "Siege Workshop", 0, 175, 175, 0, 46, "MWXLCU", "00000000000000000000000000400000000000000000000000000000", 4],
   ["War Chariot", "Siege Workshop", 0, 75, 90, 0, 32, "MWXLU", "00000000000000000000000000000000000000000003000000000000", 3],
@@ -1096,7 +1169,7 @@ const UNITS = [
   ["Palisade Wall", "Military", 3, 0, 0, 0, 7, "B", "11111111111111111111111111111111111111111111111111111111", 1],
   ["Siege Workshop", "Military", 200, 0, 0, 0, 40, "B", "33333333333323333333333333333333333333333333333333333333", 3],
   ["Stable", "Military", 175, 0, 0, 0, 50, "B", "20222222222222222222220222222222200202222222222220222222", 2],
-  ["Stone Wall-line", "Military", 0, 0, 0, 5, 10, "B", "22222222222202222202222222222222222222222222222222222222", 2, ["Stone Wall", "Fortified Wall"]],
+  ["Stone/Fortified Wall", "Military", 0, 0, 0, 5, 10, "B", "22222222222202222202222222222222222222222222222222222222", 2, ["Stone Wall", "Fortified Wall"]],
   ["University", "Military", 200, 0, 0, 0, 60, "B", "33333333333333333333333333333333333333333333333333333333", 3],
   ["Watch Tower-line", "Military", 35, 0, 0, 125, 80, "B", "22222222222222222222222222222222222222222222022222222222", 2, ["Watch Tower", "Guard Tower", "Keep"]]
 ];
@@ -1394,8 +1467,10 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   // Lumberjack wood per minute by the best upgrade owned (each needs the one before).
   const LUMBER = { "": 23.3, dba: 27.9, bs: 33.2, tms: 36.6 };
   const FOOD = { berries: 0.31, hunt: 0.41, sheep: 0.33, fish: 0.43 };
-  // Fishing Ship food per minute: none, Fishing Lines, Gillnets (which needs Fishing Lines).
-  const FISH_SHIP = { "": 14.4, fl: 15.84, gn: 17.42 };
+  // Fishing Ship food per minute by where it fishes, then by upgrade: none, Fishing Lines, Gillnets (which needs Fishing Lines).
+  // Fish Traps haven't been measured yet, so they use the shore fish rates.
+  const FISH_SHIP = { shore: { "": 14.4, fl: 15.84, gn: 17.42 }, deep: { "": 25.3, fl: 27.8, gn: 30.5 } };
+  FISH_SHIP.trap = FISH_SHIP.shore;
   // Farm rates per villager per minute by farm upgrades owned.
   // Hand Cart without Heavy Plow is estimated from the Heavy Plow gain seen with Wheelbarrow.
   const FARM_TABLES = {
@@ -1408,22 +1483,16 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   // Alternative income sources, per minute (rates tested by hand). They join a resource's source dropdown whenever available.
   // kind = what one unit of the source is. civs: who has it (none = every civ; team: allies count too),
   // age: earliest age, unique: a unique building (kept under Full Tech Tree).
-  // from + mult instead of perMin: a share of another rate (a food source's, or "wood" for the lumberjack rate).
   const NICHE = {
     wood: [
-      { id: "pforager", label: "Portuguese Forager", perMin: 5, kind: "vils", civs: ["Portuguese"], age: 1, tip: "Portuguese foragers also generate wood" },
       { id: "feitoria", label: "Feitoria", perMin: 42, kind: "feitoria", civs: ["Portuguese"], age: 4, unique: true, tip: "Portuguese Feitoria" },
     ],
     food: [
-      { id: "shu", label: "Shu Lumberjack", from: "wood", mult: 0.06859, kind: "vils", civs: ["Shu"], age: 1, tip: "Shu lumberjacks also generate food: 6.859% of their wood rate" },
       { id: "feitoria", label: "Feitoria", perMin: 97, kind: "feitoria", civs: ["Portuguese"], age: 4, unique: true, tip: "Portuguese Feitoria" },
-      { id: "gurjara", label: "Gurjara Livestock", perMin: 6, kind: "livestock", civs: ["Gurjaras"], age: 1, tip: "Livestock garrisoned in a Gurjara Mill" },
-      { id: "gurjara-l", label: "Gurjara Livestock (large)", perMin: 8, kind: "livestock", civs: ["Gurjaras"], age: 1, tip: "Large livestock garrisoned in a Gurjara Mill" },
+      { id: "gurjara", label: "Garrisoned Sheep", perMin: 6, kind: "livestock", civs: ["Gurjaras"], age: 1, tip: "Sheep garrisoned in a Gurjara Mill" },
+      { id: "gurjara-l", label: "Garrisoned Cows", perMin: 8, kind: "livestock", civs: ["Gurjaras"], age: 1, tip: "Cows garrisoned in a Gurjara Mill" },
     ],
     gold: [
-      { id: "vshep", label: "Varangian Shepherd", from: "sheep", mult: 0.1, kind: "vils", civs: ["Varangians"], age: 1, tip: "Gold at 10% of the shepherding rate" },
-      { id: "vhunt", label: "Varangian Hunter", from: "hunt", mult: 0.1, kind: "vils", civs: ["Varangians"], age: 1, tip: "Gold at 10% of the hunting rate" },
-      { id: "vfish", label: "Varangian Fisherman", from: "fish", mult: 0.1, kind: "vils", civs: ["Varangians"], age: 1, tip: "Gold at 10% of the fishing rate" },
       { id: "pstone", label: "Polish Stone Miner", perMin: 6, kind: "vils", civs: ["Poles"], age: 1, tip: "Polish stone miners also generate gold" },
       { id: "feitoria", label: "Feitoria", perMin: 60, kind: "feitoria", civs: ["Portuguese"], age: 4, unique: true, tip: "Portuguese Feitoria" },
       { id: "bfarmer", label: "Burgundian Farmer", perMin: 0.8, kind: "vils", civs: ["Burgundians"], age: 3, ut: true, tip: "Burgundian Vineyards: farmers also generate gold" },
@@ -1433,7 +1502,12 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       { id: "feitoria", label: "Feitoria", perMin: 18, kind: "feitoria", civs: ["Portuguese"], age: 4, unique: true, tip: "Portuguese Feitoria" },
     ],
   };
-  const STD_SRC = { wood: "Lumberjack", gold: "Gold Miner", stone: "Stone Miner" };
+  const STD_SRC = { wood: "Trees", gold: "Gold Mine", stone: "Stone Mine" };
+  // Column headings for villagers on these sources (user; others read "# Wood vils" etc.). Each shows where it fits, else the
+  // plain form (fitHeads()).
+  const HEADS = { wood: { std: "Lumberjacks" }, gold: { std: "Gold Miners" }, stone: { std: "Stone Miners" },
+    food: { farm: "Farmers", berries: "Foragers", sheep: "Shepherds", hunt: "Hunters", fish: "Fishermen" } };
+  RES.forEach((res) => { HEADS[res].custom = "Villagers"; });   // a custom income (user)
   const FOOD_STD = [["farm", "Farm"], ["berries", "Berries"], ["hunt", "Hunt"], ["sheep", "Sheep"], ["fish", "Fisherman"], ["fship", "Fishing Ship"]];
   const KIND = { vils: ["vils", "villager"], feitoria: ["Feitorias", "Feitoria"], livestock: ["Livestock", "livestock animal"],
     fship: ["Fishing Ships", "Fishing Ship"] };
@@ -1450,6 +1524,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     hcol: "Farms hold 75 more food", crop: "Farms hold 175 more food" };
   const CONSC_DESC = "Military buildings except Siege Workshops work 33% faster";
   const CRANE_DESC = "Builders work 20% faster";
+  const SHIPWRIGHT_DESC = "Ships cost 20% less wood and train 50% faster";
   // Tooltip: why a box is locked (if it is), then what the tech does.
   const tip = (why, desc) => (why ? `${why}. ${desc}` : desc);
   const TECH_NAME = { dba: "Double-Bit Axe", bs: "Bow Saw", tms: "Two-Man Saw", hp: "Heavy Plow", wb: "Wheelbarrow",
@@ -1516,63 +1591,69 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   // Civ and team bonuses that change villager counts, from aoe2techtree.net civ descriptions.
   const FX = {
     Armenians: [cost(named("Mule Cart"), 25, "Mule Carts cost −{p}%")],
-    Aztecs: [team({ k: "relicgold", mult: 1.33, label: "relics generate 33% more gold" }), faster(MIL, 15, "military units train {p}% faster"), farmTable("aztecs", "villagers carry more, so farms are faster")],
-    Berbers: [cost(STABLE, [0, 0, 15, 20], "Stable units cost −{p}%"), farmTable("berbers", "faster villagers, so farms are faster"),
-              team({ k: "unlock", ages: { Genitour: 3, "Elite Genitour": 4 }, label: "Genitour at the Archery Range" })],
-    Bohemians: [flat(named("Blacksmith", "University"), "wood", 100, "Blacksmiths and Universities −100 wood"), team(faster(named("Trade Cart"), 80, "Markets work {p}% faster"))],
-    Britons: [rate("sheep", 25, "shepherds +{p}%"), cost(named("Town Center"), [0, 0, 50, 50], "Town Centers −{p}% wood", ["wood"]), team(faster(RANGE, 10, "Archery Ranges work {p}% faster"))],
-    Bulgarians: [cost(named("Town Center"), 50, "Town Centers −{p}% stone", ["stone"])],
-    Byzantines: [cost(any(SPEAR, SKIRM, CAMEL), 25, "Spearman-line, Skirmishers and Camel Riders −{p}%")],
-    Celts: [rate("wood", 15, "lumberjacks +{p}%"), team(faster(WORKSHOP, 20, "Siege Workshops work {p}% faster"))],
-    Cumans: [flat(named("Archery Range", "Stable"), "wood", 75, "Archery Ranges and Stables −75 wood")],
-    Danes: [rate("food", 5, "villagers and Fishing Ships drop off +{p}% food")],
-    Dravidians: [cost(SIEGE, 33, "siege weapons −{p}% wood", ["wood"]), { k: "agebonus", res: { wood: 200 }, label: "+200 wood when advancing to the next Age" }],
-    Franks: [rate("berries", 15, "foragers +{p}%"), cost(named("Castle"), [0, 0, 15, 25], "Castles −{p}%")],
-    Goths: [cost(INF, [15, 20, 25, 30], "infantry −{p}%"), team(faster(BARRACKS, 20, "Barracks work {p}% faster"))],
-    Hindustanis: [cost(VIL, [8, 13, 18, 23], "Villagers −{p}%")],
-    Huns: [cost(named("Cavalry Archer", "Heavy Cavalry Archer"), [0, 0, 10, 20], "Cavalry Archers −{p}%"), team(faster(STABLE, 20, "Stables work {p}% faster")),
-           { k: "nohouses", label: "no houses needed" }],
-    Inca: [cost(MIL, [15, 20, 25, 30], "military units −{p}% food", ["food"]), cost(BLD, 15, "buildings −{p}% stone", ["stone"]),
-           { k: "housepop", v: 5, label: "Houses provide +5 population" }],
-    Italians: [cost(GUN, 20, "gunpowder units −{p}%"), cost(named("Fishing Ship"), 15, "Fishing Ships −{p}%"),
-               team({ k: "unlock", ages: { Condottiero: 4 }, label: "Condottiero at the Barracks in Imperial Age" })],
-    Japanese: [cost(named("Mill", "Lumber Camp", "Mining Camp"), 50, "Mills, Lumber and Mining Camps −{p}%"), rate("fship", [5, 10, 15, 20], "Fishing Ships work {p}% faster")],
-    Khitans: [farmTable("pasture", "Pastures replace Farms"), faster(any(SPEAR, SKIRM, SCOUT), 15, "Spearman-line, Skirmishers and Scout Cavalry-line train {p}% faster")],
-    Khmer: [farmTable("khmer", "farmers drop off at the farm, so farms are faster")],
-    Koreans: [rate("stone", 20, "stone miners +{p}%"), cost(any(INF, RANGED), 50, "infantry and ranged units −{p}% wood", ["wood"]),
-              cost(WARSHIP, 20, "warships −{p}% wood", ["wood"])],
-    Magyars: [cost(SCOUT, 15, "Scout Cavalry-line −{p}%"), team(faster(MOUNTED_ARCHER, 25, "mounted archers train {p}% faster"))],
-    Malay: [cost(named("Battle Elephant", "Elite Battle Elephant"), [0, 0, 25, 35], "Battle Elephants −{p}%"), { k: "ageup", p: 66, label: "advancing to the next Age {p}% faster" }],
-    Malians: [rate("gold", 10, "gold +{p}% per drop-off"), cost(BLD, 15, "buildings −{p}% wood", ["wood"])],
-    Mapuche: [rate("berries", 25, "foragers drop off +{p}% food")],
-    Maya: [{ k: "farmfood", mult: 1.15, label: "resources (and farms) last 15% longer" }, cost(FOOT_ARCHER, [0, 10, 20, 30], "foot archers −{p}%"), team(cost(named("Palisade Wall", "Stone Wall", "Fortified Wall"), 50, "walls −{p}%"))],
-    Mongols: [rate("hunt", 40, "hunters +{p}%")],
-    Muisca: [cost(named("Settlement"), 33, "Settlements −{p}%")],
-    Persians: [faster(any(VIL, DOCK), [5, 10, 15, 20], "Town Centers and Docks work {p}% faster"),
-               { k: "ageup", p: [5, 10, 15, 20], label: "Town Centers research Ages {p}% faster" }],
-    Portuguese: [cost(UNIT, 20, "units −{p}% gold", ["gold"]), { k: "ageup", p: 25, label: "technologies research {p}% faster" }],
-    Romans: [rate("all", 5, "villagers gather {p}% faster"), faster(BLD, 5, "villagers build {p}% faster"),
-             cost(named("Scorpion", "Heavy Scorpion"), 50, "Scorpions −{p}% gold", ["gold"])],
-    Saracens: [flat(named("Market"), "wood", 100, "Markets −100 wood")],
-    Sicilians: [{ k: "farmfood", upg: 2.25, label: "farm upgrades add 125% more food" }, faster(FORT, 50, "fortifications built {p}% faster"), faster(named("Town Center"), 100, "Town Centers built {p}% faster"), team(cost(named("Transport Ship"), 50, "Transport Ships −{p}%"))],
-    Slavs: [rate("farm", 15, "farmers +{p}%"), cost(WORKSHOP, 15, "Siege Workshop units −{p}%")],
-    Spanish: [faster(BLD, 30, "builders work {p}% faster")],
-    Teutons: [cost(named("Farm"), 40, "Farms −{p}%")],
-    Turks: [rate("gold", 25, "gold miners +{p}%"), team(faster(GUN, 25, "gunpowder units train {p}% faster"))],
-    Vikings: [cost(WARSHIP, [0, 10, 15, 20], "warships −{p}%"), team(cost(named("Dock"), 15, "Docks −{p}%"))],
-    Wei: [cost(named("Traction Trebuchet", "Lou Chuan"), 25, "Traction Trebuchets and Lou Chuans −{p}%")],
+    Aztecs: [team({ k: "relicgold", mult: 1.33, label: "Relics generate +33% gold" }), faster(MIL, 15, "Military Units train +{p}% faster"), farmTable("aztecs", "Villagers carry +3")],
+    Berbers: [cost(STABLE, [0, 0, 15, 20], "Stable Units cost −{p}%"), Object.assign(farmTable("berbers", "Villagers move +{p}% faster"), { p: [5, 10, 10, 10] }),
+              team({ k: "unlock", ages: { Genitour: 3, "Elite Genitour": 4 }, label: "Genitour available at the Archery Range starting in Castle Age" })],
+    Bohemians: [flat(named("Blacksmith", "University"), "wood", 100, "Blacksmiths and Universities cost −100 wood"), team(faster(named("Trade Cart"), 80, "Markets work +{p}% faster"))],
+    Britons: [rate("sheep", 25, "Shepherds work +{p}% faster"), cost(named("Town Center"), [0, 0, 50, 50], "Town Centers cost −{p}% wood", ["wood"]), team(faster(RANGE, 10, "Archery Ranges work +{p}% faster"))],
+    Bulgarians: [cost(named("Town Center"), 50, "Town Centers cost −{p}% stone", ["stone"])],
+    Byzantines: [cost(any(SPEAR, SKIRM, CAMEL), 25, "Camel Riders, Skirmishers and Spearman-line cost −{p}%")],
+    Celts: [rate("wood", 15, "Lumberjacks work +{p}% faster"), team(faster(WORKSHOP, 20, "Siege Workshops work +{p}% faster"))],
+    Cumans: [flat(named("Archery Range", "Stable"), "wood", 75, "Archery Ranges and Stables cost −75 wood")],
+    Danes: [rate("food", 5, "Fishing Ships and Villagers drop off +{p}% food")],
+    Dravidians: [cost(SIEGE, 33, "Siege Weapons cost −{p}% wood", ["wood"]), { k: "agebonus", res: { wood: 200 }, label: "Receive +200 wood when advancing to the next Age" }],
+    Franks: [rate("berries", 15, "Foragers work +{p}% faster"), cost(named("Castle"), [0, 0, 15, 25], "Castles cost −{p}%")],
+    Goths: [cost(INF, [15, 20, 25, 30], "Infantry costs −{p}%"), team(faster(BARRACKS, 20, "Barracks work +{p}% faster"))],
+    Hindustanis: [cost(VIL, [8, 13, 18, 23], "Villagers cost −{p}%")],
+    Huns: [cost(named("Cavalry Archer", "Heavy Cavalry Archer"), [0, 0, 10, 20], "Cavalry Archers cost −{p}%"), team(faster(STABLE, 20, "Stables work +{p}% faster")),
+           { k: "nohouses", label: "Do not need houses" }],
+    Inca: [cost(MIL, [15, 20, 25, 30], "Military Units cost −{p}% food", ["food"]), cost(BLD, 15, "Buildings cost −{p}% stone", ["stone"]),
+           { k: "housepop", v: 5, label: "Houses provide +5 population space" }],
+    Italians: [cost(GUN, 20, "Gunpowder Units cost −{p}%"), cost(named("Fishing Ship"), 15, "Fishing Ships cost −{p}%"),
+               team({ k: "unlock", ages: { Condottiero: 4 }, label: "Condottiero available at the Barracks in Imperial Age" })],
+    Japanese: [cost(named("Mill", "Lumber Camp", "Mining Camp"), 50, "Mills, Lumber- and Mining Camps cost −{p}%"), rate("fship", [5, 10, 15, 20], "Fishing Ships work +{p}% faster")],
+    Khitans: [farmTable("pasture", "Pastures replace Farms"), faster(any(SPEAR, SKIRM, SCOUT), 15, "Skirmishers, Spearman-, and Scout Cavalry-line train and upgrade +{p}% faster")],
+    Khmer: [farmTable("khmer", "Farmers don't require Mills or Town Centers to drop off food")],
+    Koreans: [rate("stone", 20, "Stone miners work +{p}% faster"), cost(any(INF, RANGED), 50, "Ranged Soldiers and Infantry cost −{p}% wood", ["wood"]),
+              cost(WARSHIP, 20, "Warships cost −{p}% wood", ["wood"])],
+    Magyars: [cost(SCOUT, 15, "Scout Cavalry-line costs −{p}%"), team(faster(MOUNTED_ARCHER, 25, "Mounted Archers train +{p}% faster"))],
+    Malay: [cost(named("Battle Elephant", "Elite Battle Elephant"), [0, 0, 25, 35], "Battle Elephants cost −{p}%"), { k: "ageup", p: 66, label: "Advancing to the next Age is +{p}% faster" }],
+    Malians: [rate("gold", 10, "Villagers drop off +{p}% more gold"), cost(BLD, 15, "Buildings cost −{p}% wood", ["wood"])],
+    Mapuche: [rate("berries", 25, "Foragers drop off +{p}% food")],
+    Maya: [{ k: "farmfood", mult: 1.15, label: "Resources last +15% longer" }, cost(FOOT_ARCHER, [0, 10, 20, 30], "Foot Archers cost −{p}%"), team(cost(named("Palisade Wall", "Stone Wall", "Fortified Wall"), 50, "Walls cost −{p}%"))],
+    Mongols: [rate("hunt", 40, "Hunters work +{p}% faster")],
+    Muisca: [cost(named("Settlement"), 33, "Settlements cost −{p}%")],
+    Persians: [faster(any(VIL, DOCK), [5, 10, 15, 20], "Town Centers and Docks work +{p}% faster"),
+               { k: "ageup", p: [5, 10, 15, 20], label: "Town Centers and Docks work +{p}% faster" }],
+    Portuguese: [cost(UNIT, 20, "All units cost −{p}% gold", ["gold"]), team({ k: "ageup", p: 25, label: "Technologies research +{p}% faster" }),
+      { k: "forage", perMin: 5, label: "Foragers generate wood in addition to food" }],
+    Romans: [rate("all", 5, "Villagers gather +{p}% faster"), faster(BLD, 5, "Villagers build +{p}% faster"),
+             cost(named("Scorpion", "Heavy Scorpion"), 50, "Scorpions cost −{p}% gold", ["gold"])],
+    Saracens: [flat(named("Market"), "wood", 100, "Markets cost −100 wood")],
+    Sicilians: [{ k: "farmfood", upg: 2.25, label: "Farm upgrades provide +125% additional food" }, faster(FORT, 50, "Fortifications built +{p}% faster"), faster(named("Town Center"), 100, "Town Centers built +{p}% faster"), team(cost(named("Transport Ship"), 50, "Transport Ships cost −{p}%"))],
+    Slavs: [rate("farm", 15, "Farmers work +{p}% faster"), cost(WORKSHOP, 15, "Siege Workshop Units cost −{p}%")],
+    Spanish: [faster(BLD, 30, "Builders work +{p}% faster")],
+    Teutons: [cost(named("Farm"), 40, "Farms cost −{p}%")],
+    Turks: [rate("gold", 25, "Gold miners work +{p}% faster"), team(faster(GUN, 25, "Gunpowder Units train +{p}% faster"))],
+    Vikings: [cost(WARSHIP, [0, 10, 15, 20], "Warships cost −{p}%"), team(cost(named("Dock"), 15, "Docks cost −{p}%"))],
+    Wei: [cost(named("Traction Trebuchet", "Lou Chuan"), 25, "Traction Trebuchets and Lou Chuans cost −{p}%")],
   };
 
-  FX["Ethiopians"] = [{ k: "agebonus", res: { food: 100, gold: 100 }, label: "+100 food and +100 gold when advancing to the next Age" },
+  FX["Ethiopians"] = [{ k: "agebonus", res: { food: 100, gold: 100 }, label: "Receive +100 gold and +100 food when advancing to the next Age" },
     team(cost(named("Outpost"), 100, "Outposts cost no stone", ["stone"]))];
-  FX["Gurjaras"] = [team(faster(CAMEL_OR_ELE, 25, "camel and elephant units train {p}% faster"))];
-  FX["Lithuanians"] = [team(faster(named("Monk", "Missionary"), 20, "Monasteries work {p}% faster"))];
-  FX["Chinese"] = [team({ k: "farmfood", mult: 1.1, label: "farms hold 10% more food" })];
-  FX["Burgundians"] = [team({ k: "relicfood", perMin: 20, label: "relics also generate 20 food per minute" })];
-  FX["Wu"] = [team(faster(named("House"), 100, "Houses built {p}% faster"))];
+  FX["Gurjaras"] = [team(faster(CAMEL_OR_ELE, 25, "Camel and Elephant Units train +{p}% faster"))];
+  FX["Lithuanians"] = [team(faster(named("Monk", "Missionary"), 20, "Monasteries work +{p}% faster"))];
+  FX["Chinese"] = [team({ k: "farmfood", mult: 1.1, label: "Farms hold +10% food" })];
+  FX["Burgundians"] = [team({ k: "relicfood", perMin: 20, label: "Relics generate food in addition to gold" })];
+  // Gold from food gathering: a share of the food rate per source (villagers 10%; Fishing Ships 1 gold per 20 food, user).
+  // Food from lumberjacks: 6.859% of the lumberjack rate, upgrades and bonuses included.
+  FX["Shu"] = [{ k: "woodfood", mult: 0.06859, label: "Lumberjacks generate food in addition to wood" }];
+  FX["Varangians"] = [{ k: "foodgold", mult: { sheep: 0.1, hunt: 0.1, fish: 0.1, fship: 0.05 }, label: "Shepherding, fishing, and hunting also generate gold" }];
+  FX["Wu"] = [team(faster(named("House"), 100, "Houses built +{p}% faster"))];
   // Unique technologies that change unit costs, training times or gather rates (aoe2techtree.net).
   // Others (combat stats, population, new income sources without a known rate) are left out on purpose.
-  const ut = (name, age, desc, fx) => ({ name, age, desc, fx });
+  // more: naval (only listed, and only in effect, while Naval is ticked).
+  const ut = (name, age, desc, fx, more) => Object.assign({ name, age, desc, fx }, more);
   // Population space a unit takes, less p% (House Building only).
   const lessPop = (m, p, label) => ({ k: "pop", m, p, label });
   const UT = {
@@ -1605,7 +1686,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       [swap(named("Archer", "Crossbowman", "Arbalester"), "gold", "wood", 1, "Archer-line costs wood instead of gold")])],
     Poles: [ut("Szlachta Privileges", 3, "Knight-line costs 60% less gold",
       [cost(named("Knight", "Cavalier", "Paladin"), 60, "Knight-line −{p}% gold", ["gold"])])],
-    Portuguese: [ut("Circumnavigation", 3, "Ships train 33% faster", [faster(DOCK, 33, "ships train {p}% faster")])],
+    Portuguese: [ut("Circumnavigation", 3, "Ships train 33% faster", [faster(DOCK, 33, "ships train {p}% faster")], { naval: true })],
     Romans: [ut("Comitatenses", 4, "Militia-line, Knight-line and Centurions train 50% faster",
       [faster(named("Militia", "Man-at-Arms", "Long Swordsman", "Two-Handed Swordsman", "Champion", "Legionary",
         "Knight", "Cavalier", "Paladin", "Centurion", "Elite Centurion"), 50, "Militia-line, Knight-line and Centurions train {p}% faster")])],
@@ -1619,6 +1700,12 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   const CRANE_MISSING = ["Bengalis", "Bohemians", "Bulgarians", "Celts", "Chinese", "Cumans", "Danes", "Dravidians", "Ethiopians",
     "Hindustanis", "Huns", "Khmer", "Mongols", "Persians", "Romans", "Saracens", "Sicilians", "Slavs", "Spanish", "Teutons"];
   const CRANE = faster(BLD, 20, "builders work {p}% faster");
+  // Shipwright (University, Imperial Age): ships −20% wood, trained 50% faster. Civs without it, per aoe2techtree.net (2026-09-30).
+  const SHIPWRIGHT_AGE = 4;
+  const SHIPWRIGHT_MISSING = ["Armenians", "Bohemians", "Bulgarians", "Burgundians", "Burmese", "Cumans", "Franks", "Georgians", "Hindustanis",
+    "Huns", "Jurchens", "Khitans", "Khmer", "Lithuanians", "Malians", "Mapuche", "Muisca", "Persians", "Poles", "Portuguese", "Saracens",
+    "Slavs", "Tatars", "Teutons", "Tupi", "Vietnamese", "Vikings", "Wei", "Wu"];
+  const SHIPWRIGHT = [cost(DOCK, 20, "ships −{p}% wood", ["wood"]), faster(DOCK, 50, "ships train {p}% faster")];
   const CONSCRIPTION = faster(inGroup("Barracks", "Archery Range", "Stable", "Castle", "Donjon"), 33,
     "military buildings except Siege Workshops work {p}% faster");
 
@@ -1627,18 +1714,24 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   const BUILDING_GROUPS = ["Economic", "Military"];
   const parentOf = (u) => (BUILDING_GROUPS.indexOf(u[1]) !== -1 ? "Buildings" : "Units");
   const norm = (s) => s.toLowerCase().replace(/[-\s]+/g, " ").trim();
-  const SEARCH = UNITS.map((u) => [u[0]].concat(members(u), [u[1], parentOf(u)]).map(norm).join(" | "));
+  // What an entry is found by: its name, its members' names, its group and "units" / "buildings". A unique member (Camel
+  // Scout, Houfnice …) only where it can be had (uniqueShown()).
+  const searchOf = (i) => { const u = UNITS[i]; return [u[0]].concat(members(u).filter(uniqueShown), [u[1], parentOf(u)]).map(norm).join(" | "); };
   // Old saves and searches may use a member's own name; map it to its row.
   const ALIAS = new Map();
+  // Entries renamed since (user, 2026-09-30): old saves use the old names.
+  const RENAMED = { "Elite Skirmisher / Imperial Skirmisher": "Elite Skirmisher", "Ram-line": "Battering Ram-line",
+    "Bombard Cannon-line": "Bombard Cannon", "Stone Wall-line": "Stone/Fortified Wall", "Camel Rider-line": "(Heavy) Camel Rider",
+    "Armored Elephant-line": "Armored/Siege Elephant" };
   UNITS.forEach((u) => members(u).forEach((m) => { if (!byName.has(m)) ALIAS.set(m, u[0]); }));
 
-  const state = { rows: [], food: "farm", up: Object.fromEntries(UPS.map((k) => [k, false])), civ: "Generic", allies: [], age: 3, dock: false, ftt: false, regional: false, consc: false, crane: false, uts: [], postimp: false, bldOn: false,
-    src: { wood: "std", gold: "std", stone: "std" }, relics: 0, useReseed: true, useHouses: true,
+  const state = { rows: [], food: "farm", fish: "deep", up: Object.fromEntries(UPS.map((k) => [k, false])), civ: "Generic", allies: [], age: 3, dock: false, ftt: false, regional: false, consc: false, crane: false, shipwright: false, uts: [], postimp: false, bldOn: false,
+    src: { wood: "std", gold: "std", stone: "std" }, customRate: {}, relics: 0, useReseed: true, useHouses: true,
     tab: "vr", te: { research: 1, vils: { wood: 0, food: 0, gold: 0, stone: 0 } } };
   const TE_MAX = 200;
   // Building footprints in tiles per side (game data, DE update 147949), and the most builders that fit around each size (user).
   const SIZE = {
-    "Palisade Wall": 1, "Stone Wall-line": 1, "Watch Tower-line": 1, "Bombard Tower": 1, Outpost: 1, "Mule Cart": 1, "Fish Trap": 1,
+    "Palisade Wall": 1, "Stone/Fortified Wall": 1, "Watch Tower-line": 1, "Bombard Tower": 1, Outpost: 1, "Mule Cart": 1, "Fish Trap": 1,
     House: 2, Mill: 2, "Lumber Camp": 2, "Mining Camp": 2, Donjon: 2, Pasture: 2,   // Pasture: its foundation (the finished pasture is 4×4)
     Barracks: 3, "Archery Range": 3, Stable: 3, Blacksmith: 3, Dock: 3, Harbor: 3, Farm: 3, Monastery: 3, "Fortified Church": 3, Krepost: 3, Folwark: 3,
     Settlement: 3,   // newer than that data (user)
@@ -1647,7 +1740,30 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   const BUILDERS_BY_SIZE = { 1: 14, 2: 22, 3: 33, 4: 44, 5: 53 };
   // The gates are 4×1, so they get their own limit (user).
   const MAX_BUILDERS = { Gate: 38, "Palisade Gate": 38, Farm: 1 };   // a Farm: one builder's build time, but no builder counted (FARM)
-  const maxBuilders = (name) => MAX_BUILDERS[name] || BUILDERS_BY_SIZE[SIZE[name]] || 20;
+  const maxBuilders = (name) => MAX_BUILDERS[name] || BUILDERS_BY_SIZE[SIZE[name]] || (CUSTOM.building.re.test(name) ? CUSTOM_BUILDERS : 20);
+  // Custom units and buildings (user): up to CUSTOM_MAX of each, "Custom Unit n" / "Custom Building n", whose costs and
+  // training / build time are typed in. They have no type, so only bonuses for every unit (or every building) reach them.
+  // A unit costs no stone and takes 1 population; a building costs no food, takes none, and has builders.
+  const CUSTOM_MAX = 5;
+  const CUSTOM = {
+    // max: the highest cost and time (s) that can be typed (user)
+    unit: { prefix: "Custom Unit", res: ["wood", "food", "gold"], flags: "", time: "training time", parent: "Units", max: 999 },
+    building: { prefix: "Custom Building", res: ["wood", "gold", "stone"], flags: "B", time: "build time", parent: "Buildings", max: 9999 },
+  };
+  Object.values(CUSTOM).forEach((d) => { d.re = new RegExp(`^${d.prefix} [1-${CUSTOM_MAX}]$`); });
+  const CUSTOM_BUILDERS = 53;   // a custom building's size is unknown: as many builders as the largest building takes
+  const CUSTOM_NEW_T = 30;
+  const CUSTOM_ALL_AGES = "1".repeat(CIV_NAMES.length);
+  const customKind = (name) => Object.keys(CUSTOM).find((k) => CUSTOM[k].re.test(name));
+  const customRows = (kind) => state.rows.filter((r) => r.custom && (!kind || customKind(r.name) === kind));
+  const clampNum = (v, min, max, none) => { const n = parseFloat(v); return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : none; };
+  const cleanCustom = (c, kind) => Object.assign(
+    Object.fromEntries(RES.map((r) => [r, CUSTOM[kind].res.indexOf(r) !== -1 ? Math.round(clampNum(c && c[r], 0, CUSTOM[kind].max, 0)) : 0])),
+    { t: Math.round(clampNum(c && c.t, 1, CUSTOM[kind].max, CUSTOM_NEW_T) * 10) / 10 });
+  // The UNITS row a table row stands for (a custom one's is made up from its numbers).
+  const rowUnit = (row) => (row.custom
+    ? [row.name, "Custom", row.custom.wood, row.custom.food, row.custom.gold, row.custom.stone, row.custom.t, CUSTOM[customKind(row.name)].flags, CUSTOM_ALL_AGES, 1]
+    : UNITS[byName.get(row.name)]);
   const MAX_ALLIES = 7;
   const KEY = "villagers-required.v3";
 
@@ -1661,16 +1777,17 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   // Everything at its starting value: nothing for Clear to do, so it's hidden.
   function isCleared() {
     return !state.rows.length && state.civ === "Generic" && !state.allies.length && state.age === 3 &&
-      state.food === "farm" && ["wood", "gold", "stone"].every((r) => state.src[r] === "std") && !state.relics && !state.consc && !state.crane && !state.uts.length && !state.postimp &&
+      state.food === "farm" && state.fish === "deep" && ["wood", "gold", "stone"].every((r) => state.src[r] === "std") && !state.relics && !state.consc && !state.crane && !state.shipwright && !state.uts.length && !state.postimp &&
       UPS.every((k) => !state.up[k]) && state.te.research === 1 && RES.every((r) => !state.te.vils[r]);
   }
   // Something for Clear Techs to do: any technology that is ticked and in effect.
   function anyTechOn() {
-    const reseedOnly = (k) => k === "hcol" || k === "crop" || (k === "hp" && pastures());   // techs whose only box is in the reseed row
-    const swappedOut = (k) => (state.food === "fship" ? k === "wb" || k === "hc" : k === "fl" || k === "gn");
-    return UPS.some((k) => on(k) && !swappedOut(k) && (showStone() || (k !== "sm" && k !== "ssm")) && ((reseedShown && !inTE()) || !reseedOnly(k))) ||
+    // Only ticks whose box shows: in its resource's box, or in the reseed row.
+    const inReseed = (k) => reseedShown && !inTE() && (k === "hcol" || k === "hp" || k === "crop");
+    return UPS.some((k) => on(k) && ((laneShown(k) && (showStone() || (k !== "sm" && k !== "ssm"))) || inReseed(k))) ||
       (!state.ftt && shownTechs().some((t) => state.uts.indexOf(t.name) !== -1 && ageOpen(t.age))) ||
-      (state.consc && ageOpen(CONSCRIPTION_AGE)) || (state.crane && craneOpen() && state.bldOn && !inTE());
+      (state.consc && ageOpen(CONSCRIPTION_AGE)) || (state.crane && craneOpen() && state.bldOn && !inTE()) ||
+      (state.shipwright && shipwrightOpen() && state.dock && !inTE());
   }
   function syncButtons() {
     $("reset").hidden = isCleared();
@@ -1691,18 +1808,27 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
         state.rows = [];
         s.rows.forEach((r) => {
           if (!r) return;
+          const count = Math.max(0, Math.min(99, parseInt(r.count, 10) || 0));
+          if (r.custom) {   // a custom unit or building keeps its name and numbers
+            const kind = customKind(r.name);
+            if (kind && !state.rows.some((x) => x.name === r.name) && customRows(kind).length < CUSTOM_MAX) {
+              const builders = kind === "building" ? Math.max(1, Math.min(CUSTOM_BUILDERS, parseInt(r.builders, 10) || 1)) : 1;
+              state.rows.push({ name: r.name, count, builders, custom: cleanCustom(r.custom, kind) });
+            }
+            return;
+          }
           // Older saves used member names ("Champion") or "Militia line" / "Samurai line" style names.
           const plain = String(r.name).replace(/[- ]line(?= \(|$)/, "");
-          const name = byName.has(r.name) ? r.name : ALIAS.get(r.name) || ALIAS.get(plain);
+          const name = byName.has(r.name) ? r.name : RENAMED[r.name] || ALIAS.get(r.name) || ALIAS.get(plain);
           if (!name) return;
-          const count = Math.max(0, Math.min(99, parseInt(r.count, 10) || 0));
           const builders = Math.max(1, Math.min(maxBuilders(name), parseInt(r.builders, 10) || 1));
           const same = state.rows.find((x) => x.name === name);
           if (same) same.count = Math.min(99, same.count + count);
           else state.rows.push(Object.assign({ name, count, builders }, r.perVil ? { perVil: true } : {}));
         });
       }
-      if (FOOD_STD.some(([v]) => v === s.food) || NICHE.food.some((o) => o.id === s.food)) state.food = s.food;
+      if (FOOD_STD.some(([v]) => v === s.food) || NICHE.food.some((o) => o.id === s.food) || s.food === "custom") state.food = s.food;
+      if (FISH_SHIP[s.fish]) state.fish = s.fish;
       if (s.up) UPS.forEach((k) => { state.up[k] = !!s.up[k]; });
       // Older saves use the old civ names.
       const civName = (c) => ({ Incas: "Inca", Mayans: "Maya" })[c] || c;
@@ -1718,16 +1844,18 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       state.regional = !!s.regional;
       state.consc = !!s.consc;
       state.crane = !!s.crane;
+      state.shipwright = !!s.shipwright;
       state.postimp = !!s.postimp;
       state.bldOn = !!s.bldOn;
       // Only sources that still exist (Relic used to be a gold source).
-      if (s.src) ["wood", "gold", "stone"].forEach((r) => { if (NICHE[r].some((o) => o.id === s.src[r])) state.src[r] = s.src[r]; });
+      if (s.src) ["wood", "gold", "stone"].forEach((r) => { if (s.src[r] === "custom" || NICHE[r].some((o) => o.id === s.src[r])) state.src[r] = s.src[r]; });
+      if (s.customRate) RES.forEach((r) => { if (Number.isFinite(parseFloat(s.customRate[r]))) state.customRate[r] = clampRate(s.customRate[r]); });
       state.relics = Math.max(0, Math.min(99, parseInt(s.relics, 10) || 0));
       if (s.te) {
         if ([1, 2, 3].indexOf(s.te.research) !== -1) state.te.research = s.te.research;
         if (s.te.vils) RES.forEach((r) => { const v = parseInt(s.te.vils[r], 10); if (Number.isFinite(v)) state.te.vils[r] = Math.max(0, Math.min(TE_MAX, v)); });
       }
-      if (!FOOD_STD.some(([v]) => v === state.food) && !NICHE.food.some((o) => o.id === s.food)) state.food = "farm";
+      if (!FOOD_STD.some(([v]) => v === state.food) && !NICHE.food.some((o) => o.id === s.food) && state.food !== "custom") state.food = "farm";
       if (Array.isArray(s.uts)) state.uts = s.uts.filter((n) => typeof n === "string");   // older saves keep the new Imperial default
     } catch (e) { /* ignore bad data */ }
   }
@@ -1736,8 +1864,26 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   const fxOf = (civ) => FX[civ] || [];
   // Bonuses worth listing in the current tab. Transition Eco only cares about gathering and age-ups;
   // Villagers Required about everything else (and not age-ups).
-  const TE_KINDS = ["rate", "farm", "ageup", "agebonus"];   // relics don't count in Transition Eco
-  const relevant = (e) => (inTE() ? TE_KINDS.indexOf(e.k) !== -1 : e.k !== "ageup" && e.k !== "agebonus");
+  const TE_KINDS = ["rate", "farm", "ageup", "agebonus", "forage", "foodgold", "woodfood"];   // relics don't count in Transition Eco
+  const relevant = (e) => (inTE() ? TE_KINDS.indexOf(e.k) !== -1 : e.k !== "ageup" && e.k !== "agebonus" && inReach(e));
+  // A bonus that changes only buildings is listed while Buildings is ticked, or while it reaches the table anyway:
+  // a building row in it, the Houses of House Building, or the Farms / Pastures of Farm Reseeding.
+  const RES_AT = { wood: 2, food: 3, gold: 4, stone: 5 };   // cost columns in UNITS rows
+  const changes = (e, u) => (e.k === "flat" ? u[RES_AT[e.res]] > 0 : e.k === "swap" ? u[RES_AT[e.from]] > 0
+    : e.k === "cost" ? (e.res || RES).some((r) => u[RES_AT[r]] > 0) : true);
+  function buildingsOnly(e) {   // the buildings it changes, or null if it changes a unit (or has no unit matcher)
+    if (e._bld === undefined) {
+      const hit = e.m ? UNITS.filter((u) => e.m(u) && changes(e, u)) : [];
+      e._bld = hit.length && hit.every(BLD) ? hit.map((u) => u[0]) : null;
+    }
+    return e._bld;
+  }
+  function inReach(e) {
+    const b = buildingsOnly(e);
+    return !b || state.bldOn || b.some((n) => (n === "House" && state.useHouses) ||
+      ((n === "Farm" || n === "Pasture") && state.useReseed && state.food === "farm") || state.rows.some((r) => r.name === n)) ||
+      customRows("building").some((r) => { const u = rowUnit(r); return e.m(u) && changes(e, u); });
+  }
   // Everything that applies: your civ's bonuses (incl. its team bonus) plus each ally's team bonus.
   // Team bonuses don't stack, so an ally of your own civ adds nothing new.
   // Full Tech Tree switches off every civ bonus, team bonus and unique technology.
@@ -1754,19 +1900,24 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
         if (a !== state.civ) fxOf(a).forEach((e) => { if (e.team) out.push({ e, from: a }); });
       });
       civTechs().forEach((t) => {
-        if (state.uts.indexOf(t.name) !== -1 && ageOpen(t.age)) t.fx.forEach((e) => out.push({ e, tech: t.name }));
+        if (state.uts.indexOf(t.name) !== -1 && ageOpen(t.age) && navalOk(t)) t.fx.forEach((e) => out.push({ e, tech: t.name }));
       });
     }
     if (state.consc && ageOpen(CONSCRIPTION_AGE)) out.push({ e: CONSCRIPTION, tech: "Conscription" });
     if (state.crane && craneOpen() && state.bldOn && !inTE()) out.push({ e: CRANE, tech: "Treadmill Crane" });
+    if (state.shipwright && shipwrightOpen() && state.dock && !inTE()) SHIPWRIGHT.forEach((e) => out.push({ e, tech: "Shipwright" }));
     return out;
   }
   const civTechs = () => (state.civ === "Generic" ? [] : UT[state.civ] || []);
+  // Naval unique techs (Circumnavigation) only while Naval is ticked, like Treadmill Crane with Buildings.
+  const navalOk = (t) => !t.naval || state.dock;
   // Transition Eco only lists the unique techs that change gathering.
-  const shownTechs = () => civTechs().filter((t) => !inTE() || t.fx.some((e) => e.k === "rate"));
+  const shownTechs = () => civTechs().filter((t) => navalOk(t) && (!inTE() || t.fx.some((e) => e.k === "rate")));
   const hasCrane = () => state.civ === "Generic" || state.ftt || CRANE_MISSING.indexOf(state.civ) === -1;
   const craneOpen = () => hasCrane() && ageOpen(CRANE_AGE);
-  const hasBuildingRow = () => state.rows.some((r) => BLD(UNITS[byName.get(r.name)]));
+  const hasShipwright = () => state.civ === "Generic" || state.ftt || SHIPWRIGHT_MISSING.indexOf(state.civ) === -1;
+  const shipwrightOpen = () => hasShipwright() && ageOpen(SHIPWRIGHT_AGE);
+  const hasBuildingRow = () => state.rows.some((r) => BLD(rowUnit(r)));
   const source = (x) => (x.tech ? ` (${x.tech})` : x.from ? ` (from ${x.from} Ally)` : x.e.team ? " (team bonus)" : "");
   // Units an ally's team bonus makes available (e.g. Genitours from a Berber ally).
   function allyUnlockAge(name) {
@@ -1830,7 +1981,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     const tableFx = fx.find((e) => e.k === "farm");
     const farmT = FARM_TABLES[tableFx ? tableFx.t : "generic"];
     const ship = state.food === "fship";
-    let food = state.food === "farm" ? farmT[farmKey()] / 60 : ship ? FISH_SHIP[on("gn") ? "gn" : on("fl") ? "fl" : ""] / 60 : FOOD[state.food];
+    let food = state.food === "farm" ? farmT[farmKey()] / 60 : ship ? FISH_SHIP[state.fish][on("gn") ? "gn" : on("fl") ? "fl" : ""] / 60 : FOOD[state.food];
     const m = (keys) => keys.reduce((p, k) => (on(k) ? p * MULT[k] : p), 1);
     const r = {
       wood: LUMBER[on("tms") ? "tms" : on("bs") ? "bs" : on("dba") ? "dba" : ""] / 60,
@@ -1838,8 +1989,6 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       gold: BASE.gold * m(["gm", "gsm"]),
       stone: BASE.stone * m(["sm", "ssm"]),
     };
-    // Food rate of one (non-farm) source with every applicable bonus; Varangian gold is 10% of it.
-    const foodRate = (src) => fx.reduce((v, e) => (e.k === "rate" && (e.src === "all" || e.src === "food" || e.src === src) ? v * (1 + pct(e) / 100) : v), FOOD[src]);
     fx.forEach((e) => {
       if (e.k !== "rate") return;
       const f = 1 + pct(e) / 100;
@@ -1848,19 +1997,23 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       else if (RES.indexOf(e.src) !== -1) r[e.src] *= f;
       else if (e.src === state.food) r.food *= f;
     });
-    // Niche incomes replace the standard rate for their resource. Shu lumberjack food is a share of the lumberjack rate
-    // (upgrades and bonuses included), even while another wood source is picked.
+    // Niche incomes replace the standard rate for their resource.
     const gtr = activeFx().some((x) => x.tech === "Grand Trunk Road");
-    const lumber = r.wood;
     RES.forEach((res) => {
       const o = nicheOf(res);
       if (!o) return;
-      let v = o.from === "wood" ? lumber * o.mult : o.from ? foodRate(o.from) * o.mult : o.perMin / 60;
+      let v = o.perMin / 60;
       if (res === "gold" && gtr) v *= 1.1;                       // all gold income +10%
       r[res] = v;
     });
+    // A custom income: the rate typed in the resource's heading, as it is (no upgrades or bonuses).
+    RES.forEach((res) => { if (srcOf(res) === "custom") r[res] = (state.customRate[res] || CUSTOM_RATE) / 60; });
     return r;
   }
+  // A resource's source: the food source, or wood / gold / stone's ("std", a NICHE id, or "custom").
+  const srcOf = (res) => (res === "food" ? state.food : state.src[res]);
+  const CUSTOM_RATE = 20;   // per minute, for a custom income saved without its rate
+  const clampRate = (v) => Math.round(clampNum(v, 0.1, 999.9, CUSTOM_RATE) * 10) / 10;
   // Relics need Monks: none before Castle Age. The count is kept for later, like an age-locked tick.
   const RELIC_AGE = 3;
   const relicsNow = () => (ageOpen(RELIC_AGE) ? state.relics : 0);
@@ -1874,6 +2027,14 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     const food = xs.reduce((f, x) => (x.e.k === "relicfood" ? f + (n * x.e.perMin) / 60 : f), 0);
     return { gold, food };
   }
+  // Wood per second from each forager (Portuguese civ bonus), while Berries is the food source.
+  const forageEach = () => (state.food === "berries" ? activeFx().reduce((w, x) => (x.e.k === "forage" ? w + x.e.perMin / 60 : w), 0) : 0);
+  // Food from each lumberjack, as a share of the lumberjack rate (Shu civ bonus), while Trees is the wood source.
+  const woodFoodShare = () => (state.src.wood === "std" ? activeFx().reduce((m, x) => (x.e.k === "woodfood" ? m + x.e.mult : m), 0) : 0);
+  // Gold from each food gatherer, as a share of its food rate (Varangian civ bonus), while it's the food source.
+  const foodGoldShare = () => activeFx().reduce((m, x) => (x.e.k === "foodgold" ? m + (x.e.mult[state.food] || 0) : m), 0);
+  const FOOD_GOLD_WHO = { sheep: ["Shepherds", "shepherd", "shepherds"], hunt: ["Hunters", "hunter", "hunters"],
+    fish: ["Fishermen", "fisherman", "fishermen"], fship: ['<span class="wide-only">Fishing </span>Ships', "Fishing Ship", "Fishing Ships"] };   // "from Ships" in narrow layouts, like the heading
   // The niche source picked for a resource (null for the standard one).
   function nicheOf(res) {
     const id = res === "food" ? state.food : state.src[res];
@@ -1907,6 +2068,9 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     });
   })();
   const unique = (m) => !!(MEMBERS[m] && MEMBERS[m][0]);
+  // A unique member (e.g. Camel Scout, Imperial Skirmisher) counts in names and searches for the civ that has it, and for
+  // Generic only with Include Regional & Unique ticked (user).
+  const uniqueShown = (m) => !unique(m) || (state.civ === "Generic" ? state.regional : memberHas(m));
   function memberHas(m) {
     const info = MEMBERS[m];
     if (!info) return false;
@@ -1933,7 +2097,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       // Generic follows the regular line (Champion, not Legionary); unique replacements stay as extras.
       const avail = state.civ === "Generic" ? nodes.filter((n) => !mixed || !unique(n)) : nodes.filter(memberHas);
       const frontier = avail.filter((n) => ![...descendants(n)].some((d) => avail.indexOf(d) !== -1));
-      const text = nodes.map(norm).join(" | ");
+      const text = nodes.filter(uniqueShown).map(norm).join(" | ");
       idxs.forEach((i) => {
         const ms = members(UNITS[i]);
         if (state.civ === "Generic" && mixed && ms.every(unique)) return;
@@ -1954,6 +2118,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     const id = lineOf(i);
     if (id === undefined) return [];
     return state.rows.filter((r) => {
+      if (r.custom) return false;
       const j = byName.get(r.name);
       return j !== i && lineOf(j) === id && UNITS[j][1] === UNITS[i][1];
     });
@@ -1979,10 +2144,33 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     return { target: -1, node: first, why: `${state.civ} can't upgrade to ${first}` };
   }
 
+  // One step up a row's line (the Upgrade button): to the next version the civ can reach now, merging into that version's
+  // row if the table has one. Returns whether the row moved.
+  function upgradeRow(row) {
+    const up = row.custom ? null : upgradeOf(byName.get(row.name));
+    if (!up || up.target < 0) return false;
+    const toName = UNITS[up.target][0], there = state.rows.find((r) => r.name === toName);
+    if (there) {
+      there.count = Math.min(99, there.count + row.count);
+      state.rows.splice(state.rows.indexOf(row), 1);
+    } else {
+      row.name = toName;
+      row.builders = Math.min(row.builders || 1, maxBuilders(toName));
+    }
+    return true;
+  }
+
   let piView = null;
   const view = () => (state.postimp ? (piView = piView || postImpView()) : null);
   const invalidateView = () => { piView = null; };
-  const displayName = (i) => (state.postimp && view().name.get(i)) || UNITS[i][0];
+  // Entries named with their unique member too where it can be had (user): Generic with Include Regional & Unique, or the
+  // civ that has it outside Post-Imp (which names the latest version).
+  const NAME_WITH_UNIQUE = { "Elite Skirmisher": ["Imperial Skirmisher", "Elite/Imperial Skirmisher"] };
+  const displayName = (i) => {
+    const w = NAME_WITH_UNIQUE[UNITS[i][0]];
+    if (w && (state.civ === "Generic" ? state.regional : !state.postimp && memberHas(w[0]))) return w[1];
+    return (state.postimp && view().name.get(i)) || UNITS[i][0];
+  };
 
   /* ---------- formatting ---------- */
   const fmt = (n) => (Math.round(n * 10) / 10).toFixed(1);
@@ -2106,16 +2294,26 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     RES.forEach((res) => {
       const [plural, one] = KIND[kindOf(res)];
       $("rate-" + res).textContent = fmt(r[res] * 60);
+      const custom = srcOf(res) === "custom", rin = $("rate-in-" + res);
+      $("rate-" + res).hidden = custom;
+      rin.hidden = !custom;
+      if (custom && document.activeElement !== rin) rin.value = state.customRate[res] || CUSTOM_RATE;
       $("rate-" + res + "-t").title = `Gathered per ${one} per minute`;
       // "# Fishing Ships" would wrap and push the table down in the narrow layout: there it reads "# Ships".
-      $("head-" + res).innerHTML = plural === "vils" ? `# ${res.charAt(0).toUpperCase() + res.slice(1)} vils`
+      const hd = (HEADS[res] || {})[res === "food" ? state.food : state.src[res]];
+      const plainName = `${res.charAt(0).toUpperCase() + res.slice(1)} vils`;
+      const own = hd ? `# <span class="hl">${hd}</span><span class="hs">${plainName}</span>` : "";
+      const th = $("head-" + res);
+      th.innerHTML = own ? own
+        : plural === "vils" ? `# ${plainName}`
         : `# ${plural.replace("Fishing ", '<span class="wide-only">Fishing </span>')}`;
+      th.dataset.label = hd ? `# ${hd}` : th.textContent;   // for labels: one form
     });
     const tot = { wood: 0, food: 0, gold: 0, stone: 0 };
     let builders = 0, shipBuilders = 0, popRate = 0;
     tbody.querySelectorAll("tr[data-name]").forEach((tr) => {
       const row = state.rows.find((x) => x.name === tr.dataset.name);
-      const u = UNITS[byName.get(row.name)];
+      const u = rowUnit(row);
       tr.classList.toggle("idle", row.count === 0);   // # Buildings 0: the name greys out
       const e = effective(u);
       const t = rowTime(u, e, row);
@@ -2150,6 +2348,46 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       (each.food ? ` and ${fmt(each.food * 60)} food` : "") + " per minute, taken off what the units need");
     reseed(r, tot);
     houseBuilding(r, tot, popRate);
+    // Portuguese foragers (the food villagers, on berries) bring in part of the wood needed: fewer lumberjacks.
+    // Transition Eco shows the wood from the food villagers set there instead (updateTE() adds it).
+    fitHeads();
+    const forageW = forageEach(), foragers = forageW ? vils(tot.food) : 0, fs = foragers === 1 ? "" : "s";
+    covered.wood = Math.min(tot.wood, (foragers * forageW) / r.wood);
+    tot.wood -= covered.wood;
+    const shownForagers = inTE() ? state.te.vils.food : foragers;
+    $("forage").classList.toggle("gone", !activeFx().some((x) => x.e.k === "forage"));
+    $("forage").hidden = !forageW;
+    $("forage-out").textContent = perMin(shownForagers * forageW * 60);
+    $("forage").title = `${fmt(forageW * 60)} wood per minute from each forager` + (inTE() ? "" : ", taken off what the units need");
+    // Shu lumberjacks bring in part of the food needed: fewer food gatherers. Farm Reseeding (above) counted the farmers
+    // before this, since its lumberjacks are among the ones counted here.
+    const foodEach = woodFoodShare() * r.wood, lumberjacks = foodEach ? vils(tot.wood) : 0, ls = lumberjacks === 1 ? "" : "s";
+    const foodCover = Math.min(tot.food, (lumberjacks * foodEach) / r.food);
+    tot.food -= foodCover;
+    const wf = $("wood-food");
+    wf.classList.toggle("gone", !activeFx().some((x) => x.e.k === "woodfood"));
+    wf.hidden = !foodEach;
+    if (foodEach) {
+      $("wood-food-out").textContent = perMin((inTE() ? state.te.vils.wood : lumberjacks) * foodEach * 60);
+      wf.title = `${fmt(foodEach * 60)} food per minute from each lumberjack` + (inTE() ? "" : ", taken off what the units need");
+    }
+    // Varangian shepherds, hunters and fishers (villagers or Fishing Ships) bring in part of the gold needed: fewer gold miners.
+    const goldEach = foodGoldShare() * r.food, fishers = goldEach ? vils(tot.food) : 0, who = FOOD_GOLD_WHO[state.food];
+    const goldCover = Math.min(tot.gold, (fishers * goldEach) / r.gold);
+    tot.gold -= goldCover;
+    const fg = $("food-gold");
+    fg.classList.toggle("gone", !activeFx().some((x) => x.e.k === "foodgold"));
+    fg.hidden = !goldEach;
+    if (goldEach) {
+      $("food-gold-out").textContent = perMin((inTE() ? state.te.vils.food : fishers) * goldEach * 60);
+      $("food-gold-who").innerHTML = who[0];
+      fg.title = `${fmt(goldEach * 60)} gold per minute from each ${who[1]}` + (inTE() ? "" : ", taken off what the units need");
+    }
+    const cover = { wood: [], food: [], gold: [], stone: [] };
+    ["gold", "food"].forEach((res) => { if (covered[res]) cover[res].push(`${relicsNow()} relic${rs} cover ${covered[res].toFixed(2)}`); });
+    if (covered.wood) cover.wood.push(`${foragers} forager${fs} cover ${covered.wood.toFixed(2)}`);
+    if (goldCover) cover.gold.push(`${fishers} ${fishers === 1 ? who[1] : who[2]} cover ${goldCover.toFixed(2)}`);
+    if (foodCover) cover.food.push(`${lumberjacks} lumberjack${ls} cover ${foodCover.toFixed(2)}`);
     // Totals round up the exact sum: villagers on one resource are shared between units.
     // Only villagers count towards Villagers required (not Feitorias, livestock or Fishing Ships).
     let grand = 0, exact = 0;
@@ -2158,8 +2396,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       if (kindOf(res) === "vils") { grand += n; exact += tot[res]; }
       const td = $("tot-" + res);
       td.textContent = n;
-      td.title = `${tot[res].toFixed(2)} ${unitWord(res)}` +
-        (covered[res] ? `, after ${relicsNow()} relic${rs} cover ${covered[res].toFixed(2)}` : "");
+      td.title = `${tot[res].toFixed(2)} ${unitWord(res)}` + (cover[res].length ? `, after ${cover[res].join(" and ")}` : "");
       td.classList.toggle("zero", n === 0);
     });
     // Builders are villagers too, except the Fishing Ships building Fish Traps.
@@ -2171,7 +2408,38 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     $("grand").textContent = grand;
     $("grand").title = `${exact.toFixed(2)} villagers` + (vilBuilders ? `, including ${vilBuilders} builder${vilBuilders === 1 ? "" : "s"}` : "");
     $("tot-count").textContent = state.rows.reduce((s, r) => s + r.count, 0);
+    fillRows();
     updateTE(r);
+    // The bonus line lists building bonuses by what reaches the table (inReach()); it may change height.
+    const fxH = $("civ-fx").offsetHeight;
+    renderCivFx();
+    if ($("civ-fx").offsetHeight !== fxH) requestAnimationFrame(fit);
+  }
+  // Wide layout: the technologies move up into the Post-Imp cell, the first unique tech's place level with Gold / Stone Shaft Mining.
+  function placeTechs() {
+    const techs = $("techs");
+    techs.style.top = "";
+    if (document.documentElement.classList.contains("narrow") || inTE()) return;
+    const level = document.querySelector('[data-up="gsm"]').closest(".opt").getBoundingClientRect().top;
+    techs.style.top = `${level - $("ut-list").getBoundingClientRect().top}px`;
+  }
+  // Wide layout: Villagers required level with the Totals row (its number centred on the row). Returns how far it
+  // would cover the technologies above it (their places, shown or not), or 0.
+  function placeGrand() {
+    const box = document.querySelector(".grand-box");
+    if (getComputedStyle(box).position !== "absolute") { box.style.top = ""; return 0; }
+    const row = $("tot-row").getBoundingClientRect(), g = $("grand").getBoundingClientRect();
+    box.style.top = `${box.offsetTop + row.top + row.height / 2 - (g.top + g.height / 2)}px`;
+    const techs = ["ut-list", "consc-opt", "shipwright-opt", "crane-opt"].map((id) => $(id).getBoundingClientRect().bottom);
+    return Math.max(0, Math.max(...techs) + parseFloat(getComputedStyle($("techs")).rowGap) - box.getBoundingClientRect().top);
+  }
+  // Wide layout: empty rows up to MIN_ROWS, and more while Villagers required would cover the technologies (long unique techs).
+  function fillRows() {
+    const used = tbody.querySelectorAll("tr[data-name], tr.reseed:not([hidden]), tr.houses:not([hidden])").length;
+    const fillers = [...tbody.querySelectorAll("tr.filler")];
+    let n = Math.max(0, MIN_ROWS - used);
+    const show = () => { fillers.forEach((tr, i) => { tr.hidden = i >= n; }); return placeGrand(); };
+    while (show() > 0 && n < fillers.length) n++;
   }
 
   /* ---------- Transition Eco ---------- */
@@ -2203,18 +2471,24 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     $("te-label").textContent = `On reaching ${AGES[target]}`;
     const bonus = { wood: 0, food: 0, gold: 0, stone: 0 };
     activeFx().forEach((x) => { if (x.e.k === "agebonus") RES.forEach((res) => { bonus[res] += x.e.res[res] || 0; }); });
+    const forage = state.te.vils.food * forageEach() * t;   // Portuguese foragers' wood
+    const foodGold = state.te.vils.food * foodGoldShare() * r.food * t;   // Varangian food gatherers' gold
+    const woodFood = state.te.vils.wood * woodFoodShare() * r.wood * t;   // Shu lumberjacks' food
+    const extra = { wood: forage ? [forage, "foragers"] : null, gold: foodGold ? [foodGold, (FOOD_GOLD_WHO[state.food] || [])[2]] : null,
+      food: woodFood ? [woodFood, "lumberjacks"] : null };
     RES.forEach((res) => {
-      const amt = state.te.vils[res] * r[res] * t, el = $("te-" + res);
+      const amt = state.te.vils[res] * r[res] * t + (extra[res] ? extra[res][0] : 0), el = $("te-" + res);
       el.textContent = Math.floor(amt + 1e-9) + bonus[res];
-      el.title = `${amt.toFixed(1)} ${res} gathered` + (bonus[res] ? ` + ${bonus[res]} on reaching ${AGES[target]}` : "");
+      el.title = `${amt.toFixed(1)} ${res} gathered` + (extra[res] ? ` (${extra[res][0].toFixed(1)} by ${extra[res][1]})` : "") +
+        (bonus[res] ? ` + ${bonus[res]} on reaching ${AGES[target]}` : "");
       const inp = document.querySelector(`#te-row .te-in[data-res="${res}"] input`);
-      if (inp) inp.setAttribute("aria-label", $("head-" + res).textContent);
+      if (inp) inp.setAttribute("aria-label", $("head-" + res).dataset.label);
     });
   }
   function renderTE() {
     document.querySelectorAll('input[name="te-age"]').forEach((b) => { b.checked = +b.value === state.te.research; });
     document.querySelectorAll("#te-row .te-in").forEach((td) => {
-      td.innerHTML = stepperHtml("te", state.te.vils[td.dataset.res], 0, TE_MAX, $("head-" + td.dataset.res).textContent);
+      td.innerHTML = stepperHtml("te", state.te.vils[td.dataset.res], 0, TE_MAX, $("head-" + td.dataset.res).dataset.label);
     });
   }
 
@@ -2259,6 +2533,10 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
         </tr>`;
   }
 
+  // Wide layout: the table is at least MIN_ROWS rows tall, empty ones (fillers) filling up; fillRows() shows the ones needed.
+  const MIN_ROWS = 4;
+  const FILLER = `<tr class="filler" aria-hidden="true" hidden><td class="rm"></td><th></th><td class="bld-cell"></td><td class="count">${stepperHtml("filler", 0, 0, 0, "")}</td>` +
+    `<td class="num wood"></td><td class="num food"></td><td class="num gold"></td><td class="num stone"></td></tr>`;
   function stepperHtml(field, v, min, max, label) {
     return `<div class="stepper" data-field="${field}">` +
       `<button type="button" class="step" data-step="-1" aria-label="${label}: one fewer"${v <= min ? " disabled" : ""}>−</button>` +
@@ -2266,10 +2544,60 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       `<button type="button" class="step" data-step="1" aria-label="${label}: one more"${v >= max ? " disabled" : ""}>+</button></div>`;
   }
 
+  const countStepper = (row, safe) => `<div class="stepper" data-field="count">
+            <button type="button" class="step" data-step="-1" aria-label="One building fewer for ${safe}"${row.count <= 0 ? " disabled" : ""}>−</button><input type="number" inputmode="numeric" min="0" max="99" step="1" value="${row.count}" aria-label="Buildings producing ${safe}"><button type="button" class="step" data-step="1" aria-label="One building more for ${safe}"${row.count >= 99 ? " disabled" : ""}>+</button>
+          </div>`;
+  // A custom unit's row: number fields for its costs and training time where other rows show them as text; after them, what
+  // the numbers become with the bonuses that reach it (only when some do).
+  function customRowHtml(row) {
+    const safe = esc(row.name), c = row.custom, d = CUSTOM[customKind(row.name)];
+    const field = (k, suffix, cls, label) => `<label class="cu-f${cls}"><input type="number" class="cu-in" data-cost="${k}" min="${k === "t" ? 1 : 0}" max="${d.max}" ` +
+      `step="${k === "t" ? "any" : 1}" inputmode="${k === "t" ? "decimal" : "numeric"}" value="${c[k]}" aria-label="${safe}: ${label}">${suffix}</label>`;
+    return `<tr data-name="${safe}" class="custom">
+          <td class="rm"><button type="button" aria-label="Remove ${safe}" title="Remove">×</button></td>
+          <th scope="row"><span class="uname">${safe}</span><span class="meta cu-eff">${customEff(row)}</span>` +
+          `<span class="cu-fields">${d.res.map((r) => field(r, LETTER[r], " t-" + r, r + " cost")).join("")}<span>/</span>${field("t", "s", "", d.time + " in seconds")}</span></th>
+          <td class="bld-cell">${d.flags ? stepperHtml("builders", row.builders || 1, 1, CUSTOM_BUILDERS, `Builders per ${safe}`) : ""}</td>
+          <td class="count">${countStepper(row, safe)}</td>
+          <td class="num wood"></td><td class="num food"></td><td class="num gold"></td><td class="num stone"></td>
+        </tr>`;
+  }
+  // After the name: the cost and time the numbers become, when bonuses or (for a building) builders change them.
+  const customEff = (row) => { const u = rowUnit(row);
+    return effective(u).applied.length || (BLD(u) && row.builders > 1) ? `→ ${costMeta(u, true, row)}` : ""; };
+  // Typing in a custom unit's field: kept within its limits (an empty or invalid field counts as the minimum; the field
+  // shows the kept number once left).
+  function customInput(inp, done) {
+    const tr = inp.closest("tr"), row = state.rows.find((r) => r.name === tr.dataset.name), k = inp.dataset.cost;
+    const n = clampNum(inp.value, +inp.min, +inp.max, +inp.min);
+    row.custom[k] = k === "t" ? Math.round(n * 10) / 10 : Math.round(n);
+    if (done) inp.value = row.custom[k];
+    tr.querySelector(".cu-eff").innerHTML = customEff(row);
+    update();
+    save();
+  }
+  function addCustom(kind) {
+    if (customRows(kind).length >= CUSTOM_MAX) return;
+    let n = 1;
+    while (state.rows.some((r) => r.name === `${CUSTOM[kind].prefix} ${n}`)) n++;
+    const name = `${CUSTOM[kind].prefix} ${n}`;
+    state.rows.push({ name, count: 1, builders: 1, custom: cleanCustom({}, kind) });
+    renderRows();
+    if (!fit()) {
+      state.rows.pop();
+      renderRows();
+      fit();
+      return;
+    }
+    save();
+    rowEl(name).querySelector(".cu-in").focus();   // ready to type its costs
+  }
+
   function renderRows() {
     invalidateView();
     {
       tbody.innerHTML = state.rows.map((row) => {
+        if (row.custom) return customRowHtml(row);
         const i = byName.get(row.name);
         const u = UNITS[i];
         const safe = esc(row.name);
@@ -2280,12 +2608,10 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
           <td class="rm"><button type="button" aria-label="Remove ${safe}" title="Remove">×</button></td>
           <th scope="row"><span class="uname"${u[10] ? ` title="${esc(u[10].join(", "))}"` : ""}>${esc(displayName(i))}</span>${upgradeButton(i)}<span class="meta meta-row">${costMeta(u, true, row)}${na}</span>${farmOptHtml(u, row)}</th>
           <td class="bld-cell">${BLD(u) && !FARM(u) ? stepperHtml("builders", row.builders || 1, 1, maxBuilders(row.name), `Builders per ${safe}`) : ""}</td>
-          <td class="count"><div class="stepper" data-field="count">
-            <button type="button" class="step" data-step="-1" aria-label="One building fewer for ${safe}"${row.count <= 0 ? " disabled" : ""}>−</button><input type="number" inputmode="numeric" min="0" max="99" step="1" value="${row.count}" aria-label="Buildings producing ${safe}"><button type="button" class="step" data-step="1" aria-label="One building more for ${safe}"${row.count >= 99 ? " disabled" : ""}>+</button>
-          </div></td>
+          <td class="count">${countStepper(row, safe)}</td>
           <td class="num wood"></td><td class="num food"></td><td class="num gold"></td><td class="num stone"></td>
         </tr>`;
-      }).join("") + reseedRowHtml() + houseRowHtml();
+      }).join("") + reseedRowHtml() + houseRowHtml() + FILLER.repeat(MIN_ROWS + 4);
     }
     clearBtn.hidden = state.rows.length === 0;
     $("crane").closest(".opt").hidden = !state.bldOn || inTE();
@@ -2317,6 +2643,55 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     root.remove("hdr-measure", "hdr-b", "hdr-c", "hdr-d");
     modes[pick].forEach((c) => root.add(c));
   }
+  // Own column headings show where they neither overflow nor make the heading row taller than the plain forms would. The
+  // row keeps the plain forms' height either way, so switching a source never moves the table.
+  function fitHeads() {
+    const ths = RES.map((r) => $("head-" + r)).filter((th) => th.querySelector(".hl"));
+    const head = table.tHead, row = head.rows[0];
+    row.style.height = "";
+    ths.forEach((th) => th.classList.add("plain"));
+    const hh = () => head.getBoundingClientRect().height, base = hh();
+    ths.forEach((th) => {
+      th.classList.remove("plain");
+      if (hh() > base + 0.5 || th.scrollWidth > th.clientWidth + 1) th.classList.add("plain");
+    });
+    row.style.height = base + "px";
+  }
+  // The extra-income lines (Foragers, Shu lumberjack food, Varangian food gold): one line where the longest text they can show fits, else two,
+  // else two in smaller type, else three (see the CSS).
+  function fitIncome() {
+    const root = document.documentElement.classList;
+    root.remove("inc-2l", "inc-small", "inc-3l");
+    const lines = [["forage", [""]], ["wood-food", [""]], ["food-gold", Object.values(FOOD_GOLD_WHO).map((w) => w[0])]]
+      .map(([id, whos]) => [$(id), whos]).filter(([el]) => !el.classList.contains("gone"));
+    const fits = () => lines.every(([el, whos]) => {
+      const saved = el.innerHTML;
+      el.querySelector("[id$='-out']").textContent = "999.9";
+      const ok = whos.every((who) => {
+        if (who) el.querySelector("[id$='-who']").innerHTML = who;
+        return el.scrollWidth <= el.clientWidth + 0.5;
+      });
+      el.innerHTML = saved;
+      return ok;
+    });
+    for (const mode of ["inc-2l", "inc-small", "inc-3l"]) {
+      if (fits()) return;
+      root.add(mode);
+    }
+  }
+  // Fishing Ship spot: radios right of the Food upgrades where they fit beside the upgrades Fishing Ship shows,
+  // otherwise (html.fish-dd) one dropdown option per spot. Measured with the radios in place.
+  function fitFish() {
+    const root = document.documentElement.classList, was = root.contains("fish-dd");
+    root.remove("fish-dd");
+    const f = document.querySelector("fieldset.res.food"), cs = getComputedStyle(f);
+    const inner = f.getBoundingClientRect().right - parseFloat(cs.paddingRight) - parseFloat(cs.borderRightWidth);
+    const upsRight = Math.max(...["fl", "gn"].map((k) => $("food-ups").querySelector(`[data-up="${k}"]`).closest(".opt").getBoundingClientRect().right));
+    const need = parseFloat(getComputedStyle(document.querySelector(".food-row")).columnGap) + $("fish-spot").getBoundingClientRect().width;
+    const dd = upsRight + need > inner + 0.5;
+    root.toggle("fish-dd", dd);
+    if (dd !== was) renderSources();
+  }
 
   function applyLayout() {
     const w = window.innerWidth, bld = showBuilders(), root = document.documentElement.classList;
@@ -2327,6 +2702,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     // Only buildings cost stone: without them the Stone column and its settings are hidden.
     root.toggle("no-stone", !showStone());
     root.toggle("tab-te", inTE());
+    fitFish();
+    fitIncome();
     document.querySelectorAll(".tab").forEach((b) => { const on = b.dataset.tab === state.tab; b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1; });
     const title = document.getElementById("adder-title"), head = document.getElementById("unit-head");
     if (title) title.textContent = state.bldOn ? "Add a unit or building" : "Add a unit";
@@ -2343,10 +2720,14 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     const strip = () => getComputedStyle(techs).order === "-1";
     const room = () => wrap.clientHeight - (strip() ? techs.offsetHeight : 0);
     table.style.setProperty("--fs", fs + "px");
+    placeTechs();
+    fillRows();
     while (table.offsetHeight > room() && fs > 9) {
       fs -= 0.5;
       table.style.setProperty("--fs", fs + "px");
+      fillRows();
     }
+    fitHeads();
     return table.offsetHeight <= room();
   }
 
@@ -2381,6 +2762,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   }
 
   tbody.addEventListener("input", (e) => {
+    if (e.target.classList.contains("cu-in")) { customInput(e.target, false); return; }
     if (e.target.type !== "number") return;
     const tr = e.target.closest("tr"), field = fieldOf(e.target), [min, max] = limits(e.target.closest(".stepper"));
     const row = state.rows.find((r) => r.name === tr.dataset.name);
@@ -2408,6 +2790,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       save();
       return;
     }
+    if (e.target.classList.contains("cu-in")) { customInput(e.target, true); return; }
     if (e.target.type !== "number") return;
     const field = fieldOf(e.target);
     const row = state.rows.find((r) => r.name === e.target.closest("tr").dataset.name);
@@ -2426,8 +2809,10 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     stepper.querySelector('.step[data-step="1"]').disabled = n >= max;
   }
   function refreshRowMeta(tr, row) {
-    const u = UNITS[byName.get(row.name)];
+    if (row.custom) { tr.querySelector(".cu-eff").innerHTML = customEff(row); return; }
+    const u = rowUnit(row);
     const meta = tr.querySelector(".meta-row");
+    if (!meta) return;
     const na = meta.querySelector(".na");
     meta.innerHTML = costMeta(u, true, row) + (na ? " " + na.outerHTML : "");
   }
@@ -2436,16 +2821,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     const upg = e.target.closest(".upg");
     if (upg) {
       const tr = upg.closest("tr"), row = state.rows.find((r) => r.name === tr.dataset.name);
-      const up = upgradeOf(byName.get(row.name));
-      if (!up || up.target < 0) return;
-      const toName = UNITS[up.target][0];
-      const there = state.rows.find((r) => r.name === toName);
-      if (there) {
-        there.count = Math.min(99, there.count + row.count);
-        state.rows.splice(state.rows.indexOf(row), 1);
-      } else {
-        row.name = toName;
-      }
+      if (!upgradeRow(row)) return;
       renderRows();
       fit();
       save();
@@ -2508,14 +2884,31 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     const alts = (res) => NICHE[res].filter(nicheAvail);
     const altOpts = (res, cur) => alts(res).map((o) => opt(o.id, o.label, o.tip, cur)).join("");
     const fs = $("food-source");
-    fs.innerHTML = FOOD_STD.map(([v, l]) => opt(v, v === "farm" && pasture ? "Pasture" : l, v === "fish" ? "Villagers fishing from the shore" : "", state.food)).join("") + altOpts("food", state.food);
-    fs.value = state.food;
+    // No room for the Fishing Ship radios: the ship is listed once per spot ("fship:deep"), labelled and titled after its radio.
+    const spots = document.documentElement.classList.contains("fish-dd")
+      ? [...document.querySelectorAll("#fish-spot .opt")].map((l) => [`fship:${l.querySelector("input").value}`, `Ship: ${l.textContent.trim()}`, `Fishing Ship: ${l.title}`]) : null;
+    const food = spots && state.food === "fship" ? `fship:${state.fish}` : state.food;
+    fs.innerHTML = FOOD_STD.flatMap(([v, l]) => (v === "fship" && spots ? spots
+      : [[v, v === "farm" && pasture ? "Pasture" : l, v === "fish" ? "Villagers fishing from the shore" : ""]])).map(([v, l, t]) => opt(v, l, t, food)).join("") +
+      altOpts("food", food) + opt("custom", "Custom Rate", "", food);
+    fs.value = food;
     ["wood", "gold", "stone"].forEach((res) => {
       const sel = $("src-" + res);
-      sel.hidden = !alts(res).length;
-      sel.innerHTML = opt("std", STD_SRC[res], "", state.src[res]) + altOpts(res, state.src[res]);
+      sel.innerHTML = opt("std", STD_SRC[res], "", state.src[res]) + altOpts(res, state.src[res]) + opt("custom", "Custom Rate", "", state.src[res]);
       sel.value = state.src[res];
     });
+  }
+
+  // Whether an eco upgrade's box shows in its resource's box: only while that resource's source is the one it speeds up.
+  // Pastoralism replaces Heavy Plow for Khitans but doesn't change how much farmers carry: it lives only in the Pasture Reseeding row,
+  // as Horse Collar and Crop Rotation always do.
+  const UP_RES = { dba: "wood", bs: "wood", tms: "wood", gm: "gold", gsm: "gold", sm: "stone", ssm: "stone" };
+  function laneShown(k) {
+    if (k === "hp") return state.food === "farm" && !pastures();
+    if (k === "wb" || k === "hc") return state.food === "farm";
+    if (k === "fl" || k === "gn") return state.food === "fship";
+    const res = UP_RES[k];
+    return !!res && state.src[res] === "std";
   }
 
   function syncSettings() {
@@ -2528,25 +2921,14 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       cb.closest(".opt").classList.toggle("na", !ok);
       cb.closest(".opt").title = techTitle(k);
     });
-    // Pastoralism replaces Heavy Plow for Khitans but doesn't change how much farmers carry: it lives only in the Pasture Reseeding row.
-    const ups = $("food-ups"), box = (k) => ups.querySelector(`[data-up="${k}"]`).closest(".opt");
-    box("hp").hidden = pastures();
-    // Farm upgrades only speed up farms, and are greyed out for any other source (ticks kept).
-    // With Fishing Ship, Fishing Lines and Gillnets take Wheelbarrow's and Hand Cart's places.
-    const farm = state.food === "farm", ship = state.food === "fship";
-    ["fl", "gn"].forEach((k) => { box(k).hidden = !ship; });
-    ["wb", "hc"].forEach((k) => { box(k).hidden = ship; });
-    ups.querySelectorAll("input").forEach((cb) => {
-      const live = ship ? cb.dataset.up !== "hp" : farm;
-      cb.closest(".opt").classList.toggle("off", !live);
-      if (!live) cb.disabled = true;
-    });
-    // Wood, gold and stone upgrades only speed up the standard gatherers: greyed out for any other source (ticks kept).
-    ["wood", "gold", "stone"].forEach((res) => {
-      const std = state.src[res] === "std", ups = $(res + "-ups");
-      ups.classList.toggle("off", !std);
-      if (!std) ups.querySelectorAll("input").forEach((cb) => { cb.disabled = true; });
-    });
+    // Upgrades show only for the source they speed up; otherwise they're hidden, keeping their space and ticks.
+    // With Fishing Ship, Fishing Lines and Gillnets take Heavy Plow's and Wheelbarrow's places, with the fishing spot beside them.
+    const ups = $("food-ups"), ship = state.food === "fship";
+    ["hp", "wb", "hc", "fl", "gn"].forEach((k) => { ups.querySelector(`[data-up="${k}"]`).closest(".opt").hidden = !laneShown(k); });
+    ups.classList.toggle("ship", ship);
+    $("fish-spot").hidden = !ship;
+    document.querySelectorAll('input[name="fish"]').forEach((r) => { r.checked = r.value === state.fish; });
+    ["wood", "gold", "stone"].forEach((res) => { $(res + "-ups").hidden = state.src[res] !== "std"; });
     // Relics: shown as 0 and locked before Castle Age.
     const relicOpen = ageOpen(RELIC_AGE);
     relicBox.classList.toggle("na", !relicOpen);
@@ -2564,11 +2946,23 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   }
   document.querySelector(".lanes").addEventListener("change", (e) => {
     const t = e.target;
+    if (t.dataset.rate) { t.value = state.customRate[t.dataset.rate]; return; }   // left: show the rate kept
+    const picked = t.name === "food" ? "food" : t.dataset.src;
+    if (picked && t.value === "custom" && state.customRate[picked] === undefined) state.customRate[picked] = clampRate(rates()[picked] * 60);
     if (t.dataset.up) { setUp(t.dataset.up, t.checked); if (!t.checked) setPostImp(false); }
-    else if (t.name === "food") state.food = t.value;
+    else if (t.name === "food") { const [food, fish] = t.value.split(":"); state.food = food; if (fish) state.fish = fish; }
+    else if (t.name === "fish") state.fish = t.value;
     else if (t.dataset.src) state.src[t.dataset.src] = t.value;
     else return;
     syncSettings();
+    update();
+    save();
+  });
+  // A custom income's rate, typed in its heading. While typing, an empty or invalid field keeps the last rate.
+  document.querySelector(".lanes").addEventListener("input", (e) => {
+    const t = e.target;
+    if (!t.dataset.rate || !Number.isFinite(parseFloat(t.value))) return;
+    state.customRate[t.dataset.rate] = clampRate(t.value);
     update();
     save();
   });
@@ -2639,12 +3033,17 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   }
 
   function renderTechs() {
-    $("ut-list").innerHTML = shownTechs().map((t) => {
+    // One slot for the Castle Age unique tech and one for the Imperial Age one (no civ has two of an age). A naval one is hidden
+    // while Naval is off; the wide layout keeps its space.
+    const utBox = (t) => {
       const open = ageOpen(t.age) && !state.ftt;
       const title = tip(state.ftt ? "Not available with Full Tech Tree" : open ? "" : `Available from ${AGES[t.age - 1]}`, t.desc);
-      return `<label class="opt${open ? "" : " na"}" title="${esc(title)}"><input type="checkbox" data-ut="${esc(t.name)}"${state.uts.indexOf(t.name) !== -1 && open ? " checked" : ""}${open ? "" : " disabled"}>
+      return `<label class="opt${open ? "" : " na"}" title="${esc(title)}"${navalOk(t) ? "" : " hidden"}><input type="checkbox" data-ut="${esc(t.name)}"${state.uts.indexOf(t.name) !== -1 && open ? " checked" : ""}${open ? "" : " disabled"}>
         <span><span class="tn">${esc(t.name)}</span><span class="te">${esc(t.desc)}</span></span></label>`;
-    }).join("");
+    };
+    const uts = civTechs().filter((t) => !inTE() || t.fx.some((e) => e.k === "rate"));
+    $("ut-list").innerHTML = [3, 4].map((a) => `<div class="ut-slot">${uts.filter((t) => t.age === a).map(utBox).join("")}</div>`).join("");
+    $("ut-list").classList.toggle("none", !shownTechs().length);
     if (!hasCrane()) state.crane = false;   // the civ can't research it: switch off, like the eco upgrades
     const cr = $("crane"), crOpen = craneOpen();
     cr.closest(".opt").hidden = !state.bldOn || inTE();
@@ -2653,6 +3052,15 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     cr.closest(".opt").classList.toggle("na", !crOpen);
     cr.closest(".opt").title = tip(!hasCrane() ? `${state.civ} can't research Treadmill Crane`
       : crOpen ? "" : `Available from ${AGES[CRANE_AGE - 1]}`, CRANE_DESC);
+    // Shipwright: like Treadmill Crane, shown (and in effect) only while Naval is ticked.
+    if (!hasShipwright()) state.shipwright = false;
+    const sw = $("shipwright"), swOpen = shipwrightOpen();
+    sw.closest(".opt").hidden = !state.dock || inTE();
+    sw.checked = state.shipwright && swOpen;
+    sw.disabled = !swOpen;
+    sw.closest(".opt").classList.toggle("na", !swOpen);
+    sw.closest(".opt").title = tip(!hasShipwright() ? `${state.civ} can't research Shipwright`
+      : swOpen ? "" : `Available from ${AGES[SHIPWRIGHT_AGE - 1]}`, SHIPWRIGHT_DESC);
     const c = $("consc"), open = ageOpen(CONSCRIPTION_AGE);
     c.checked = state.consc && open;
     c.disabled = !open;
@@ -2664,6 +3072,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     if (t.classList.contains("postimp-box")) return;   // handled separately
     if (t.id === "consc") state.consc = t.checked;
     else if (t.id === "crane") state.crane = t.checked;
+    else if (t.id === "shipwright") state.shipwright = t.checked;
     else if (t.dataset.ut) {
       state.uts = state.uts.filter((n) => n !== t.dataset.ut);
       if (t.checked) state.uts.push(t.dataset.ut);
@@ -2730,7 +3139,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
         }
         if (it.parent && it.parent !== parent) { parent = it.parent; grp = null; html += `<li class="parent" role="presentation">${parent}</li>`; }
         if (it.group && it.group !== grp) { grp = it.group; html += `<li class="grp" role="presentation">${grp}</li>`; }
-        html += `<li role="option" id="${o.id}-${pos}" data-pos="${pos}" aria-selected="false"${it.title ? ` title="${esc(it.title)}"` : ""}><span class="nm">${esc(it.label)}</span>${it.meta || ""}</li>`;
+        html += `<li role="option" id="${o.id}-${pos}" data-pos="${pos}" aria-selected="false"${it.disabled ? ' aria-disabled="true"' : ""}${it.title ? ` title="${esc(it.title)}"` : ""}><span class="nm">${esc(it.label)}</span>${it.meta || ""}</li>`;
       });
       list.innerHTML = html;
       const start = o.start(items, q);
@@ -2758,7 +3167,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     function choose(pos) {
       if (pos < 0 || pos >= items.length) return;
       const v = items[pos].value;
-      if (!o.multi) { o.choose(v); close(); return; }
+      if (!o.multi) { if (!items[pos].disabled) { o.choose(v); close(); } return; }
       // Multi-select: toggle and keep the list open for more picks.
       if (items[pos].disabled) {
         input.value = "";
@@ -2851,9 +3260,19 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       const tokens = q.split(" ").filter(Boolean);
       const inTable = new Set(state.rows.map((r) => r.name));
       const out = [];
+      // "Custom Unit..." first under Units (and "Custom Building..." first under Buildings), with nothing typed or while
+      // the text matches it.
+      const customItem = (kind) => {
+        const d = CUSTOM[kind], n = customRows(kind).length;
+        if (!tokens.every((t) => norm(d.prefix).includes(t))) return null;
+        return { value: "custom-" + kind, label: d.prefix + "...", names: [], parent: d.parent, disabled: n >= CUSTOM_MAX,
+          meta: n ? `<span class="added">${n}/${CUSTOM_MAX} in table</span>` : "" };
+      };
+      const cu = customItem("unit");
+      if (cu) out.push(cu);
       const pv = view();
-      SEARCH.forEach((s0, i) => {
-        const u = UNITS[i];
+      UNITS.forEach((u, i) => {
+        const s0 = searchOf(i);
         if (pv && pv.hidden.has(i)) return;
         const s = (pv && pv.search.get(i)) || s0;
         if (!available(i) || (!state.dock && isDock(u)) || (!state.bldOn && BLD(u)) || !tokens.every((t) => s.includes(t))) return;
@@ -2862,7 +3281,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
         // When the query only matches a member (e.g. "champion"), show which one.
         let hint = "";
         const shown = displayName(i);
-        const names = pv && pv.search.get(i) ? LINE_NODES[LINE_OF[members(u)[0]]] : members(u);
+        const names = (pv && pv.search.get(i) ? LINE_NODES[LINE_OF[members(u)[0]]] : members(u)).filter(uniqueShown);
         if (tokens.length && !tokens.every((t) => norm(shown).includes(t))) {
           const m = names.find((x) => tokens.every((t) => norm(x).includes(t)));
           if (m && m !== shown) hint = `<span class="alias">${esc(m)}</span>`;
@@ -2873,6 +3292,11 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
         out.push({ value: i, label, names, group: groupName(u[1]), parent: parentOf(u), title: u[10] ? u[10].join(", ") : "",
           meta: hint + (inTable.has(u[0]) ? '<span class="added">in table</span>' : "") + `<span class="meta">${costMeta(u, false)}</span>` });
       });
+      const cb = state.bldOn && customItem("building");
+      if (cb) {
+        const at = out.findIndex((it) => it.parent === "Buildings");
+        out.splice(at < 0 ? out.length : at, 0, cb);
+      }
       return out;
     },
     start: (items, q) => {
@@ -2886,7 +3310,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
         ? `Nothing matches “${esc(unitInput.value)}”${who} up to ${AGES[state.age]}.`
         : `Nothing available${who} in ${AGES[state.age]}.`;
     },
-    choose: (i) => { addUnit(i); unitInput.value = ""; },
+    choose: (i) => { if (typeof i === "string") addCustom(i.slice("custom-".length)); else addUnit(i); unitInput.value = ""; },
   });
 
   const civInput = $("civ-search");
@@ -2970,10 +3394,12 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     if (unitCombo.isOpen()) { unitCombo.render(); unitInput.focus({ preventScroll: true }); }
   });
 
-  // Include Regional & Unique (Generic only): a dropdown filter, like Include Dock.
+  // Include Regional & Unique (Generic only): a dropdown filter, like Naval.
   const ruBox = $("include-ru");
   ruBox.addEventListener("change", () => {
     state.regional = ruBox.checked;
+    invalidateView();   // the Post-Imp search text follows it
+    renderRows();       // so do some entry names (Elite/Imperial Skirmisher)
     save();
     if (unitCombo.isOpen()) { unitCombo.render(); unitInput.focus({ preventScroll: true }); }
   });
@@ -2988,14 +3414,18 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     if (unitCombo.isOpen()) { unitCombo.render(); unitInput.focus({ preventScroll: true }); }
   });
 
+  // Naval: Dock units and buildings in the dropdown, and naval unique techs (Circumnavigation).
   const dockBox = $("include-dock");
   dockBox.addEventListener("change", () => {
     state.dock = dockBox.checked;
+    renderTechs();
+    renderRows();
+    fit();
     save();
     if (unitCombo.isOpen()) { unitCombo.render(); unitInput.focus({ preventScroll: true }); }
   });
 
-  // Farm Reseeding / House Building: opt out of either row (and its lumberjacks). Preferences, like Include Dock: Clear All leaves them.
+  // Farm Reseeding / House Building: opt out of either row (and its lumberjacks). Preferences, like Naval: Clear All leaves them.
   const reseedBox = $("use-reseed"), housesBox = $("use-houses");
   reseedBox.addEventListener("change", () => { state.useReseed = reseedBox.checked; update(); save(); });
   housesBox.addEventListener("change", () => { state.useHouses = housesBox.checked; update(); save(); });
@@ -3082,9 +3512,9 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   $("reset").addEventListener("click", () => {
     unitCombo.close(); allyCombo.close(); civCombo.close();
     unitInput.value = "";
-    // Include Dock, Buildings, Full Tech Tree and Include Regional & Unique are view options: Clear All leaves them as they are.
+    // Naval, Buildings, Full Tech Tree and Include Regional & Unique are view options: Clear All leaves them as they are.
     // (Full Tech Tree hides with Generic and starts unticked for the next civ, as usual.)
-    Object.assign(state, { rows: [], civ: "Generic", allies: [], age: 3, food: "farm", ftt: false, consc: false, crane: false, uts: [], postimp: false,
+    Object.assign(state, { rows: [], civ: "Generic", allies: [], age: 3, food: "farm", fish: "deep", customRate: {}, ftt: false, consc: false, crane: false, shipwright: false, uts: [], postimp: false,
       src: { wood: "std", gold: "std", stone: "std" }, relics: 0, te: { research: 1, vils: { wood: 0, food: 0, gold: 0, stone: 0 } } });
     UPS.forEach((k) => { state.up[k] = false; });
     refreshAll();
@@ -3107,6 +3537,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     state.uts = [];
     state.consc = false;
     state.crane = false;
+    state.shipwright = false;
     setPostImp(false);
     refreshAll();
     if (unitCombo.isOpen()) unitCombo.render();
@@ -3119,6 +3550,9 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     if (!state.ftt) civTechs().forEach((t) => { if (state.uts.indexOf(t.name) === -1) state.uts.push(t.name); });
     state.consc = true;
     if (hasCrane()) state.crane = true;
+    if (hasShipwright()) state.shipwright = true;
+    // Every row moves up its line as far as the civ can reach (user), e.g. Archer to Crossbowman / Arbalester.
+    state.rows.slice().forEach((row) => { while (state.rows.indexOf(row) !== -1 && upgradeRow(row)); });
   }
   function setPostImp(on) {
     if (state.postimp === on) return;
@@ -3137,12 +3571,15 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   load();
   // Older saves may hold two entries of one line: keep the first and add the other's count to it.
   state.rows.slice().forEach((r) => {
-    if (state.rows.indexOf(r) === -1) return;
+    if (r.custom || state.rows.indexOf(r) === -1) return;
     sameLineRows(byName.get(r.name)).forEach((o) => {
       r.count = Math.min(99, r.count + o.count);
       state.rows.splice(state.rows.indexOf(o), 1);
     });
   });
+  if (state.civ === "Generic") state.ftt = false;
+  // A saved Post-Imp: everything is ticked anyway (unticking ends it), and older saves may hold rows not yet upgraded.
+  if (state.postimp) postImpTechs();
   civInput.value = state.civ;
   allyInput.value = allySummary();
   allyInput.title = allySummary();
@@ -3150,7 +3587,6 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   bldBox.checked = state.bldOn;
   reseedBox.checked = state.useReseed;
   housesBox.checked = state.useHouses;
-  if (state.civ === "Generic") state.ftt = false;
   document.querySelectorAll(".postimp-box").forEach((b) => { b.checked = state.postimp; });
   syncFtt();
   syncSettings();
