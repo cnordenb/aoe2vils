@@ -36,6 +36,10 @@ Development accelerated with Claude Opus 5.5.
 
 Age of Empires II © Microsoft Corporation. aoe2vils was created under Microsoft's "[Game Content Usage Rules](https://www.xbox.com/en-us/developers/rules)" using assets from Age of Empires II, and it is not endorsed by or affiliated with Microsoft.
 
+## Bug report or feedback
+
+You can open an [issue](https://github.com/cnordenb/aoe2vils/issues/new) on github or you can reach out on discord where my username is hjoerleif.
+
 ## Support
 
 The hosting and domain expenses are relatively low - some €20 per year. If you want to show appreciation for aoe2vils and support its upkeep you can donate a small amount at [ko-fi.com/hjoerlefi](https://ko-fi.com/hjoerleif).
