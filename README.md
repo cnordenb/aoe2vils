@@ -23,6 +23,15 @@ Hosted on []().
 - Check how unique technologies affect villagers required
 - Check how any specific combination of team bonuses affect villagers required
 
+This website promises your ability to quickly and easily accomplish any and all of the tasks above while:
+- No ads.
+- No load time.
+- No scrolling.
+- No animations.
+- No pictures.
+
+If any of the promised features above fail or break, or if some value is incorrect, please contact me for bug report or feedback.
+
 ## Acknowledgments
 
 Inspired by Survivalist's [original webapp](https://aoe2-de-tools.herokuapp.com/villagers-required/).
