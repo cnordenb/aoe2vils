@@ -417,7 +417,8 @@ html.narrow .wide-only { display: none; }
 #relics .relic-out { color: var(--muted); font-size: .8rem; }
 #relics.na { opacity: .42; }   /* before Castle Age */
 /* Gathering that brings in another resource too: Portuguese foragers' wood (Wood box, under the upgrades), Shu lumberjacks'
-   food (Food box, under the upgrades) and Varangian shepherds', hunters' and fishers' gold (Gold box, under Relics). A line exists only for a civ with the bonus (.gone otherwise)
+   food (Food box, under the upgrades), and Varangian shepherds', hunters' and fishers' gold or Polish stone miners' gold (Gold box,
+   under Relics; never both, as they're civ bonuses). A line exists only for a civ with the bonus (.gone otherwise)
    and keeps its space for other food sources, so switching food source moves nothing */
 .extra-inc { color: var(--muted); font-size: .85rem; font-style: italic; line-height: 1.25; padding: .08rem 0; text-align: center; white-space: nowrap; }
 /* Where the longest text a line can show doesn't fit on one line, "from …" takes a second line (html.inc-2l), in smaller type
@@ -835,7 +836,7 @@ html.tab-te.narrow .lanes { grid-template-areas: "wood food gold stone"; }
         </div>
         <div class="adder-foot">
           <span class="adder-opts">
-            <label class="dockopt" title="Take wood expense of farm reseeding into account"><input type="checkbox" id="use-reseed" checked> Farm Reseeding</label>
+            <label class="dockopt" title="Take wood expense of farm reseeding and fish trap rebuilding into account"><input type="checkbox" id="use-reseed" checked> Farm Reseeding</label>
             <label class="dockopt" title="Take wood expense of house building into account"><input type="checkbox" id="use-houses" checked> House Building</label>
           </span>
           <button type="button" class="linkbtn" id="clear" hidden>Clear table</button>
@@ -871,7 +872,7 @@ html.tab-te.narrow .lanes { grid-template-areas: "wood food gold stone"; }
           <div class="fish-spot" id="fish-spot" role="radiogroup" aria-label="Where the Fishing Ships fish" hidden>
             <label class="opt" title="Shore fish"><input type="radio" name="fish" value="shore"> Shore</label>
             <label class="opt" title="Deep-sea fish"><input type="radio" name="fish" value="deep"> Deep</label>
-            <label class="opt" title="Fish Traps (shore fish rate for now)"><input type="radio" name="fish" value="trap"> Trap</label>
+            <label class="opt" title="Fish Traps"><input type="radio" name="fish" value="trap"> Trap</label>
           </div>
         </div>
         <div class="extra-inc" id="wood-food" hidden>+<span id="wood-food-out">0</span> f/min <span class="inc-from">from <span class="inc-who">Lumberjacks</span></span></div>
@@ -890,6 +891,7 @@ html.tab-te.narrow .lanes { grid-template-areas: "wood food gold stone"; }
           <span class="relic-out" id="relic-out"></span>
         </div>
         <div class="extra-inc" id="food-gold" hidden>+<span id="food-gold-out">0</span> g/min <span class="inc-from">from <span class="inc-who" id="food-gold-who">Shepherds</span></span></div>
+        <div class="extra-inc" id="stone-gold" hidden>+<span id="stone-gold-out">0</span> g/min <span class="inc-from">from <span class="inc-who">Stone Miners</span></span></div>
       </fieldset>
 
       <fieldset class="res stone">
@@ -1141,7 +1143,7 @@ const UNITS = [
   ["Dock", "Economic", 150, 0, 0, 0, 35, "B", "11111111111111111111111111111111111111111111111111111111", 1],
   ["Farm", "Economic", 60, 0, 0, 0, 15, "B", "11111111111111111111111111011111111111111111111111111111", 1],
   ["Feitoria", "Economic", 0, 0, 350, 300, 120, "BU", "00000000000000000000000000000000000000040000000000000000", 4],
-  ["Fish Trap", "Economic", 100, 0, 0, 0, 40, "B", "22222222222222222222222222222222222222222222222222222222", 2],
+  ["Fish Trap", "Economic", 100, 0, 0, 0, 47, "B", "22222222222222222222222222222222222222222222222222222222", 2],
   ["Folwark", "Economic", 100, 0, 0, 0, 40, "BU", "00000000000000000000000000000000000000100000000000000000", 1],
   ["Harbor", "Economic", 150, 0, 0, 0, 35, "BU", "00000000000000000000000000000003000000000000000000000000", 3],
   ["House", "Economic", 25, 0, 0, 0, 25, "B", "11111111111111111111101111111111111111111111111111111111", 1],
@@ -1468,9 +1470,11 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   const LUMBER = { "": 23.3, dba: 27.9, bs: 33.2, tms: 36.6 };
   const FOOD = { berries: 0.31, hunt: 0.41, sheep: 0.33, fish: 0.43 };
   // Fishing Ship food per minute by where it fishes, then by upgrade: none, Fishing Lines, Gillnets (which needs Fishing Lines).
-  // Fish Traps haven't been measured yet, so they use the shore fish rates.
-  const FISH_SHIP = { shore: { "": 14.4, fl: 15.84, gn: 17.42 }, deep: { "": 25.3, fl: 27.8, gn: 30.5 } };
-  FISH_SHIP.trap = FISH_SHIP.shore;
+  const FISH_SHIP = { shore: { "": 14.4, fl: 15.84, gn: 17.42 }, deep: { "": 25.3, fl: 27.8, gn: 30.5 }, trap: { "": 20.9, fl: 23, gn: 25.3 } };
+  const fishKey = () => (on("gn") ? "gn" : on("fl") ? "fl" : "");
+  // Fish Traps (user): 715 food each, rebuilt when empty. Fishing Ships build them in 47 s, 42 s with Fishing Lines, 40 s with Gillnets.
+  const TRAP_FOOD = 715;
+  const TRAP_TIME = { "": 47, fl: 42, gn: 40 };
   // Farm rates per villager per minute by farm upgrades owned.
   // Hand Cart without Heavy Plow is estimated from the Heavy Plow gain seen with Wheelbarrow.
   const FARM_TABLES = {
@@ -1493,7 +1497,6 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       { id: "gurjara-l", label: "Garrisoned Cows", perMin: 8, kind: "livestock", civs: ["Gurjaras"], age: 1, tip: "Cows garrisoned in a Gurjara Mill" },
     ],
     gold: [
-      { id: "pstone", label: "Polish Stone Miner", perMin: 6, kind: "vils", civs: ["Poles"], age: 1, tip: "Polish stone miners also generate gold" },
       { id: "feitoria", label: "Feitoria", perMin: 60, kind: "feitoria", civs: ["Portuguese"], age: 4, unique: true, tip: "Portuguese Feitoria" },
       { id: "bfarmer", label: "Burgundian Farmer", perMin: 0.8, kind: "vils", civs: ["Burgundians"], age: 3, ut: true, tip: "Burgundian Vineyards: farmers also generate gold" },
       { id: "vlumber", label: "Vietnamese Lumberjack", perMin: 0.8, kind: "vils", civs: ["Vietnamese"], age: 4, ut: true, tip: "Paper Money: lumberjacks also generate gold" },
@@ -1558,6 +1561,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   const INF = has("I"), RANGED = has("A"), GUN = has("G"), STABLE = has("S"), WORKSHOP = has("W"),
         SIEGE = has("X"), DOCK = has("D"), WARSHIP = has("N"), MIL = has("L"), BLD = has("B");
   const UNIT = (u) => !BLD(u);
+  // Buildings villagers build: all but the Fish Trap, which Fishing Ships build (builder bonuses and Treadmill Crane skip it).
+  const VIL_BLD = (u) => BLD(u) && u[0] !== "Fish Trap";
   // Regional units and buildings: not unique, but only some civs have them (aoe2techtree.net RegionalUnit / RegionalBuilding).
   const REGIONAL = new Set(["Armored Elephant", "Siege Elephant", "Battle Elephant", "Elite Battle Elephant", "Camel Rider", "Heavy Camel Rider",
     "Catapult Galleon", "Champi Scout", "Champi Runner", "Champi Warrior", "Elite Champi Warrior", "Dromon", "Eagle Scout", "Eagle Warrior",
@@ -1617,7 +1622,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     Koreans: [rate("stone", 20, "Stone miners work +{p}% faster"), cost(any(INF, RANGED), 50, "Ranged Soldiers and Infantry cost −{p}% wood", ["wood"]),
               cost(WARSHIP, 20, "Warships cost −{p}% wood", ["wood"])],
     Magyars: [cost(SCOUT, 15, "Scout Cavalry-line costs −{p}%"), team(faster(MOUNTED_ARCHER, 25, "Mounted Archers train +{p}% faster"))],
-    Malay: [cost(named("Battle Elephant", "Elite Battle Elephant"), [0, 0, 25, 35], "Battle Elephants cost −{p}%"), { k: "ageup", p: 66, label: "Advancing to the next Age is +{p}% faster" }],
+    Malay: [cost(named("Battle Elephant", "Elite Battle Elephant"), [0, 0, 25, 35], "Battle Elephants cost −{p}%"), { k: "ageup", p: 66, label: "Advancing to the next Age is +{p}% faster" },
+            cost(named("Fish Trap"), 33, "Fish Traps cost −{p}%"), { k: "trapfood", m: named("Fish Trap"), mult: 3, label: "Fish Traps provide +200% food" }],
     Malians: [rate("gold", 10, "Villagers drop off +{p}% more gold"), cost(BLD, 15, "Buildings cost −{p}% wood", ["wood"])],
     Mapuche: [rate("berries", 25, "Foragers drop off +{p}% food")],
     Maya: [{ k: "farmfood", mult: 1.15, label: "Resources last +15% longer" }, cost(FOOT_ARCHER, [0, 10, 20, 30], "Foot Archers cost −{p}%"), team(cost(named("Palisade Wall", "Stone Wall", "Fortified Wall"), 50, "Walls cost −{p}%"))],
@@ -1627,12 +1633,12 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
                { k: "ageup", p: [5, 10, 15, 20], label: "Town Centers and Docks work +{p}% faster" }],
     Portuguese: [cost(UNIT, 20, "All units cost −{p}% gold", ["gold"]), team({ k: "ageup", p: 25, label: "Technologies research +{p}% faster" }),
       { k: "forage", perMin: 5, label: "Foragers generate wood in addition to food" }],
-    Romans: [rate("all", 5, "Villagers gather +{p}% faster"), faster(BLD, 5, "Villagers build +{p}% faster"),
+    Romans: [rate("all", 5, "Villagers gather +{p}% faster"), faster(VIL_BLD, 5, "Villagers build +{p}% faster"),
              cost(named("Scorpion", "Heavy Scorpion"), 50, "Scorpions cost −{p}% gold", ["gold"])],
     Saracens: [flat(named("Market"), "wood", 100, "Markets cost −100 wood")],
     Sicilians: [{ k: "farmfood", upg: 2.25, label: "Farm upgrades provide +125% additional food" }, faster(FORT, 50, "Fortifications built +{p}% faster"), faster(named("Town Center"), 100, "Town Centers built +{p}% faster"), team(cost(named("Transport Ship"), 50, "Transport Ships cost −{p}%"))],
     Slavs: [rate("farm", 15, "Farmers work +{p}% faster"), cost(WORKSHOP, 15, "Siege Workshop Units cost −{p}%")],
-    Spanish: [faster(BLD, 30, "Builders work +{p}% faster")],
+    Spanish: [faster(VIL_BLD, 30, "Builders work +{p}% faster")],
     Teutons: [cost(named("Farm"), 40, "Farms cost −{p}%")],
     Turks: [rate("gold", 25, "Gold miners work +{p}% faster"), team(faster(GUN, 25, "Gunpowder Units train +{p}% faster"))],
     Vikings: [cost(WARSHIP, [0, 10, 15, 20], "Warships cost −{p}%"), team(cost(named("Dock"), 15, "Docks cost −{p}%"))],
@@ -1646,8 +1652,10 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   FX["Chinese"] = [team({ k: "farmfood", mult: 1.1, label: "Farms hold +10% food" })];
   FX["Burgundians"] = [team({ k: "relicfood", perMin: 20, label: "Relics generate food in addition to gold" })];
   // Gold from food gathering: a share of the food rate per source (villagers 10%; Fishing Ships 1 gold per 20 food, user).
-  // Food from lumberjacks: 6.859% of the lumberjack rate, upgrades and bonuses included.
+  // Food from lumberjacks: 6.859% of the lumberjack rate, upgrades and bonuses included. Gold from stone miners: 33% of the
+  // stone rate, likewise (user).
   FX["Shu"] = [{ k: "woodfood", mult: 0.06859, label: "Lumberjacks generate food in addition to wood" }];
+  FX["Poles"] = [{ k: "stonegold", mult: 0.33, label: "Stone Miners generate gold in addition to stone" }];
   FX["Varangians"] = [{ k: "foodgold", mult: { sheep: 0.1, hunt: 0.1, fish: 0.1, fship: 0.05 }, label: "Shepherding, fishing, and hunting also generate gold" }];
   FX["Wu"] = [team(faster(named("House"), 100, "Houses built +{p}% faster"))];
   // Unique technologies that change unit costs, training times or gather rates (aoe2techtree.net).
@@ -1699,7 +1707,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   const CRANE_AGE = 3;
   const CRANE_MISSING = ["Bengalis", "Bohemians", "Bulgarians", "Celts", "Chinese", "Cumans", "Danes", "Dravidians", "Ethiopians",
     "Hindustanis", "Huns", "Khmer", "Mongols", "Persians", "Romans", "Saracens", "Sicilians", "Slavs", "Spanish", "Teutons"];
-  const CRANE = faster(BLD, 20, "builders work {p}% faster");
+  const CRANE = faster(VIL_BLD, 20, "builders work {p}% faster");
   // Shipwright (University, Imperial Age): ships −20% wood, trained 50% faster. Civs without it, per aoe2techtree.net (2026-09-30).
   const SHIPWRIGHT_AGE = 4;
   const SHIPWRIGHT_MISSING = ["Armenians", "Bohemians", "Bulgarians", "Burgundians", "Burmese", "Cumans", "Franks", "Georgians", "Hindustanis",
@@ -1864,10 +1872,12 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   const fxOf = (civ) => FX[civ] || [];
   // Bonuses worth listing in the current tab. Transition Eco only cares about gathering and age-ups;
   // Villagers Required about everything else (and not age-ups).
-  const TE_KINDS = ["rate", "farm", "ageup", "agebonus", "forage", "foodgold", "woodfood"];   // relics don't count in Transition Eco
-  const relevant = (e) => (inTE() ? TE_KINDS.indexOf(e.k) !== -1 : e.k !== "ageup" && e.k !== "agebonus" && inReach(e));
+  const TE_KINDS = ["rate", "farm", "ageup", "agebonus", "forage", "foodgold", "woodfood", "stonegold"];   // relics don't count in Transition Eco
+  // Stone miners' gold only matters while the Stone column shows (only buildings cost stone).
+  const relevant = (e) => (inTE() ? TE_KINDS.indexOf(e.k) !== -1 : e.k !== "ageup" && e.k !== "agebonus" && inReach(e) &&
+    (e.k !== "stonegold" || showStone()));
   // A bonus that changes only buildings is listed while Buildings is ticked, or while it reaches the table anyway:
-  // a building row in it, the Houses of House Building, or the Farms / Pastures of Farm Reseeding.
+  // a building row in it, the Houses of House Building, the Farms / Pastures of Farm Reseeding, or the Fish Traps of Fish Trap Rebuilding.
   const RES_AT = { wood: 2, food: 3, gold: 4, stone: 5 };   // cost columns in UNITS rows
   const changes = (e, u) => (e.k === "flat" ? u[RES_AT[e.res]] > 0 : e.k === "swap" ? u[RES_AT[e.from]] > 0
     : e.k === "cost" ? (e.res || RES).some((r) => u[RES_AT[r]] > 0) : true);
@@ -1881,7 +1891,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   function inReach(e) {
     const b = buildingsOnly(e);
     return !b || state.bldOn || b.some((n) => (n === "House" && state.useHouses) ||
-      ((n === "Farm" || n === "Pasture") && state.useReseed && state.food === "farm") || state.rows.some((r) => r.name === n)) ||
+      ((n === "Farm" || n === "Pasture") && state.useReseed && state.food === "farm") || (n === "Fish Trap" && trapsOn()) ||
+      state.rows.some((r) => r.name === n)) ||
       customRows("building").some((r) => { const u = rowUnit(r); return e.m(u) && changes(e, u); });
   }
   // Everything that applies: your civ's bonuses (incl. its team bonus) plus each ally's team bonus.
@@ -1949,6 +1960,13 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     const c = { wood: u[2], food: u[3], gold: u[4], stone: u[5] };
     let t = u[6];
     const applied = [], timeFx = [];   // timeFx: the applied time effects, also listed in applied
+    // Fishing Lines and Gillnets speed up building Fish Traps (while their boxes show, i.e. with Fishing Ship food).
+    const fk = u[0] === "Fish Trap" && laneShown("fl") ? fishKey() : "";
+    if (fk) {
+      t = TRAP_TIME[fk];
+      applied.push(`${TECH_NAME[fk]}: built in ${t}s`);
+      timeFx.push(applied[0]);
+    }
     activeFx().forEach((x) => {
       const e = x.e;
       if (e.k !== "cost" && e.k !== "flat" && e.k !== "time" && e.k !== "swap") return;
@@ -1981,7 +1999,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     const tableFx = fx.find((e) => e.k === "farm");
     const farmT = FARM_TABLES[tableFx ? tableFx.t : "generic"];
     const ship = state.food === "fship";
-    let food = state.food === "farm" ? farmT[farmKey()] / 60 : ship ? FISH_SHIP[state.fish][on("gn") ? "gn" : on("fl") ? "fl" : ""] / 60 : FOOD[state.food];
+    let food = state.food === "farm" ? farmT[farmKey()] / 60 : ship ? FISH_SHIP[state.fish][fishKey()] / 60 : FOOD[state.food];
     const m = (keys) => keys.reduce((p, k) => (on(k) ? p * MULT[k] : p), 1);
     const r = {
       wood: LUMBER[on("tms") ? "tms" : on("bs") ? "bs" : on("dba") ? "dba" : ""] / 60,
@@ -2031,6 +2049,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   const forageEach = () => (state.food === "berries" ? activeFx().reduce((w, x) => (x.e.k === "forage" ? w + x.e.perMin / 60 : w), 0) : 0);
   // Food from each lumberjack, as a share of the lumberjack rate (Shu civ bonus), while Trees is the wood source.
   const woodFoodShare = () => (state.src.wood === "std" ? activeFx().reduce((m, x) => (x.e.k === "woodfood" ? m + x.e.mult : m), 0) : 0);
+  // Gold from each stone miner, as a share of the stone rate (Polish civ bonus), while Stone Mine is the stone source.
+  const stoneGoldShare = () => (state.src.stone === "std" ? activeFx().reduce((m, x) => (x.e.k === "stonegold" ? m + x.e.mult : m), 0) : 0);
   // Gold from each food gatherer, as a share of its food rate (Varangian civ bonus), while it's the food source.
   const foodGoldShare = () => activeFx().reduce((m, x) => (x.e.k === "foodgold" ? m + (x.e.mult[state.food] || 0) : m), 0);
   const FOOD_GOLD_WHO = { sheep: ["Shepherds", "shepherd", "shepherds"], hunt: ["Hunters", "hunter", "hunters"],
@@ -2254,6 +2274,33 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     if (show !== reseedShown) { reseedShown = show; requestAnimationFrame(fit); }
   }
 
+  /* ---------- fish trap rebuilding ---------- */
+  // Like Farm Reseeding, for Fishing Ships working Fish Traps (the Farm Reseeding box switches both): one trap per ship,
+  // rebuilt by that ship when it runs out, once every (build time + time to gather it).
+  const trapsOn = () => state.useReseed && state.food === "fship" && state.fish === "trap";
+  const trapFood = () => activeFx().reduce((f, x) => (x.e.k === "trapfood" ? f * x.e.mult : f), TRAP_FOOD);
+  let trapShown = false;
+  function rebuildTraps(r, tot) {
+    const tr = $("trap-row");
+    if (!tr) return;
+    const traps = trapsOn() ? vils(tot.food) : 0;
+    const show = traps > 0;
+    tr.hidden = !show;
+    if (show) {
+      const e = effective(UNITS[byName.get("Fish Trap")]), food = trapFood();
+      const cycle = e.t + food / r.food;
+      const lumberjacks = (traps * e.c.wood) / cycle / r.wood;
+      tot.wood += lumberjacks;
+      $("trap-meta").innerHTML = `<b class="t-wood">${traps * e.c.wood}w</b> / ${fmtT(cycle)}s`;
+      $("trap-meta").title = `${traps} Fish Trap${traps === 1 ? "" : "s"} × ${e.c.wood}w, each holding ${Math.round(food)} food: ` +
+        `${fmtT(e.t)}s to rebuild + ${fmtT(cycle - e.t)}s to gather`;
+      const td = $("trap-wood");
+      td.textContent = fmt(lumberjacks);
+      td.title = `${lumberjacks.toFixed(2)} ${unitWord("wood")}`;
+    }
+    if (show !== trapShown) { trapShown = show; requestAnimationFrame(fit); }
+  }
+
   /* ---------- house building ---------- */
   // Every unit trained takes population space: 1, half for Karambit Warriors, less with Mahayana or Aznauri Cavalry.
   const HALF_POP = named("Karambit Warrior", "Elite Karambit Warrior");
@@ -2347,6 +2394,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     $("relics").title = tip(ageOpen(RELIC_AGE) ? "" : `Available from ${AGES[RELIC_AGE - 1]}`, `Each relic brings in ${fmt(each.gold * 60)} gold` +
       (each.food ? ` and ${fmt(each.food * 60)} food` : "") + " per minute, taken off what the units need");
     reseed(r, tot);
+    rebuildTraps(r, tot);
     houseBuilding(r, tot, popRate);
     // Portuguese foragers (the food villagers, on berries) bring in part of the wood needed: fewer lumberjacks.
     // Transition Eco shows the wood from the food villagers set there instead (updateTE() adds it).
@@ -2383,10 +2431,22 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       $("food-gold-who").innerHTML = who[0];
       fg.title = `${fmt(goldEach * 60)} gold per minute from each ${who[1]}` + (inTE() ? "" : ", taken off what the units need");
     }
+    // Polish stone miners bring in part of the gold needed: fewer gold miners. Shown while the Stone column is.
+    const stoneGold = stoneGoldShare() * r.stone, miners = stoneGold ? vils(tot.stone) : 0, ms = miners === 1 ? "" : "s";
+    const stoneCover = Math.min(tot.gold, (miners * stoneGold) / r.gold);
+    tot.gold -= stoneCover;
+    const sg = $("stone-gold");
+    sg.classList.toggle("gone", !activeFx().some((x) => x.e.k === "stonegold"));
+    sg.hidden = !stoneGold || !showStone();
+    if (stoneGold) {
+      $("stone-gold-out").textContent = perMin((inTE() ? state.te.vils.stone : miners) * stoneGold * 60);
+      sg.title = `${fmt(stoneGold * 60)} gold per minute from each stone miner` + (inTE() ? "" : ", taken off what the units need");
+    }
     const cover = { wood: [], food: [], gold: [], stone: [] };
     ["gold", "food"].forEach((res) => { if (covered[res]) cover[res].push(`${relicsNow()} relic${rs} cover ${covered[res].toFixed(2)}`); });
     if (covered.wood) cover.wood.push(`${foragers} forager${fs} cover ${covered.wood.toFixed(2)}`);
     if (goldCover) cover.gold.push(`${fishers} ${fishers === 1 ? who[1] : who[2]} cover ${goldCover.toFixed(2)}`);
+    if (stoneCover) cover.gold.push(`${miners} stone miner${ms} cover ${stoneCover.toFixed(2)}`);
     if (foodCover) cover.food.push(`${lumberjacks} lumberjack${ls} cover ${foodCover.toFixed(2)}`);
     // Totals round up the exact sum: villagers on one resource are shared between units.
     // Only villagers count towards Villagers required (not Feitorias, livestock or Fishing Ships).
@@ -2474,8 +2534,10 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     const forage = state.te.vils.food * forageEach() * t;   // Portuguese foragers' wood
     const foodGold = state.te.vils.food * foodGoldShare() * r.food * t;   // Varangian food gatherers' gold
     const woodFood = state.te.vils.wood * woodFoodShare() * r.wood * t;   // Shu lumberjacks' food
+    const stoneGold = state.te.vils.stone * stoneGoldShare() * r.stone * t;   // Polish stone miners' gold
     const extra = { wood: forage ? [forage, "foragers"] : null, gold: foodGold ? [foodGold, (FOOD_GOLD_WHO[state.food] || [])[2]] : null,
       food: woodFood ? [woodFood, "lumberjacks"] : null };
+    if (stoneGold) extra.gold = [stoneGold, "stone miners"];   // never with Varangian food gold (both civ bonuses)
     RES.forEach((res) => {
       const amt = state.te.vils[res] * r[res] * t + (extra[res] ? extra[res][0] : 0), el = $("te-" + res);
       el.textContent = Math.floor(amt + 1e-9) + bonus[res];
@@ -2522,6 +2584,15 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     const vt = fmtT(villagerTime());
     return `<span class="row-opts"><label class="opt" title="Build a Farm with every new Villager: one every ${vt}s instead of every build time">` +
       `<input type="checkbox" data-pervil${row.perVil ? " checked" : ""}> ${vt}s</label></span>`;
+  }
+
+  // Fish Trap Rebuilding: Farm Reseeding's counterpart while Fishing Ships work Fish Traps (the two never show together).
+  function trapRowHtml() {
+    return `<tr class="reseed" id="trap-row" hidden>
+          <td class="rm"></td>
+          <th scope="row" colspan="3"><span class="uname">Fish Trap Rebuilding</span><span class="meta meta-row" id="trap-meta"></span></th>
+          <td class="num wood" id="trap-wood"></td><td class="num food zero">–</td><td class="num gold zero">–</td><td class="num stone zero">–</td>
+        </tr>`;
   }
 
   // House Building: not in the dropdown either; appears on its own while units are trained (and the civ needs Houses).
@@ -2611,7 +2682,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
           <td class="count">${countStepper(row, safe)}</td>
           <td class="num wood"></td><td class="num food"></td><td class="num gold"></td><td class="num stone"></td>
         </tr>`;
-      }).join("") + reseedRowHtml() + houseRowHtml() + FILLER.repeat(MIN_ROWS + 4);
+      }).join("") + reseedRowHtml() + trapRowHtml() + houseRowHtml() + FILLER.repeat(MIN_ROWS + 4);
     }
     clearBtn.hidden = state.rows.length === 0;
     $("crane").closest(".opt").hidden = !state.bldOn || inTE();
@@ -2657,12 +2728,12 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     });
     row.style.height = base + "px";
   }
-  // The extra-income lines (Foragers, Shu lumberjack food, Varangian food gold): one line where the longest text they can show fits, else two,
-  // else two in smaller type, else three (see the CSS).
+  // The extra-income lines (Foragers, Shu lumberjack food, Varangian food gold, Polish stone gold): one line where the longest text
+  // they can show fits, else two, else two in smaller type, else three (see the CSS).
   function fitIncome() {
     const root = document.documentElement.classList;
     root.remove("inc-2l", "inc-small", "inc-3l");
-    const lines = [["forage", [""]], ["wood-food", [""]], ["food-gold", Object.values(FOOD_GOLD_WHO).map((w) => w[0])]]
+    const lines = [["forage", [""]], ["wood-food", [""]], ["food-gold", Object.values(FOOD_GOLD_WHO).map((w) => w[0])], ["stone-gold", [""]]]
       .map(([id, whos]) => [$(id), whos]).filter(([el]) => !el.classList.contains("gone"));
     const fits = () => lines.every(([el, whos]) => {
       const saved = el.innerHTML;
@@ -2955,6 +3026,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     else if (t.dataset.src) state.src[t.dataset.src] = t.value;
     else return;
     syncSettings();
+    const trap = rowEl("Fish Trap");   // its build time follows Fishing Lines / Gillnets (while they show)
+    if (trap) refreshRowMeta(trap, state.rows.find((r) => r.name === "Fish Trap"));
     update();
     save();
   });
