@@ -14,6 +14,8 @@ _Instead of figuring out how many burgundian relics we need to sustain unit prod
 
 - Idle TC time indicator  
 _Skip the head math of how many 25 seconds fit in your idle tc time, see immediately using this slider._
+![demo2](https://github.com/user-attachments/assets/11a6797f-deed-497f-a656-bf366276c521)
+
 
 - Custom user-defined values  
 _Doesn't matter if I wasn't quick enough to update for a patch or a new DLC, plug that new unit's costs and creation time or new gather rates in yourself._
