@@ -806,9 +806,14 @@ html.tab-te .lane-bg > div:nth-child(-n+4) { border-left: 0; }
 .te-age input { margin: 0; accent-color: var(--focus); cursor: pointer; }
 .te-age input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .te-age .mod { text-decoration: underline dotted; text-underline-offset: 2px; }
-/* "After [] seconds": the seconds field, as tall as the text so the line doesn't grow (like a Custom Rate field) */
+/* "After [] seconds": the seconds field, as tall as the text so the line doesn't grow (like a Custom Rate field). 2.15em wide
+   (user: half of 4.3em), room for three digits; a longer time widens it as far as needed: a hidden copy of the time
+   (.te-after-size, after the field so the field gives the baseline) sets the width. */
+.te-after-wrap { display: inline-grid; }
+.te-after-wrap > * { grid-area: 1 / 1; }
+.te-after-size { visibility: hidden; white-space: pre; height: 0; min-width: 2.15em; box-sizing: border-box; padding: 0 .15em; border: solid transparent; border-width: 0 1px; }
 .te-after-in {
-  width: 4.3em; height: 1.2em;   /* room for 353693 */ font: inherit; line-height: 1; color: var(--ink); background: var(--surface);
+  width: 0; min-width: 100%; height: 1.2em; font: inherit; line-height: 1; color: var(--ink); background: var(--surface);
   border: 1px solid var(--rule); border-radius: 3px; padding: 0 .15em; text-align: right;
   -moz-appearance: textfield; appearance: textfield;
 }
@@ -1059,9 +1064,9 @@ html.tab-te.narrow .lanes { grid-template-areas: "wood food gold stone"; }
                 <label class="te-age"><input type="radio" name="te-age" value="3"> <span><span class="long">Researching </span>Imperial Age (<span id="te-t3">190s</span>)</span></label>
                 <!-- Any time, in Imperial Age (user) -->
                 <div class="te-after-line">
-                  <label class="te-age" title="What the villagers gather in that time, in Imperial Age"><input type="radio" name="te-age" value="4"> <span>After <input type="number" class="te-after-in" id="te-after" min="0" max="353693" step="1" value="300" inputmode="numeric" aria-label="Seconds"> seconds</span></label>
-                  <!-- 0–300 s at a stroke; shown while After is picked, its space kept otherwise (user) -->
-                  <input type="range" class="te-after-slide" id="te-after-slide" min="0" max="300" step="1" value="300" aria-label="Seconds, up to 300" hidden>
+                  <label class="te-age" title="What the villagers gather in that time, in Imperial Age"><input type="radio" name="te-age" value="4"> <span>After <span class="te-after-wrap"><input type="number" class="te-after-in" id="te-after" min="0" max="353693" step="1" value="300" inputmode="numeric" aria-label="Seconds"><span class="te-after-size" aria-hidden="true">300</span></span> seconds</span></label>
+                  <!-- 0–900 s at a stroke; shown while After is picked, its space kept otherwise (user) -->
+                  <input type="range" class="te-after-slide" id="te-after-slide" min="0" max="900" step="1" value="300" aria-label="Seconds, up to 900" hidden>
                 </div>
               </div>
             </td>
@@ -2828,14 +2833,17 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       if (inp) inp.setAttribute("aria-label", $("head-" + res).dataset.label);
     });
   }
-  // "After [] seconds": the field shows the time (not while it's being typed in), the slider up to 300 s (at its end beyond that),
+  // "After [] seconds": the field shows the time (not while it's being typed in), the slider up to 900 s (at its end beyond that),
   // shown only while After is picked.
   function syncTeAfter() {
     const field = $("te-after"), slide = $("te-after-slide");
     if (document.activeElement !== field) field.value = state.te.after;
+    sizeTeAfter();
     slide.value = Math.min(state.te.after, +slide.max);
     slide.hidden = state.te.research !== TE_AFTER;
   }
+  // The seconds field is as wide as its hidden copy: 2.15em, or more for a longer time.
+  const sizeTeAfter = () => { const field = $("te-after"); field.nextElementSibling.textContent = field.value || " "; };
   // "After [] seconds" label: 45s, 5m, 5m30s (user); from an hour on 1h, 1h5m, 98h14m53s. Parts that are 0 are left out (0 s reads 0s).
   const minSec = (s) => [[Math.floor(s / 3600), "h"], [Math.floor(s / 60) % 60, "m"], [s % 60, "s"]]
     .filter(([n]) => n).map(([n, u]) => n + u).join("") || "0s";
@@ -3953,6 +3961,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       const v = parseInt(t.value, 10);
       if (Number.isFinite(v)) setTeAfter(v);
       t.value = state.te.after;
+      sizeTeAfter();
       return;
     }
     if (t.type !== "number") return;
@@ -3963,7 +3972,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   teRow.addEventListener("input", (e) => {
     if (e.target.type !== "number") return;
     const v = parseInt(e.target.value, 10);
-    if (e.target === afterIn) { if (Number.isFinite(v)) setTeAfter(v); return; }
+    if (e.target === afterIn) { sizeTeAfter(); if (Number.isFinite(v)) setTeAfter(v); return; }
     if (Number.isFinite(v)) setTeVils(e.target.closest("td"), v);
   });
   teRow.addEventListener("click", (e) => {
