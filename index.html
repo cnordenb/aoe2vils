@@ -100,7 +100,9 @@ body {
   overflow: hidden;
   background: var(--bg);
   color: var(--ink);
-  font: 15px/1.35 "Alegreya Sans", "Gill Sans", "Segoe UI", system-ui, sans-serif;
+  /* Alegreya Sans is embedded; the rest only draws what it lacks (✓, →). No "Gill Sans": Firefox blocks it as a
+     fingerprinting risk and logs a warning for every lookup. */
+  font: 15px/1.35 "Alegreya Sans", "Segoe UI", system-ui, sans-serif;
   font-variant-numeric: lining-nums tabular-nums;
   -webkit-text-size-adjust: 100%;
 }
