@@ -19,6 +19,7 @@
   --food: #b13f2d;
   --gold: #9a7409;
   --stone: #5a6875;
+  --good: #2f7a3c;   /* green: Idle TC Time at 00:00 */
   --tint: 7%;
   --tint-strong: 15%;
 
@@ -52,6 +53,7 @@
     --food: #e5775f;
     --gold: #e2b93f;
     --stone: #a3b1be;
+    --good: #6cc07a;
     --tint: 9%;
     --tint-strong: 20%;
     color-scheme: dark;
@@ -68,6 +70,7 @@
   --food: #e5775f;
   --gold: #e2b93f;
   --stone: #a3b1be;
+  --good: #6cc07a;
   --tint: 9%;
   --tint-strong: 20%;
   color-scheme: dark;
@@ -578,6 +581,22 @@ html.narrow .meta + .row-opts { margin-left: 0; }   /* the cost is hidden there:
 .grand-label { font-size: .8rem; font-weight: 700; color: var(--muted); }
 .gl-short { display: none; }
 #grand { font-size: 2rem; line-height: 1.1; font-weight: 700; color: var(--ink); }
+/* Idle TC Time, under Villagers required (wide layouts only): the count and the slider keep their space while it's off */
+.idle-tc { display: flex; flex-direction: column; gap: .2rem; margin-top: .45rem; }
+html.narrow .idle-tc { display: none; }
+.idle-out, .idle-out[hidden] { display: flex; flex-direction: column; }
+.idle-out[hidden] { visibility: hidden; }
+/* The slider, its time, "Villagers missing" and the count share one colour (user): green at 00:00, neutral until the
+   first villager is missing (00:01–00:24), red from 00:25 on. It changes at once (no transition). */
+.idle-out { --idle: var(--food); }
+.idle-out.idle-none { --idle: var(--good); }
+.idle-out.idle-some { --idle: var(--ink); }
+.idle-out .grand-label { color: var(--idle); }
+#vils-missing { font-size: 1.6rem; line-height: 1.1; font-weight: 700; color: var(--idle); }
+.idle-slide { display: flex; align-items: center; gap: .45rem; margin-bottom: .1rem; }
+.idle-slide input { flex: 1; min-width: 0; margin: 0; accent-color: var(--idle); cursor: pointer; }
+.idle-slide input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+#idle-t-out { flex: none; min-width: 2.7em; text-align: right; font-weight: 500; color: var(--idle); }   /* room for ">10:00", so the slider keeps its width */
 .age legend.sr, .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .short, .bl-short { display: none; }
 
@@ -764,6 +783,14 @@ html.tab-te .lane-bg > div:nth-child(-n+4) { border-left: 0; }
 .te-age input { margin: 0; accent-color: var(--focus); cursor: pointer; }
 .te-age input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .te-age .mod { text-decoration: underline dotted; text-underline-offset: 2px; }
+/* "After [] seconds": the seconds field, as tall as the text so the line doesn't grow (like a Custom Rate field) */
+.te-after-in {
+  width: 3.2em; height: 1.2em; font: inherit; line-height: 1; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--rule); border-radius: 3px; padding: 0 .15em; text-align: right;
+  -moz-appearance: textfield; appearance: textfield;
+}
+.te-after-in::-webkit-inner-spin-button, .te-after-in::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.te-after-in:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
 .sheet td.te-in { padding: .45em .4em; }
 .te-box { flex-direction: column; margin-top: .5rem; padding-top: .55rem; border-top: 1px solid var(--rule); }
 .te-amts { display: grid; grid-template-columns: auto auto; justify-content: space-between; column-gap: .8rem; row-gap: .05rem; margin-top: .25rem; font-size: 1.05rem; font-weight: 700; }
@@ -986,10 +1013,12 @@ html.tab-te.narrow .lanes { grid-template-areas: "wood food gold stone"; }
           <!-- Transition Eco: the age being researched, and how many villagers work each resource meanwhile -->
           <tr id="te-row">
             <td colspan="4" class="te-ages">
-              <div role="radiogroup" aria-label="Age being researched">
+              <div role="radiogroup" aria-label="Age being researched, or a time in Imperial Age">
                 <label class="te-age"><input type="radio" name="te-age" value="1"> <span><span class="long">Researching </span>Feudal Age (<span id="te-t1">130s</span>)</span></label>
                 <label class="te-age"><input type="radio" name="te-age" value="2"> <span><span class="long">Researching </span>Castle Age (<span id="te-t2">160s</span>)</span></label>
                 <label class="te-age"><input type="radio" name="te-age" value="3"> <span><span class="long">Researching </span>Imperial Age (<span id="te-t3">190s</span>)</span></label>
+                <!-- Any time, in Imperial Age (user) -->
+                <label class="te-age" title="What the villagers gather in that time, in Imperial Age"><input type="radio" name="te-age" value="4"> <span>After <input type="number" class="te-after-in" id="te-after" min="0" max="3600" step="1" value="300" inputmode="numeric" aria-label="Seconds"> seconds</span></label>
               </div>
             </td>
             <td class="num wood te-in" data-res="wood"></td>
@@ -1006,7 +1035,16 @@ html.tab-te.narrow .lanes { grid-template-areas: "wood food gold stone"; }
         <label class="opt" id="consc-opt"><input type="checkbox" id="consc"> <span class="tn">Conscription</span></label>
         <label class="opt" id="crane-opt" hidden><input type="checkbox" id="crane"> <span class="tn">Treadmill Crane</span></label>
         <label class="opt" id="shipwright-opt" hidden><input type="checkbox" id="shipwright"> <span class="tn">Shipwright</span></label>
-        <div class="grand-box"><span class="grand-label"><span class="gl-long">Villagers required</span><span class="gl-short">Villagers</span></span><b id="grand">0</b></div>
+        <div class="grand-box"><span class="grand-label"><span class="gl-long">Villagers required</span><span class="gl-short">Villagers</span></span><b id="grand">0</b>
+          <!-- Wide layouts: the villagers a Town Center didn't train while idle, one per 25 s (user) -->
+          <div class="idle-tc" id="idle-tc">
+            <label class="opt"><input type="checkbox" id="idle-on"> <span class="tn">Idle TC Time</span></label>
+            <div class="idle-out" id="idle-out" hidden>
+              <div class="idle-slide"><input type="range" id="idle-t" min="0" max="601" step="1" value="0" aria-label="Idle TC time"><output id="idle-t-out" for="idle-t">00:00</output></div>
+              <span class="grand-label">Villagers missing</span><b id="vils-missing">0</b>
+            </div>
+          </div>
+        </div>
         <!-- Transition Eco: what the villagers gather while the age is researched -->
         <div class="te-box" id="te-box">
           <span class="grand-label" id="te-label">On reaching Feudal Age</span>
@@ -1803,15 +1841,22 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     "Armored Elephant-line": "Armored/Siege Elephant" };
   UNITS.forEach((u) => members(u).forEach((m) => { if (!byName.has(m)) ALIAS.set(m, u[0]); }));
 
+  // Transition Eco's "After [] seconds" (user): research value 4, any time from 0 to 3,600 s (300 to start with), always in Imperial Age.
+  const TE_AFTER = 4, TE_AFTER_SECS = 300, TE_AFTER_MAX = 3600;
   const state = { rows: [], food: "farm", fish: "deep", up: Object.fromEntries(UPS.map((k) => [k, false])), civ: "Generic", allies: [], age: 3, dock: false, ftt: false, regional: false, consc: false, crane: false, shipwright: false, uts: [], postimp: false, bldOn: false,
     src: { wood: "std", gold: "std", stone: "std" }, customRate: {}, relics: 0, useReseed: true, useHouses: true,
     church: { wood: false, food: false, gold: false, stone: false },   // Georgians: gatherers near a Fortified Church, per resource
     soldiers: 0,   // Wei with Tuntian: soldiers producing food (0–SOLDIERS_MAX)
     tcCastles: 1,   // Saxons: Town Centers and Castles held (0–4), −5% on Foot Soldiers each
-    tab: "vr", te: { research: 1, vils: { wood: 0, food: 0, gold: 0, stone: 0 } } };
+    idleTc: false, idleT: 0,   // Idle TC Time: shown, and the seconds the Town Center stood idle (0–IDLE_MAX)
+    // Transition Eco: research 1–3 = the age being researched, 4 = "After [after] seconds" in Imperial Age (TE_AFTER)
+    tab: "vr", te: { research: 1, after: TE_AFTER_SECS, vils: { wood: 0, food: 0, gold: 0, stone: 0 } } };
   const TE_MAX = 200;
   const SOLDIERS_MAX = 999;
   const TC_MAX = 4;   // Saxon TCs/Castles: −5% each, up to −20%
+  // Idle TC Time: up to 10 minutes, a villager missing per 25 s, the base training time whatever the civ (user).
+  // The slider's last second, 10:01, stands for more than 10:00 (">10:00", "24+").
+  const IDLE_MAX = 601, IDLE_VIL_T = 25;
   // Building footprints in tiles per side (game data, DE update 147949), and the most builders that fit around each size (user).
   const SIZE = {
     "Palisade Wall": 1, "Stone/Fortified Wall": 1, "Watch Tower-line": 1, "Bombard Tower": 1, Outpost: 1, "Mule Cart": 1, "Fish Trap": 1,
@@ -1863,8 +1908,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   // Everything at its starting value: nothing for Clear to do, so it's hidden.
   function isCleared() {
     return !state.rows.length && state.civ === "Generic" && !state.allies.length && state.age === 3 &&
-      state.food === "farm" && state.fish === "deep" && ["wood", "gold", "stone"].every((r) => state.src[r] === "std") && !state.relics && !state.soldiers && state.tcCastles === 1 && !state.consc && !state.crane && !state.shipwright && !state.uts.length && !state.postimp &&
-      UPS.every((k) => !state.up[k]) && RES.every((r) => !state.church[r]) && state.te.research === 1 && RES.every((r) => !state.te.vils[r]);
+      state.food === "farm" && state.fish === "deep" && ["wood", "gold", "stone"].every((r) => state.src[r] === "std") && !state.relics && !state.soldiers && state.tcCastles === 1 && !state.idleTc && !state.idleT && !state.consc && !state.crane && !state.shipwright && !state.uts.length && !state.postimp &&
+      UPS.every((k) => !state.up[k]) && RES.every((r) => !state.church[r]) && state.te.research === 1 && state.te.after === TE_AFTER_SECS && RES.every((r) => !state.te.vils[r]);
   }
   // Something for Clear Techs to do: any technology that is ticked and in effect.
   function anyTechOn() {
@@ -1942,8 +1987,12 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       state.soldiers = Math.max(0, Math.min(SOLDIERS_MAX, parseInt(s.soldiers, 10) || 0));
       const tc = parseInt(s.tcCastles, 10);
       if (Number.isFinite(tc)) state.tcCastles = Math.max(0, Math.min(TC_MAX, tc));
+      state.idleTc = !!s.idleTc;
+      state.idleT = state.idleTc ? Math.max(0, Math.min(IDLE_MAX, parseInt(s.idleT, 10) || 0)) : 0;   // no time kept while unticked
       if (s.te) {
-        if ([1, 2, 3].indexOf(s.te.research) !== -1) state.te.research = s.te.research;
+        if ([1, 2, 3, TE_AFTER].indexOf(s.te.research) !== -1) state.te.research = s.te.research;
+        const after = parseInt(s.te.after, 10);
+        if (Number.isFinite(after)) state.te.after = Math.max(0, Math.min(TE_AFTER_MAX, after));
         if (s.te.vils) RES.forEach((r) => { const v = parseInt(s.te.vils[r], 10); if (Number.isFinite(v)) state.te.vils[r] = Math.max(0, Math.min(TE_MAX, v)); });
       }
       if (!FOOD_STD.some(([v]) => v === state.food) && !NICHE.food.some((o) => o.id === s.food) && state.food !== "custom") state.food = "farm";
@@ -1958,7 +2007,9 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   const TE_KINDS = ["rate", "farm", "ageup", "agebonus", "forage", "foodgold", "woodfood", "stonegold", "ecoboost", "freeups", "church"];   // relics don't count in Transition Eco
   // Stone miners' gold only matters while the Stone column shows (only buildings cost stone). A free tech counts in Transition Eco
   // only if it's an eco upgrade (not Vietnamese Conscription).
-  const relevant = (e) => (inTE() ? TE_KINDS.indexOf(e.k) !== -1 && (e.k !== "freeups" || e.ups.some((k) => UPS.indexOf(k) !== -1))
+  // With "After [] seconds" no age is reached, so age-up bonuses don't count.
+  const relevant = (e) => (inTE() ? TE_KINDS.indexOf(e.k) !== -1 && (e.k !== "freeups" || e.ups.some((k) => UPS.indexOf(k) !== -1)) &&
+      !(teAfter() && (e.k === "ageup" || e.k === "agebonus"))
     : e.k !== "ageup" && e.k !== "agebonus" && inReach(e) && (e.k !== "stonegold" || showStone()));
   // A bonus that changes only buildings is listed while Buildings is ticked, and one that changes only naval entries (Dock units,
   // Dock, Harbor, Fish Trap) while Naval is ticked, or either while it reaches the table anyway: a row in it, the Houses of House
@@ -1991,7 +2042,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   const fttOn = () => state.ftt && state.civ !== "Generic";
   // Transition Eco: the age being researched sets the current age (Researching Feudal = Dark Age, and so on).
   const inTE = () => state.tab === "te";
-  const curAge = () => (inTE() ? state.te.research - 1 : state.age);
+  const curAge = () => (inTE() ? state.te.research - 1 : state.age);   // "After [] seconds" (4) is Imperial Age (3)
+  const teAfter = () => inTE() && state.te.research === TE_AFTER;
   function activeFx() {
     const out = [];
     if (!fttOn()) {
@@ -2014,7 +2066,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   // Transition Eco only lists the unique techs that change gathering.
   // Transition Eco lists only the unique techs that change gathering or income and can count there (the age being left is at
   // most Castle): Grand Trunk Road, Burgundian Vineyards.
-  const teTech = (t) => t.age < 4 && t.fx.some((e) => e.k === "rate" || e.k === "farmgold" || e.k === "woodgold");
+  // Imperial Age techs count only with "After [] seconds" (Paper Money).
+  const teTech = (t) => (t.age < 4 || teAfter()) && t.fx.some((e) => e.k === "rate" || e.k === "farmgold" || e.k === "woodgold");
   const shownTechs = () => civTechs().filter((t) => navalOk(t) && (!inTE() || teTech(t)));
   const hasCrane = () => state.civ === "Generic" || state.ftt || CRANE_MISSING.indexOf(state.civ) === -1;
   const craneOpen = () => hasCrane() && ageOpen(CRANE_AGE);
@@ -2699,10 +2752,11 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       el.classList.toggle("mod", applied.length > 0);
       el.title = applied.length ? `Base ${AGE_UP[a - 1]}s. ${applied.join("; ")}.` : "";
     });
-    const target = state.te.research, { t } = ageUp(target);
-    $("te-label").textContent = `On reaching ${AGES[target]}`;
+    // "After [] seconds": that time in Imperial Age, and no age reached, so no age-up resources.
+    const after = teAfter(), target = state.te.research, t = after ? state.te.after : ageUp(target).t;
+    $("te-label").textContent = after ? `After ${minSec(state.te.after)}` : `On reaching ${AGES[target]}`;
     const bonus = { wood: 0, food: 0, gold: 0, stone: 0 };
-    activeFx().forEach((x) => { if (x.e.k === "agebonus") RES.forEach((res) => { bonus[res] += x.e.res[res] || 0; }); });
+    if (!after) activeFx().forEach((x) => { if (x.e.k === "agebonus") RES.forEach((res) => { bonus[res] += x.e.res[res] || 0; }); });
     const forage = state.te.vils.food * forageEach() * t;   // Portuguese foragers' wood
     const foodGold = state.te.vils.food * foodGoldShare() * r.food * t;   // Varangian food gatherers' gold
     const woodFood = state.te.vils.wood * woodFoodShare() * r.wood * t;   // Shu lumberjacks' food
@@ -2710,7 +2764,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     const extra = { wood: forage ? [forage, "foragers"] : null, gold: foodGold ? [foodGold, (FOOD_GOLD_WHO[state.food] || [])[2]] : null,
       food: woodFood ? [woodFood, "lumberjacks"] : null };
     if (stoneGold) extra.gold = [stoneGold, "stone miners"];   // never with Varangian food gold (both civ bonuses)
-    // Paper Money (Imperial) never counts here, the latest age being left being Castle; kept for completeness.
+    // Paper Money (Imperial) counts only with "After [] seconds", the latest age being left being Castle.
     const woodGold = state.te.vils.wood * woodGoldShare() * r.wood * t;
     if (woodGold) extra.gold = [woodGold, "lumberjacks"];
     const farmGold = state.te.vils.food * farmGoldEach() * t;   // Burgundian Vineyards (Castle Age: Researching Imperial)
@@ -2724,8 +2778,12 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       if (inp) inp.setAttribute("aria-label", $("head-" + res).dataset.label);
     });
   }
+  // "After [] seconds" label: 45s, 5m, 5m30s (user).
+  const minSec = (s) => (s < 60 ? `${s}s` : `${Math.floor(s / 60)}m` + (s % 60 ? `${s % 60}s` : ""));
   function renderTE() {
     document.querySelectorAll('input[name="te-age"]').forEach((b) => { b.checked = +b.value === state.te.research; });
+    const afterIn = $("te-after");
+    if (document.activeElement !== afterIn) afterIn.value = state.te.after;   // not while it's being typed in
     document.querySelectorAll("#te-row .te-in").forEach((td) => {
       td.innerHTML = stepperHtml("te", state.te.vils[td.dataset.res], 0, TE_MAX, $("head-" + td.dataset.res).dataset.label);
     });
@@ -2970,16 +3028,21 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     // On small screens the technologies sit in a strip above the table and take part of its height.
     const strip = () => getComputedStyle(techs).order === "-1";
     const room = () => wrap.clientHeight - (strip() ? techs.offsetHeight : 0);
+    // Wide layouts: Idle TC Time hangs below Villagers required (level with the Totals row), shown or not, so it must fit too.
+    const idle = $("idle-tc");
+    const idleFits = () => !idle.offsetParent ||
+      idle.getBoundingClientRect().bottom <= techs.getBoundingClientRect().bottom - parseFloat(getComputedStyle(techs).paddingBottom) + 0.5;
+    const fits = () => table.offsetHeight <= room() && idleFits();
     table.style.setProperty("--fs", fs + "px");
     placeTechs();
     fillRows();
-    while (table.offsetHeight > room() && fs > 9) {
+    while (!fits() && fs > 9) {
       fs -= 0.5;
       table.style.setProperty("--fs", fs + "px");
       fillRows();
     }
     fitHeads();
-    return table.offsetHeight <= room();
+    return fits();
   }
 
   function rowEl(name) { return tbody.querySelector(`tr[data-name="${CSS.escape(name)}"]`); }
@@ -3725,6 +3788,27 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   reseedBox.addEventListener("change", () => { state.useReseed = reseedBox.checked; update(); save(); });
   housesBox.addEventListener("change", () => { state.useHouses = housesBox.checked; update(); save(); });
 
+  // Idle TC Time (wide layouts): a villager missing for every 25 s the Town Center stood idle, up to 10:00. Shown apart from
+  // Villagers required, not added to it (user).
+  const idleBox = $("idle-on"), idleSlider = $("idle-t");
+  const mmss = (s) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+  function syncIdle() {
+    const n = Math.floor(state.idleT / IDLE_VIL_T);
+    idleBox.checked = state.idleTc;
+    $("idle-out").hidden = !state.idleTc;
+    $("idle-out").classList.toggle("idle-none", !state.idleT);   // green: no idle time
+    $("idle-out").classList.toggle("idle-some", !!state.idleT && !n);   // neutral: idle, no villager missing yet
+    const more = state.idleT === IDLE_MAX;   // more than 10:00
+    idleSlider.value = state.idleT;
+    $("idle-t-out").textContent = more ? `>${mmss(IDLE_MAX - 1)}` : mmss(state.idleT);
+    $("vils-missing").textContent = more ? `${n}+` : n;
+    $("vils-missing").title = more ? `More than ${mmss(IDLE_MAX - 1)} idle: ${n} or more × ${IDLE_VIL_T}s of Villager training`
+      : `${mmss(state.idleT)} idle: ${n} × ${IDLE_VIL_T}s of Villager training`;
+  }
+  // Unticking forgets the time (user): ticked again, it starts at 00:00.
+  idleBox.addEventListener("change", () => { state.idleTc = idleBox.checked; if (!state.idleTc) state.idleT = 0; syncIdle(); save(); });
+  idleSlider.addEventListener("input", () => { state.idleT = Math.max(0, Math.min(IDLE_MAX, parseInt(idleSlider.value, 10) || 0)); syncIdle(); save(); });
+
   let raf = 0;
   window.addEventListener("resize", () => {
     cancelAnimationFrame(raf);
@@ -3762,9 +3846,23 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     update();
     save();
   }
+  // "After [] seconds": typing a time picks that radio. An empty or invalid field keeps the last time until it's left.
+  const afterIn = $("te-after");
+  function setTeAfter(v) {
+    state.te.after = Math.max(0, Math.min(TE_AFTER_MAX, v));
+    if (state.te.research !== TE_AFTER) { state.te.research = TE_AFTER; refreshAll(); return; }   // Imperial Age: new techs, incomes and bonuses
+    update();
+    save();
+  }
   teRow.addEventListener("change", (e) => {
     const t = e.target;
     if (t.name === "te-age") { state.te.research = +t.value; refreshAll(); return; }   // a new age: new techs, incomes and bonuses
+    if (t === afterIn) {
+      const v = parseInt(t.value, 10);
+      if (Number.isFinite(v)) setTeAfter(v);
+      t.value = state.te.after;
+      return;
+    }
     if (t.type !== "number") return;
     const v = parseInt(t.value, 10);
     setTeVils(t.closest("td"), Number.isFinite(v) ? v : 0);
@@ -3773,6 +3871,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   teRow.addEventListener("input", (e) => {
     if (e.target.type !== "number") return;
     const v = parseInt(e.target.value, 10);
+    if (e.target === afterIn) { if (Number.isFinite(v)) setTeAfter(v); return; }
     if (Number.isFinite(v)) setTeVils(e.target.closest("td"), v);
   });
   teRow.addEventListener("click", (e) => {
@@ -3794,6 +3893,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     reseedBox.checked = state.useReseed;
     housesBox.checked = state.useHouses;
     document.querySelectorAll(".postimp-box").forEach((b) => { b.checked = state.postimp; });
+    syncIdle();
     syncFtt();
     syncSettings();
     renderTechs();
@@ -3811,7 +3911,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     // (Full Tech Tree hides with Generic and starts unticked for the next civ, as usual.)
     Object.assign(state, { rows: [], civ: "Generic", allies: [], age: 3, food: "farm", fish: "deep", customRate: {}, ftt: false, consc: false, crane: false, shipwright: false, uts: [], postimp: false,
       src: { wood: "std", gold: "std", stone: "std" }, relics: 0, soldiers: 0, tcCastles: 1, church: { wood: false, food: false, gold: false, stone: false },
-      te: { research: 1, vils: { wood: 0, food: 0, gold: 0, stone: 0 } } });
+      idleTc: false, idleT: 0,   // Idle TC Time is reset too (user)
+      te: { research: 1, after: TE_AFTER_SECS, vils: { wood: 0, food: 0, gold: 0, stone: 0 } } });
     UPS.forEach((k) => { state.up[k] = false; });
     refreshAll();
   });
@@ -3884,6 +3985,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   reseedBox.checked = state.useReseed;
   housesBox.checked = state.useHouses;
   document.querySelectorAll(".postimp-box").forEach((b) => { b.checked = state.postimp; });
+  syncIdle();
   syncFtt();
   syncSettings();
   renderTechs();
