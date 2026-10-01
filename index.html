@@ -804,7 +804,15 @@ html.tab-te .lane-bg > div:nth-child(-n+4) { border-left: 0; }
 .sheet td.te-in { padding: .45em .4em; }
 .te-box { flex-direction: column; margin-top: .5rem; padding-top: .55rem; border-top: 1px solid var(--rule); }
 .te-amts { display: grid; grid-template-columns: auto auto; justify-content: space-between; column-gap: .8rem; row-gap: .05rem; margin-top: .25rem; font-size: 1.05rem; font-weight: 700; }
-.te-amts b { text-align: right; color: var(--ink); }
+/* An amount: a field over a hidden copy of its text (sizeAmt()), which sets its width, so it's exactly as wide as the number */
+.te-amt-wrap { display: inline-grid; justify-self: end; }
+.te-amt-wrap > * { grid-area: 1 / 1; }
+.te-amt-size { visibility: hidden; white-space: pre; padding: 0 .2em; border: solid transparent; border-width: 0 1px; }
+.te-amt {
+  align-self: center; width: 0; min-width: 100%; height: 1.3em;   /* width 0: the field's own default width mustn't size the cell */ font: inherit; line-height: 1; color: var(--ink);
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 3px; padding: 0 .2em; text-align: right;
+}
+.te-amt:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
 .te-amts .t-wood { color: var(--wood); }
 .te-amts .t-food { color: var(--food); }
 .te-amts .t-gold { color: var(--gold); }
@@ -818,7 +826,10 @@ html.tab-te.narrow .lanes { grid-template-areas: "wood food gold stone"; }
 @media (max-width: 820px), (max-height: 520px) {
   html.tab-te.narrow .te-box { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: .1rem .6rem; margin: 0 0 0 auto; padding: 0; border: 0; }
   html.tab-te.narrow .te-amts { display: flex; flex-wrap: wrap; gap: .1rem .3rem; margin: 0; font-size: .9rem; }
-  html.tab-te.narrow .te-amts b { margin-right: .45rem; }
+  /* In the strip an amount is underlined rather than boxed, so the line is as wide as with the plain numbers */
+  html.tab-te.narrow .te-amt-wrap { margin-right: .45rem; }
+  html.tab-te.narrow .te-amt-size { padding: 0; border: 0; }
+  html.tab-te.narrow .te-amt { padding: 0; border-width: 0 0 1px; border-radius: 0; background: none; }
 }
 @media (max-height: 520px) {
   html.tab-te.narrow .te-ages > div { display: flex; flex-wrap: wrap; gap: 0 1.1rem; }
@@ -1064,10 +1075,11 @@ html.tab-te.narrow .lanes { grid-template-areas: "wood food gold stone"; }
         <div class="te-box" id="te-box">
           <span class="grand-label" id="te-label">On reaching Feudal Age</span>
           <div class="te-amts">
-            <span class="t-wood">Wood</span><b id="te-wood">0</b>
-            <span class="t-food">Food</span><b id="te-food">0</b>
-            <span class="t-gold">Gold</span><b id="te-gold">0</b>
-            <span class="t-stone">Stone</span><b id="te-stone">0</b>
+            <!-- Typed in, an amount sets how many work that resource (user) -->
+            <span class="t-wood">Wood</span><span class="te-amt-wrap"><span class="te-amt-size" aria-hidden="true">0</span><input type="text" class="te-amt" id="te-wood" data-res="wood" value="0" maxlength="11" inputmode="numeric" autocomplete="off" spellcheck="false" aria-label="Wood"></span>
+            <span class="t-food">Food</span><span class="te-amt-wrap"><span class="te-amt-size" aria-hidden="true">0</span><input type="text" class="te-amt" id="te-food" data-res="food" value="0" maxlength="11" inputmode="numeric" autocomplete="off" spellcheck="false" aria-label="Food"></span>
+            <span class="t-gold">Gold</span><span class="te-amt-wrap"><span class="te-amt-size" aria-hidden="true">0</span><input type="text" class="te-amt" id="te-gold" data-res="gold" value="0" maxlength="11" inputmode="numeric" autocomplete="off" spellcheck="false" aria-label="Gold"></span>
+            <span class="t-stone">Stone</span><span class="te-amt-wrap"><span class="te-amt-size" aria-hidden="true">0</span><input type="text" class="te-amt" id="te-stone" data-res="stone" value="0" maxlength="11" inputmode="numeric" autocomplete="off" spellcheck="false" aria-label="Stone"></span>
           </div>
         </div>
       </aside>
@@ -2758,6 +2770,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     });
     return { t, applied };
   }
+  const teCalc = {};   // per resource, from updateTE(): { per: gathered per villager, extra: from other gatherers, bonus: on reaching }
+  const sizeAmt = (el) => { el.previousElementSibling.textContent = el.value || " "; };   // the hidden copy that sets the field's width
   // On reaching the age: what each resource's gatherers brought in during the research (whole units, rounded down),
   // plus resources some civs receive on every age-up (Dravidians, Ethiopians).
   function updateTE(r) {
@@ -2786,7 +2800,10 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     if (farmGold) extra.gold = [farmGold, "farmers"];
     RES.forEach((res) => {
       const amt = state.te.vils[res] * r[res] * t + (extra[res] ? extra[res][0] : 0), el = $("te-" + res);
-      el.textContent = Math.floor(amt + 1e-9) + bonus[res];
+      // What one more of them adds, and what comes without them: setTeAmount() works the count out from a typed amount.
+      teCalc[res] = { per: r[res] * t, extra: extra[res] ? extra[res][0] : 0, bonus: bonus[res] };
+      el.dataset.shown = Math.floor(amt + 1e-9) + bonus[res];
+      if (document.activeElement !== el) { el.value = el.dataset.shown; sizeAmt(el); }   // not while it's being typed in
       el.title = `${amt.toFixed(1)} ${res} gathered` + (extra[res] ? ` (${extra[res][0].toFixed(1)} by ${extra[res][1]})` : "") +
         (bonus[res] ? ` + ${bonus[res]} on reaching ${AGES[target]}` : "");
       const inp = document.querySelector(`#te-row .te-in[data-res="${res}"] input`);
@@ -3888,6 +3905,29 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     save();
   }
   $("te-after-slide").addEventListener("input", (e) => { setTeAfter(parseInt(e.target.value, 10) || 0); });
+
+  // The amounts can be typed in too (user): that resource's count becomes the fewest that gather at least as much (up to TE_MAX),
+  // the others' counts staying. While typing, anything but a whole number changes nothing; leaving the field (or Enter) shows
+  // what that many gather.
+  function setTeAmount(field) {
+    sizeAmt(field);
+    const res = field.dataset.res, c = teCalc[res], text = field.value.replace(/[\s,]/g, "");
+    if (!/^\d+$/.test(text) || !c || !(c.per > 0)) return;   // nothing gathered per villager (0 s): no count reaches it
+    const n = Math.max(0, Math.min(TE_MAX, Math.ceil((+text - c.bonus - c.extra - 1e-9) / c.per)));
+    const td = teRow.querySelector(`.te-in[data-res="${res}"]`);
+    td.querySelector("input").value = n;
+    setTeVils(td, n);
+  }
+  const teBox = $("te-box");
+  teBox.addEventListener("input", (e) => { if (e.target.classList.contains("te-amt")) setTeAmount(e.target); });
+  teBox.addEventListener("change", (e) => {
+    const f = e.target;
+    if (!f.classList.contains("te-amt")) return;
+    setTeAmount(f);
+    f.value = f.dataset.shown;
+    sizeAmt(f);
+  });
+  teBox.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.classList.contains("te-amt")) e.target.blur(); });
   teRow.addEventListener("change", (e) => {
     const t = e.target;
     if (t.name === "te-age") { state.te.research = +t.value; refreshAll(); return; }   // a new age: new techs, incomes and bonuses
