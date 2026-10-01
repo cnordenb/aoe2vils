@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Villagers required · AoE2 DE</title>
+<title>aoe2vils.net</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@700&family=Alegreya+Sans:wght@400;500;700&display=swap" rel="stylesheet">
@@ -594,9 +594,14 @@ html.narrow .idle-tc { display: none; }
 .idle-out .grand-label { color: var(--idle); }
 #vils-missing { font-size: 1.6rem; line-height: 1.1; font-weight: 700; color: var(--idle); }
 .idle-slide { display: flex; align-items: center; gap: .45rem; margin-bottom: .1rem; }
-.idle-slide input { flex: 1; min-width: 0; margin: 0; accent-color: var(--idle); cursor: pointer; }
-.idle-slide input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-#idle-t-out { flex: none; min-width: 2.7em; text-align: right; font-weight: 500; color: var(--idle); }   /* room for ">10:00", so the slider keeps its width */
+#idle-t { flex: 1; min-width: 0; margin: 0; accent-color: var(--idle); cursor: pointer; }
+#idle-t:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+/* The time, typed in: a field as tall as the text, wide enough for "59:59" */
+#idle-t-out {
+  flex: none; width: 3.3em; height: 1.3em; font: inherit; font-weight: 500; line-height: 1; color: var(--idle); background: var(--surface);
+  border: 1px solid var(--rule); border-radius: 3px; padding: 0 .2em; text-align: right;
+}
+#idle-t-out:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
 .age legend.sr, .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .short, .bl-short { display: none; }
 
@@ -785,12 +790,17 @@ html.tab-te .lane-bg > div:nth-child(-n+4) { border-left: 0; }
 .te-age .mod { text-decoration: underline dotted; text-underline-offset: 2px; }
 /* "After [] seconds": the seconds field, as tall as the text so the line doesn't grow (like a Custom Rate field) */
 .te-after-in {
-  width: 3.2em; height: 1.2em; font: inherit; line-height: 1; color: var(--ink); background: var(--surface);
+  width: 4.3em; height: 1.2em;   /* room for 353693 */ font: inherit; line-height: 1; color: var(--ink); background: var(--surface);
   border: 1px solid var(--rule); border-radius: 3px; padding: 0 .15em; text-align: right;
   -moz-appearance: textfield; appearance: textfield;
 }
 .te-after-in::-webkit-inner-spin-button, .te-after-in::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 .te-after-in:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+/* Its slider: after the label where the line has room, else on a line of its own. Hidden but kept for the other radios. */
+.te-after-line { display: flex; flex-wrap: wrap; align-items: center; column-gap: .8em; }
+.te-after-slide { flex: 1 1 7em; min-width: 0; max-width: 14em; margin: 0; accent-color: var(--focus); cursor: pointer; }
+.te-after-slide[hidden] { display: block; visibility: hidden; }
+.te-after-slide:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .sheet td.te-in { padding: .45em .4em; }
 .te-box { flex-direction: column; margin-top: .5rem; padding-top: .55rem; border-top: 1px solid var(--rule); }
 .te-amts { display: grid; grid-template-columns: auto auto; justify-content: space-between; column-gap: .8rem; row-gap: .05rem; margin-top: .25rem; font-size: 1.05rem; font-weight: 700; }
@@ -813,6 +823,7 @@ html.tab-te.narrow .lanes { grid-template-areas: "wood food gold stone"; }
 @media (max-height: 520px) {
   html.tab-te.narrow .te-ages > div { display: flex; flex-wrap: wrap; gap: 0 1.1rem; }
   html.tab-te.narrow .te-age .long { display: none; }
+  html.tab-te.narrow .te-after-slide { flex-basis: 3em; }   /* beside the After label even if short: no line to spare here */
   html.tab-te.narrow .sheet td.te-ages { padding-top: .35em; padding-bottom: .35em; }
 }
 @media (max-width: 599px) {
@@ -1018,7 +1029,11 @@ html.tab-te.narrow .lanes { grid-template-areas: "wood food gold stone"; }
                 <label class="te-age"><input type="radio" name="te-age" value="2"> <span><span class="long">Researching </span>Castle Age (<span id="te-t2">160s</span>)</span></label>
                 <label class="te-age"><input type="radio" name="te-age" value="3"> <span><span class="long">Researching </span>Imperial Age (<span id="te-t3">190s</span>)</span></label>
                 <!-- Any time, in Imperial Age (user) -->
-                <label class="te-age" title="What the villagers gather in that time, in Imperial Age"><input type="radio" name="te-age" value="4"> <span>After <input type="number" class="te-after-in" id="te-after" min="0" max="3600" step="1" value="300" inputmode="numeric" aria-label="Seconds"> seconds</span></label>
+                <div class="te-after-line">
+                  <label class="te-age" title="What the villagers gather in that time, in Imperial Age"><input type="radio" name="te-age" value="4"> <span>After <input type="number" class="te-after-in" id="te-after" min="0" max="353693" step="1" value="300" inputmode="numeric" aria-label="Seconds"> seconds</span></label>
+                  <!-- 0–300 s at a stroke; shown while After is picked, its space kept otherwise (user) -->
+                  <input type="range" class="te-after-slide" id="te-after-slide" min="0" max="300" step="1" value="300" aria-label="Seconds, up to 300" hidden>
+                </div>
               </div>
             </td>
             <td class="num wood te-in" data-res="wood"></td>
@@ -1040,7 +1055,7 @@ html.tab-te.narrow .lanes { grid-template-areas: "wood food gold stone"; }
           <div class="idle-tc" id="idle-tc">
             <label class="opt"><input type="checkbox" id="idle-on"> <span class="tn">Idle TC Time</span></label>
             <div class="idle-out" id="idle-out" hidden>
-              <div class="idle-slide"><input type="range" id="idle-t" min="0" max="601" step="1" value="0" aria-label="Idle TC time"><output id="idle-t-out" for="idle-t">00:00</output></div>
+              <div class="idle-slide"><input type="range" id="idle-t" min="0" max="600" step="1" value="0" aria-label="Idle TC time, up to 10:00"><input type="text" id="idle-t-out" value="00:00" maxlength="5" autocomplete="off" spellcheck="false" aria-label="Idle TC time, minutes:seconds" title="Type a time up to 59:59 (minutes:seconds, or seconds)"></div>
               <span class="grand-label">Villagers missing</span><b id="vils-missing">0</b>
             </div>
           </div>
@@ -1841,8 +1856,9 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     "Armored Elephant-line": "Armored/Siege Elephant" };
   UNITS.forEach((u) => members(u).forEach((m) => { if (!byName.has(m)) ALIAS.set(m, u[0]); }));
 
-  // Transition Eco's "After [] seconds" (user): research value 4, any time from 0 to 3,600 s (300 to start with), always in Imperial Age.
-  const TE_AFTER = 4, TE_AFTER_SECS = 300, TE_AFTER_MAX = 3600;
+  // Transition Eco's "After [] seconds" (user): research value 4, any time from 0 s to 98h14m53s (353,693 s; user), 300 s to start with,
+  // always in Imperial Age.
+  const TE_AFTER = 4, TE_AFTER_SECS = 300, TE_AFTER_MAX = 98 * 3600 + 14 * 60 + 53;
   const state = { rows: [], food: "farm", fish: "deep", up: Object.fromEntries(UPS.map((k) => [k, false])), civ: "Generic", allies: [], age: 3, dock: false, ftt: false, regional: false, consc: false, crane: false, shipwright: false, uts: [], postimp: false, bldOn: false,
     src: { wood: "std", gold: "std", stone: "std" }, customRate: {}, relics: 0, useReseed: true, useHouses: true,
     church: { wood: false, food: false, gold: false, stone: false },   // Georgians: gatherers near a Fortified Church, per resource
@@ -1854,9 +1870,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   const TE_MAX = 200;
   const SOLDIERS_MAX = 999;
   const TC_MAX = 4;   // Saxon TCs/Castles: −5% each, up to −20%
-  // Idle TC Time: up to 10 minutes, a villager missing per 25 s, the base training time whatever the civ (user).
-  // The slider's last second, 10:01, stands for more than 10:00 (">10:00", "24+").
-  const IDLE_MAX = 601, IDLE_VIL_T = 25;
+  // Idle TC Time: up to 59:59 typed in, the slider up to 10:00; a villager missing per 25 s, the base training time whatever the civ (user).
+  const IDLE_MAX = 59 * 60 + 59, IDLE_VIL_T = 25;
   // Building footprints in tiles per side (game data, DE update 147949), and the most builders that fit around each size (user).
   const SIZE = {
     "Palisade Wall": 1, "Stone/Fortified Wall": 1, "Watch Tower-line": 1, "Bombard Tower": 1, Outpost: 1, "Mule Cart": 1, "Fish Trap": 1,
@@ -2778,12 +2793,20 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       if (inp) inp.setAttribute("aria-label", $("head-" + res).dataset.label);
     });
   }
-  // "After [] seconds" label: 45s, 5m, 5m30s (user).
-  const minSec = (s) => (s < 60 ? `${s}s` : `${Math.floor(s / 60)}m` + (s % 60 ? `${s % 60}s` : ""));
+  // "After [] seconds": the field shows the time (not while it's being typed in), the slider up to 300 s (at its end beyond that),
+  // shown only while After is picked.
+  function syncTeAfter() {
+    const field = $("te-after"), slide = $("te-after-slide");
+    if (document.activeElement !== field) field.value = state.te.after;
+    slide.value = Math.min(state.te.after, +slide.max);
+    slide.hidden = state.te.research !== TE_AFTER;
+  }
+  // "After [] seconds" label: 45s, 5m, 5m30s (user); from an hour on 1h, 1h5m, 98h14m53s. Parts that are 0 are left out (0 s reads 0s).
+  const minSec = (s) => [[Math.floor(s / 3600), "h"], [Math.floor(s / 60) % 60, "m"], [s % 60, "s"]]
+    .filter(([n]) => n).map(([n, u]) => n + u).join("") || "0s";
   function renderTE() {
     document.querySelectorAll('input[name="te-age"]').forEach((b) => { b.checked = +b.value === state.te.research; });
-    const afterIn = $("te-after");
-    if (document.activeElement !== afterIn) afterIn.value = state.te.after;   // not while it's being typed in
+    syncTeAfter();
     document.querySelectorAll("#te-row .te-in").forEach((td) => {
       td.innerHTML = stepperHtml("te", state.te.vils[td.dataset.res], 0, TE_MAX, $("head-" + td.dataset.res).dataset.label);
     });
@@ -3790,7 +3813,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
 
   // Idle TC Time (wide layouts): a villager missing for every 25 s the Town Center stood idle, up to 10:00. Shown apart from
   // Villagers required, not added to it (user).
-  const idleBox = $("idle-on"), idleSlider = $("idle-t");
+  const idleBox = $("idle-on"), idleSlider = $("idle-t"), idleField = $("idle-t-out");
   const mmss = (s) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
   function syncIdle() {
     const n = Math.floor(state.idleT / IDLE_VIL_T);
@@ -3798,16 +3821,25 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     $("idle-out").hidden = !state.idleTc;
     $("idle-out").classList.toggle("idle-none", !state.idleT);   // green: no idle time
     $("idle-out").classList.toggle("idle-some", !!state.idleT && !n);   // neutral: idle, no villager missing yet
-    const more = state.idleT === IDLE_MAX;   // more than 10:00
-    idleSlider.value = state.idleT;
-    $("idle-t-out").textContent = more ? `>${mmss(IDLE_MAX - 1)}` : mmss(state.idleT);
-    $("vils-missing").textContent = more ? `${n}+` : n;
-    $("vils-missing").title = more ? `More than ${mmss(IDLE_MAX - 1)} idle: ${n} or more × ${IDLE_VIL_T}s of Villager training`
-      : `${mmss(state.idleT)} idle: ${n} × ${IDLE_VIL_T}s of Villager training`;
+    idleSlider.value = Math.min(state.idleT, +idleSlider.max);   // past 10:00 (typed in): at its end
+    if (document.activeElement !== idleField) idleField.value = mmss(state.idleT);   // not while it's being typed in
+    $("vils-missing").textContent = n;
+    $("vils-missing").title = `${mmss(state.idleT)} idle: ${n} × ${IDLE_VIL_T}s of Villager training`;
   }
+  // A typed time: minutes:seconds ("12:30", "2:05") or seconds ("90"), up to 59:59; anything else is null.
+  function parseIdle(text) {
+    const m = /^\s*(?:(\d{1,2}):([0-5]?\d)|(\d{1,4}))\s*$/.exec(text);
+    if (!m) return null;
+    return Math.min(IDLE_MAX, m[3] !== undefined ? +m[3] : +m[1] * 60 + +m[2]);
+  }
+  const setIdleT = (s) => { state.idleT = Math.max(0, Math.min(IDLE_MAX, s)); syncIdle(); save(); };
   // Unticking forgets the time (user): ticked again, it starts at 00:00.
   idleBox.addEventListener("change", () => { state.idleTc = idleBox.checked; if (!state.idleTc) state.idleT = 0; syncIdle(); save(); });
-  idleSlider.addEventListener("input", () => { state.idleT = Math.max(0, Math.min(IDLE_MAX, parseInt(idleSlider.value, 10) || 0)); syncIdle(); save(); });
+  idleSlider.addEventListener("input", () => { setIdleT(parseInt(idleSlider.value, 10) || 0); });
+  // While typing, an incomplete or invalid time keeps the last one; leaving the field (or Enter) writes it out as mm:ss.
+  idleField.addEventListener("input", () => { const s = parseIdle(idleField.value); if (s !== null) setIdleT(s); });
+  idleField.addEventListener("change", () => { const s = parseIdle(idleField.value); if (s !== null) setIdleT(s); idleField.value = mmss(state.idleT); });
+  idleField.addEventListener("keydown", (e) => { if (e.key === "Enter") idleField.blur(); });
 
   let raf = 0;
   window.addEventListener("resize", () => {
@@ -3851,9 +3883,11 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   function setTeAfter(v) {
     state.te.after = Math.max(0, Math.min(TE_AFTER_MAX, v));
     if (state.te.research !== TE_AFTER) { state.te.research = TE_AFTER; refreshAll(); return; }   // Imperial Age: new techs, incomes and bonuses
+    syncTeAfter();
     update();
     save();
   }
+  $("te-after-slide").addEventListener("input", (e) => { setTeAfter(parseInt(e.target.value, 10) || 0); });
   teRow.addEventListener("change", (e) => {
     const t = e.target;
     if (t.name === "te-age") { state.te.research = +t.value; refreshAll(); return; }   // a new age: new techs, incomes and bonuses
