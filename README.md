@@ -38,7 +38,7 @@ _Either see age-up times or define time-span yourself._
 
 ## Acknowledgments
 
-Inspired by Survivalist's [original webapp](https://aoe2-de-tools.herokuapp.com/villagers-required/).
+Inspired by Survivalist's [original webapp](https://aoe2-de-tools.herokuapp.com/villagers-required/). Its code was used in development of aoe2vils with explicit permission.
 
 Special thanks to HSZemi and Siege Engineers for their [aoe2techtree](https://github.com/SiegeEngineers/aoe2techtree) which made it a great deal easier to make aoe2vils.
 
