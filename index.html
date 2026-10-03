@@ -211,7 +211,7 @@ html.hdr-measure .clear-slot { flex: 0 0 auto; }
 .list .fxn { font-size: .78rem; color: var(--muted); }
 
 .civbar { display: flex; align-items: baseline; gap: .4rem 1.2rem; min-height: 1.35em; font-size: .9rem; margin-top: -.2rem; }
-#civ-fx { margin: 0; flex: 1; min-width: 0; color: var(--muted); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+#civ-fx { margin: 0; flex: 1; min-width: 0; color: var(--muted); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; }
 #civ-fx strong { color: var(--ink); font-weight: 700; }
 #civ-fx .off { opacity: .6; }
 .age { display: flex; align-items: center; gap: .15rem .8rem; margin: 0; padding: 0; border: 0; flex: none; }
@@ -772,7 +772,7 @@ html:not(.narrow):not(.tab-te) .sheet-wrap { overflow: visible; }
   html.narrow .civpick label { font-size: .75rem; }
   html.narrow .civpick .combo input { padding-top: .28rem; padding-bottom: .28rem; }
   html.narrow .civbar { font-size: .82rem; margin-top: 0; }
-  html.narrow #civ-fx { -webkit-line-clamp: 1; }
+  html.narrow #civ-fx { -webkit-line-clamp: 1; line-clamp: 1; }
   html.narrow fieldset.res { font-size: .8rem; padding: .35rem .45rem .4rem; }
   html.narrow .src-sel { margin: 0 0 .15rem; padding-top: .04rem; padding-bottom: .04rem; }
   html.narrow #relics .stepper, html.narrow #soldiers .stepper { --sh: .95rem; }
@@ -1747,7 +1747,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     Cumans: [flat(named("Archery Range", "Stable"), "wood", 75, "Archery Ranges and Stables cost −75 wood")],
     Danes: [rate("food", 5, "Fishing Ships and Villagers drop off +{p}% food")],
     Dravidians: [cost(SIEGE, 33, "Siege Weapons cost −{p}% wood", ["wood"]), { k: "agebonus", res: { wood: 200 }, label: "Receive +200 wood when advancing to the next Age" }],
-    Franks: [rate("berries", 15, "Foragers work +{p}% faster"), cost(named("Castle"), [0, 0, 15, 25], "Castles cost −{p}%")],
+    Franks: [rate("berries", 15, "Foragers work +{p}% faster"), cost(named("Castle"), [0, 0, 15, 25], "Castles cost −{p}%"),
+             { k: "freeups", ups: ["hcol", "hp", "crop"], label: "Farm upgrades free" }],   // Mill techs always researched (freeUp())
     Goths: [cost(INF, [15, 20, 25, 30], "Infantry costs −{p}%"), team(faster(BARRACKS, 20, "Barracks work +{p}% faster"))],
     Hindustanis: [cost(VIL, [8, 13, 18, 23], "Villagers cost −{p}%")],
     Huns: [cost(named("Cavalry Archer", "Heavy Cavalry Archer"), [0, 0, 10, 20], "Cavalry Archers cost −{p}%"), team(faster(STABLE, 20, "Stables work +{p}% faster")),
@@ -2869,8 +2870,9 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   // Farm Reseeding: not in the dropdown; appears on its own while farms are the food source and farmers are needed.
   // Khitans get Pasture Reseeding instead. It has no # Builders or # Buildings, so its name cell spans those columns and the checkboxes get room.
   function reseedRowHtml() {
-    // Greyed like the settings boxes (syncSettings() does it there): this row is rebuilt after that runs.
-    const box = (k) => `<label class="opt${techOpen(k) ? "" : " na"}" title="${esc(techTitle(k))}"><input type="checkbox" data-up="${k}"${on(k) ? " checked" : ""}${techOpen(k) ? "" : " disabled"}> ${techName(k)}</label>`;
+    // Greyed or fixed (Franks' free farm techs) like the settings boxes (syncSettings() does it there): this row is rebuilt after that runs.
+    const box = (k) => { const ok = techOpen(k), free = ok && freeUp(k);
+      return `<label class="opt${ok ? "" : " na"}${free ? " fixed" : ""}" title="${esc(techTitle(k))}"><input type="checkbox" data-up="${k}"${on(k) ? " checked" : ""}${ok && !free ? "" : " disabled"}> ${techName(k)}</label>`; };
     return `<tr class="reseed" id="reseed-row" hidden>
           <td class="rm"></td>
           <th scope="row" colspan="3"><span class="uname">${pastures() ? "Pasture" : "Farm"} Reseeding</span><span class="meta meta-row" id="reseed-meta"></span>
@@ -2953,10 +2955,11 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     let n = 1;
     while (state.rows.some((r) => r.name === `${CUSTOM[kind].prefix} ${n}`)) n++;
     const name = `${CUSTOM[kind].prefix} ${n}`;
-    state.rows.push({ name, count: 1, builders: 1, custom: cleanCustom({}, kind) });
+    const added = { name, count: 1, builders: 1, custom: cleanCustom({}, kind) };
+    state.rows.push(added);
     renderRows();
     if (!fit()) {
-      state.rows.pop();
+      state.rows.splice(state.rows.indexOf(added), 1);   // renderRows() may have moved it (units before buildings)
       renderRows();
       fit();
       return;
@@ -2965,8 +2968,12 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     rowEl(name).querySelector(".cu-in").focus();   // ready to type its costs
   }
 
+  // Units come first in the table, buildings after them, each in the order they were added (sort() is stable).
+  const orderRows = () => state.rows.sort((a, b) => BLD(rowUnit(a)) - BLD(rowUnit(b)));
+
   function renderRows() {
     invalidateView();
+    orderRows();
     {
       tbody.innerHTML = state.rows.map((row) => {
         if (row.custom) return customRowHtml(row);
@@ -3129,10 +3136,11 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       renderRows();
       fit();
     } else {
-      state.rows.push({ name, count: 1, builders: 1 });
+      const added = { name, count: 1, builders: 1 };
+      state.rows.push(added);
       renderRows();
       if (!fit()) {
-        state.rows.pop();
+        state.rows.splice(state.rows.indexOf(added), 1);   // renderRows() may have moved it (units before buildings)
         renderRows();
         fit();
         return;
