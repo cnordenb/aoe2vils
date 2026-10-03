@@ -637,17 +637,7 @@ Line numbers are for the 2,927-line version.
 human input..:
 
 TODO next:
-- 
-- all the income types (fishing ship, etc.)
-  missing still:
-  - trade cart (all distances, or get accurate formula)
-  - trade cog (all distances, or get accurate formula)
-    - khmer farms
-      - Fishing Ship:
-        - Oysters (x3 for upgrades)
-        - Shore Fish (x3 for upgrades)
-      - Villagers:
-        - Deep sea fish
-        - shore fish
-        - oysters
-- still need to test misc gather rates (check difference for khmer farm etc.)
+- oysters still missing
+- more testing to see if anything is missing (last detected was Frank mill bonus missing, 2026-10-03)
+- trade cart and trade cog (gold income type)
+- test if Khmer farms need separate rates
