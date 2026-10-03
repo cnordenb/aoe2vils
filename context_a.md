@@ -1205,3 +1205,6 @@ Things to keep in mind
 
     Feitorias: one Feitoria produces all four resources at once. If you pick it for several resources, the Feitorias you actually need is the largest of those columns, not their sum.
     Villagers doing two jobs: a villager-based niche source is counted in its own column. For example, if Burgundian Farmer is your gold source, those farmers are counted apart from the food column's farmers. If the same farmers do both jobs, Villagers required counts them twice.
+
+
+_context_a covers the first two days of development, after which I migrated the project from Claude Chat to Claude Code, the remaining progress of which you can follow in context_b_
