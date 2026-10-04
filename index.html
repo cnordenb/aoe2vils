@@ -1799,7 +1799,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     Mapuche: [rate("berries", 25, "Foragers drop off +{p}% food")],
     Maya: [{ k: "farmfood", mult: 1.15, label: "Resources last +15% longer" }, cost(FOOT_ARCHER, [0, 10, 20, 30], "Foot Archers cost −{p}%"), team(cost(named("Palisade Wall", "Stone Wall", "Fortified Wall"), 50, "Walls cost −{p}%"))],
     Mongols: [rate("hunt", 40, "Hunters work +{p}% faster")],
-    Muisca: [cost(named("Settlement"), 33, "Settlements cost −{p}%")],
+    Muisca: [cost(named("Settlement"), 33, "Settlements cost −{p}%"),
+      { k: "freeups", ups: ["car"], label: "Caravan free" }],   // aoe2techtree "Caravan, Guilds free"; Guilds (trade fees) isn't modelled
     Persians: [faster(any(VIL, DOCK), [5, 10, 15, 20], "Town Centers and Docks work +{p}% faster"),
                { k: "ageup", p: [5, 10, 15, 20], label: "Town Centers and Docks work +{p}% faster" }],
     Portuguese: [cost(UNIT, 20, "All units cost −{p}% gold", ["gold"]), team({ k: "ageup", p: 25, label: "Technologies research +{p}% faster" }),
