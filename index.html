@@ -413,9 +413,11 @@ fieldset.res legend + * { clear: both; }
 .food-grid { display: grid; grid-template-columns: auto auto; column-gap: .9rem; justify-content: start; }
 .food .opt { white-space: nowrap; }
 /* An upgrade the chosen source doesn't use is hidden but keeps its space (tick kept), so switching source or civ moves nothing */
-#food-ups .opt[hidden] { visibility: hidden; }
+#food-ups .opt[hidden], #gold-ups .opt[hidden] { visibility: hidden; }
 .ups[hidden] { display: block; visibility: hidden; }
-/* Heavy Plow / Fishing Lines and Wheelbarrow / Gillnets share a spot (the Fishing Ship source swaps them), sized for the larger */
+/* Heavy Plow / Fishing Lines and Wheelbarrow / Gillnets share a spot (the Fishing Ship source swaps them), sized for the larger;
+   so do Gold Mining / Caravan and Gold Shaft Mining / Bump factor (Trade Carts) / Clinker Construction (Trade Cogs). Gold keeps a
+   third line for Carvel Hull (Trade Cogs) for everyone (user), so picking Trade Cogs moves nothing */
 .opt-stack { display: grid; }
 .opt-stack > .opt { grid-area: 1 / 1; }
 /* Fishing Ship: where it fishes, right of the upgrades; hidden for other sources but keeps its space */
@@ -985,6 +987,7 @@ html.tab-te.narrow .lanes { grid-template-areas: "wood food gold stone"; }
         </div>
         <div class="extra-inc" id="wood-food" hidden>+<span id="wood-food-out">0</span> f/min <span class="inc-from">from <span class="inc-who">Lumberjacks</span></span></div>
         <div class="extra-inc" id="relic-food" hidden>+<span id="relic-food-out">0</span> f/min <span class="inc-from">from <span class="inc-who">Relics</span></span></div>
+        <div class="extra-inc" id="trade-food" hidden>+<span id="trade-food-out">0</span> f/min <span class="inc-from">from <span class="inc-who" id="trade-food-who">Trade Carts</span></span></div>
         <label class="opt church-opt"><input type="checkbox" data-church="food"> Near Fortified Church</label>
       </fieldset>
 
@@ -992,8 +995,18 @@ html.tab-te.narrow .lanes { grid-template-areas: "wood food gold stone"; }
         <legend><span class="lg"><strong>Gold</strong><span class="rate" id="rate-gold-t" title="Gathered per villager per minute"><b id="rate-gold">0</b><input type="number" class="rate-in" id="rate-in-gold" data-rate="gold" min="0.1" max="999.9" step="0.1" inputmode="decimal" aria-label="Gold gathered per villager per minute" hidden>/min</span></span></legend>
         <select class="src-sel" id="src-gold" data-src="gold" aria-label="Gold source"></select>
         <div class="ups" id="gold-ups">
-          <label class="opt"><input type="checkbox" data-up="gm"> <span><span class="long">Gold </span>Mining</span></label>
-          <label class="opt"><input type="checkbox" data-up="gsm"> <span><span class="long">Gold </span>Shaft Mining</span></label>
+          <div class="opt-stack">
+            <label class="opt"><input type="checkbox" data-up="gm"> <span><span class="long">Gold </span>Mining</span></label>
+            <label class="opt" hidden><input type="checkbox" data-up="car"> Caravan</label>
+          </div>
+          <div class="opt-stack">
+            <label class="opt"><input type="checkbox" data-up="gsm"> <span><span class="long">Gold </span>Shaft Mining</span></label>
+            <label class="opt" hidden title="Trade Carts bumping into each other: 20% less gold"><input type="checkbox" id="trade-bump"> Bump factor</label>
+            <label class="opt" hidden><input type="checkbox" data-up="clk"> Clinker Con&shy;struction</label>
+          </div>
+          <div class="opt-stack">
+            <label class="opt" hidden><input type="checkbox" data-up="crv"> Carvel Hull</label>
+          </div>
         </div>
         <div class="relics" id="relics">
           <span>Relics</span>
@@ -1634,6 +1647,10 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     ],
     gold: [
       { id: "feitoria", label: "Feitoria", perMin: 60, kind: "feitoria", civs: ["Portuguese"], age: 4, unique: true, tip: "Portuguese Feitoria" },
+      // Every civ, from Feudal Age (the Market, the Dock); the rate follows Caravan and the Bump factor, or Caravan, Clinker
+      // Construction and Carvel Hull (tradePerMin()).
+      { id: "trade", label: "Trade Carts", kind: "trade", age: 2, tip: "Trade Carts going between Markets on opposite sides of the map" },
+      { id: "cog", label: "Trade Cogs", kind: "cog", age: 2, tip: "Trade Cogs going between Docks on opposite sides of the map" },
     ],
     stone: [
       { id: "feitoria", label: "Feitoria", perMin: 18, kind: "feitoria", civs: ["Portuguese"], age: 4, unique: true, tip: "Portuguese Feitoria" },
@@ -1641,23 +1658,32 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   };
   const STD_SRC = { wood: "Trees", gold: "Gold Mine", stone: "Stone Mine" };
   // Column headings for villagers on these sources (user; others read "# Wood vils" etc.). Each shows where it fits, else the
-  // plain form (fitHeads()).
-  const HEADS = { wood: { std: "Lumberjacks" }, gold: { std: "Gold Miners" }, stone: { std: "Stone Miners" },
+  // plain form (fitHeads()). Trade Carts and Cogs too, whose plain forms are "# Carts" / "# Cogs" (they wrap on phones).
+  const HEADS = { wood: { std: "Lumberjacks" }, gold: { std: "Gold Miners", trade: "Trade Carts", cog: "Trade Cogs" }, stone: { std: "Stone Miners" },
     food: { farm: "Farmers", berries: "Foragers", sheep: "Shepherds", hunt: "Hunters", fish: "Fishermen" } };
   RES.forEach((res) => { HEADS[res].custom = "Villagers"; });   // a custom income (user)
   const FOOD_STD = [["farm", "Farm"], ["berries", "Berries"], ["hunt", "Hunt"], ["sheep", "Sheep"], ["fish", "Fisherman"], ["fship", "Fishing Ship"]];
   const KIND = { vils: ["vils", "villager"], feitoria: ["Feitorias", "Feitoria"], livestock: ["Livestock", "livestock animal"],
-    fship: ["Fishing Ships", "Fishing Ship"] };
+    fship: ["Fishing Ships", "Fishing Ship"], trade: ["Trade Carts", "Trade Cart"], cog: ["Trade Cogs", "Trade Cog"] };
+  // Trade Carts and Trade Cogs (github.com/cnordenb/aoe2_tradeprofit): a trip x tiles from Market to Market (Dock to Dock) brings
+  // 0.46 × x × (x / d + 0.3) gold on a map d tiles across, and the unit goes there and back at its speed in tiles per second.
+  // Always a 2v2 map (Medium, 168 tiles) side to side (user): x = d − 8 for a cart, d − 6 for a cog. So a cart makes 21.6 gold per
+  // minute, 25.9 with Caravan (user), and a cog 28.8. Keyed by gold source id. "Bump factor" (user, Trade Carts only): carts
+  // bumping into each other, 20% less gold.
+  const TRADE_D = 168;
+  const TRADE_UNIT = { trade: { edge: 8, speed: 1.25 }, cog: { edge: 6, speed: 1.65 } };
+  const CARAVAN_SPEED = 20, HULL_SPEED = 10, TRADE_BUMP = 20;
 
   const MULT = { gm: 1.15, gsm: 1.15, sm: 1.15, ssm: 1.15 };
-  const REQUIRES = { bs: "dba", tms: "bs", gsm: "gm", ssm: "sm", hc: "wb", hp: "hcol", crop: "hp", gn: "fl" };
-  const UPS = ["dba", "bs", "tms", "hp", "wb", "hc", "fl", "gn", "gm", "gsm", "sm", "ssm", "hcol", "crop"];
+  const REQUIRES = { bs: "dba", tms: "bs", gsm: "gm", ssm: "sm", hc: "wb", hp: "hcol", crop: "hp", gn: "fl", crv: "clk" };
+  const UPS = ["dba", "bs", "tms", "hp", "wb", "hc", "fl", "gn", "gm", "gsm", "sm", "ssm", "car", "clk", "crv", "hcol", "crop"];
   const TECH_DESC = {
     dba: "Lumberjacks work 20% faster", bs: "Lumberjacks work 20% faster", tms: "Lumberjacks work 10% faster",
     hp: "Farms hold 125 more food; farmers carry 1 more", wb: "Villagers carry 25% more and move 10% faster",
     hc: "Villagers carry 50% more and move 10% faster", fl: "Fishing Ships work 10% faster and carry 5 more",
     gn: "Fishing Ships work 10% faster and carry 5 more", gm: "Gold miners work 15% faster", gsm: "Gold miners work 15% faster",
-    sm: "Stone miners work 15% faster", ssm: "Stone miners work 15% faster",
+    sm: "Stone miners work 15% faster", ssm: "Stone miners work 15% faster", car: "Trade units move 20% faster",
+    clk: "Ships move 10% faster", crv: "Ships move 10% faster",
     hcol: "Farms hold 75 more food", crop: "Farms hold 175 more food" };
   const CONSC_DESC = "Military buildings except Siege Workshops work 33% faster";
   const CRANE_DESC = "Builders work 20% faster";
@@ -1666,14 +1692,14 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   const tip = (why, desc) => (why ? `${why}. ${desc}` : desc);
   const TECH_NAME = { dba: "Double-Bit Axe", bs: "Bow Saw", tms: "Two-Man Saw", hp: "Heavy Plow", wb: "Wheelbarrow",
     hc: "Hand Cart", fl: "Fishing Lines", gn: "Gillnets", gm: "Gold Mining", gsm: "Gold Shaft Mining", sm: "Stone Mining", ssm: "Stone Shaft Mining",
-    hcol: "Horse Collar", crop: "Crop Rotation" };
+    car: "Caravan", clk: "Clinker Construction", crv: "Carvel Hull", hcol: "Horse Collar", crop: "Crop Rotation" };
   // Khitan Pastures replace Farms, and these replace the farm techs (same ticks). They only add food per pasture:
   // 345 food, 460 with Domestication, 690 with Pastoralism, 1035 with Transhumance.
   const PASTURE_TECH = { hcol: ["Domestication", "Pastures hold 115 more food"], hp: ["Pastoralism", "Pastures hold 230 more food"],
     crop: ["Transhumance", "Pastures hold 345 more food"] };
   // Age (1 Dark .. 4 Imperial) each eco upgrade becomes available, and civs that differ (aoe2techtree.net).
-  const TECH_AGE = { dba: 2, bs: 3, tms: 4, hp: 3, wb: 2, hc: 3, fl: 2, gn: 3, gm: 2, gsm: 3, sm: 2, ssm: 3, hcol: 2, crop: 4 };
-  const TECH_AGE_CIV = { Burgundians: { dba: 1, bs: 2, tms: 3, hp: 2, wb: 1, hc: 2, fl: 1, gn: 2, gm: 1, gsm: 2, sm: 1, ssm: 2, hcol: 1, crop: 3 } };   // e.g. Burgundians get eco upgrades an age early
+  const TECH_AGE = { dba: 2, bs: 3, tms: 4, hp: 3, wb: 2, hc: 3, fl: 2, gn: 3, gm: 2, gsm: 3, sm: 2, ssm: 3, car: 3, clk: 3, crv: 4, hcol: 2, crop: 4 };
+  const TECH_AGE_CIV = { Burgundians: { dba: 1, bs: 2, tms: 3, hp: 2, wb: 1, hc: 2, fl: 1, gn: 2, gm: 1, gsm: 2, sm: 1, ssm: 2, car: 2, hcol: 1, crop: 3 } };   // e.g. Burgundians get eco upgrades an age early
   // Civs missing each eco upgrade in their tech tree. Khitans have the pasture versions of Horse Collar, Heavy Plow and Crop Rotation.
   const NO_TECH = {
     tms: ["Armenians", "Aztecs", "Berbers", "Bulgarians", "Celts", "Danes", "Franks", "Georgians", "Gurjaras", "Inca", "Khmer", "Malay", "Malians", "Mapuche", "Mongols", "Poles", "Romans", "Sicilians", "Tatars", "Wei"],
@@ -1681,6 +1707,10 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     ssm: ["Armenians", "Bengalis", "Britons", "Burmese", "Cumans", "Dravidians", "Franks", "Huns", "Japanese", "Magyars", "Romans", "Saracens", "Saxons", "Shu", "Slavs", "Tatars", "Tupi", "Turks", "Vikings"],
     crop: ["Armenians", "Bohemians", "Britons", "Celts", "Chinese", "Danes", "Dravidians", "Ethiopians", "Hindustanis", "Huns", "Japanese",
       "Koreans", "Mongols", "Saracens", "Shu", "Spanish", "Tupi", "Turks", "Wu"],
+    // Clinker Construction and Carvel Hull (aoe2techtree trees, 2026-10-04: techs 908 and 907; 909 / 910 carry the same internal
+    // names but are Siphons and Incendiaries).
+    clk: ["Saxons"],
+    crv: ["Aztecs", "Bohemians", "Bulgarians", "Chinese", "Cumans", "Ethiopians", "Georgians", "Inca", "Magyars", "Maya", "Muisca", "Saxons", "Tupi"],
   };
 
   /* ---------- unit groups used by civ bonuses ---------- */
@@ -1779,7 +1809,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     Saracens: [flat(named("Market"), "wood", 100, "Markets cost −100 wood")],
     Sicilians: [{ k: "farmfood", upg: 2.25, label: "Farm upgrades provide +125% additional food" }, faster(FORT, 50, "Fortifications built +{p}% faster"), faster(named("Town Center"), 100, "Town Centers built +{p}% faster"), team(cost(named("Transport Ship"), 50, "Transport Ships cost −{p}%"))],
     Slavs: [rate("farm", 15, "Farmers work +{p}% faster"), cost(WORKSHOP, 15, "Siege Workshop Units cost −{p}%")],
-    Spanish: [faster(VIL_BLD, 30, "Builders work +{p}% faster")],
+    Spanish: [faster(VIL_BLD, 30, "Builders work +{p}% faster"), team({ k: "tradegold", p: 25, label: "Trade Units generate +{p}% gold" })],   // tradePerMin()
     Teutons: [cost(named("Farm"), 40, "Farms cost −{p}%")],
     Turks: [rate("gold", 25, "Gold miners work +{p}% faster"), team(faster(GUN, 25, "Gunpowder Units train +{p}% faster"))],
     Vikings: [{ k: "freeups", ups: ["wb", "hc"], label: "Wheelbarrow, Hand Cart free" },   // always researched (freeUp())
@@ -1800,13 +1830,17 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     { tc: true, appliedLabel: "Foot Soldiers cost −{p}%" }), "p", { get: () => 5 * state.tcCastles, enumerable: true })];
   FX["Lithuanians"] = [team(faster(named("Monk", "Missionary"), 20, "Monasteries work +{p}% faster"))];
   FX["Chinese"] = [team({ k: "farmfood", mult: 1.1, label: "Farms hold +10% food" })];
+  // Food from Trade Carts or Cogs: p% of each one's gold rate, bonuses included (user), while one is the gold source.
+  FX["Bengalis"] = [team({ k: "tradefood", p: 10, label: "Trade Units generate +{p}% food in addition to gold" })];
   FX["Burgundians"] = [team({ k: "relicfood", perMin: 20, label: "Relics generate food in addition to gold" })];
   // Gold from food gathering: a share of the food rate per source (villagers 10%; Fishing Ships 1 gold per 20 food, user).
   // Food from lumberjacks: 6.859% of the lumberjack rate, upgrades and bonuses included. Gold from stone miners: 33% of the
   // stone rate, likewise (user).
   FX["Shu"] = [{ k: "woodfood", mult: 0.06859, label: "Lumberjacks generate food in addition to wood" }];
   FX["Poles"] = [{ k: "stonegold", mult: 0.33, label: "Stone Miners generate gold in addition to stone" }];
-  FX["Varangians"] = [{ k: "foodgold", mult: { sheep: 0.1, hunt: 0.1, fish: 0.1, fship: 0.05 }, label: "Shepherding, fishing, and hunting also generate gold" }];
+  // Their Caravan bonus (aoe2techtree "Bloodlines and Caravan effects +50%"): trade units +30% faster instead of +20% (tradePerMin()).
+  FX["Varangians"] = [{ k: "foodgold", mult: { sheep: 0.1, hunt: 0.1, fish: 0.1, fship: 0.05 }, label: "Shepherding, fishing, and hunting also generate gold" },
+    { k: "caravan", p: 50, label: "Caravan effects +{p}%" }];
   FX["Wu"] = [team(faster(named("House"), 100, "Houses built +{p}% faster"))];
   // Unique technologies that change unit costs, training times or gather rates (aoe2techtree.net).
   // Others (combat stats, population, new income sources without a known rate) are left out on purpose.
@@ -1897,6 +1931,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   const TE_AFTER = 4, TE_AFTER_SECS = 300, TE_AFTER_MAX = 98 * 3600 + 14 * 60 + 53;
   const state = { rows: [], food: "farm", fish: "deep", up: Object.fromEntries(UPS.map((k) => [k, false])), civ: "Generic", allies: [], age: 3, dock: false, ftt: false, regional: false, consc: false, crane: false, shipwright: false, uts: [], postimp: false, bldOn: false,
     src: { wood: "std", gold: "std", stone: "std" }, customRate: {}, relics: 0, useReseed: true, useHouses: true,
+    tradeBump: false,   // Trade Carts: the Bump factor (20% less gold)
     church: { wood: false, food: false, gold: false, stone: false },   // Georgians: gatherers near a Fortified Church, per resource
     soldiers: 0,   // Wei with Tuntian: soldiers producing food (0–SOLDIERS_MAX)
     tcCastles: 1,   // Saxons: Town Centers and Castles held (0–4), −5% on Foot Soldiers each
@@ -1959,7 +1994,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   // Everything at its starting value: nothing for Clear to do, so it's hidden.
   function isCleared() {
     return !state.rows.length && state.civ === "Generic" && !state.allies.length && state.age === 3 &&
-      state.food === "farm" && state.fish === "deep" && ["wood", "gold", "stone"].every((r) => state.src[r] === "std") && !state.relics && !state.soldiers && state.tcCastles === 1 && !state.idleTc && !state.idleT && !state.consc && !state.crane && !state.shipwright && !state.uts.length && !state.postimp &&
+      state.food === "farm" && state.fish === "deep" && ["wood", "gold", "stone"].every((r) => state.src[r] === "std") && !state.tradeBump && !state.relics && !state.soldiers && state.tcCastles === 1 && !state.idleTc && !state.idleT && !state.consc && !state.crane && !state.shipwright && !state.uts.length && !state.postimp &&
       UPS.every((k) => !state.up[k]) && RES.every((r) => !state.church[r]) && state.te.research === 1 && state.te.after === TE_AFTER_SECS && RES.every((r) => !state.te.vils[r]);
   }
   // Something for Clear Techs to do: any technology that is ticked and in effect.
@@ -2033,6 +2068,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       // Only sources that still exist (Relic used to be a gold source).
       if (s.src) ["wood", "gold", "stone"].forEach((r) => { if (s.src[r] === "custom" || NICHE[r].some((o) => o.id === s.src[r])) state.src[r] = s.src[r]; });
       if (s.customRate) RES.forEach((r) => { if (Number.isFinite(parseFloat(s.customRate[r]))) state.customRate[r] = clampRate(s.customRate[r]); });
+      state.tradeBump = !!s.tradeBump;
       state.relics = Math.max(0, Math.min(99, parseInt(s.relics, 10) || 0));
       if (s.church) RES.forEach((r) => { state.church[r] = !!s.church[r]; });
       state.soldiers = Math.max(0, Math.min(SOLDIERS_MAX, parseInt(s.soldiers, 10) || 0));
@@ -2055,7 +2091,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   const fxOf = (civ) => FX[civ] || [];
   // Bonuses worth listing in the current tab. Transition Eco only cares about gathering and age-ups;
   // Villagers Required about everything else (and not age-ups).
-  const TE_KINDS = ["rate", "farm", "ageup", "agebonus", "forage", "foodgold", "woodfood", "stonegold", "ecoboost", "freeups", "church"];   // relics don't count in Transition Eco
+  const TE_KINDS = ["rate", "farm", "ageup", "agebonus", "forage", "foodgold", "woodfood", "stonegold", "ecoboost", "freeups", "church",
+    "tradegold", "caravan", "tradefood"];   // relics don't count in Transition Eco
   // Stone miners' gold only matters while the Stone column shows (only buildings cost stone). A free tech counts in Transition Eco
   // only if it's an eco upgrade (not Vietnamese Conscription).
   // With "After [] seconds" no age is reached, so age-up bonuses don't count.
@@ -2239,8 +2276,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     RES.forEach((res) => {
       const o = nicheOf(res);
       if (!o) return;
-      let v = o.perMin / 60;
-      if (res === "gold" && gtr) v *= 1.1;                       // all gold income +10%
+      let v = (TRADE_UNIT[o.id] && res === "gold" ? tradePerMin() : o.perMin) / 60;
+      if (res === "gold" && gtr) v *= 1.1;                       // all gold income +10% (trade too)
       r[res] = v;
     });
     // A custom income: the rate typed in the resource's heading, as it is (no upgrades or bonuses).
@@ -2269,10 +2306,33 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     const food = xs.reduce((f, x) => (x.e.k === "relicfood" ? f + (n * x.e.perMin) / 60 : f), 0);
     return { gold, food };
   }
+  // The trade unit picked as the gold source ("trade" for Trade Carts, "cog" for Trade Cogs), or null.
+  const tradeSrc = () => (TRADE_UNIT[state.src.gold] ? state.src.gold : null);
+  // Gold per minute from each Trade Cart or Trade Cog, done as aoe2_tradeprofit does it (Grand Trunk Road is applied by rates(), as
+  // for other gold sources). A round trip of 2x tiles brings one trip's gold, so per minute 0.46 × (x / d + 0.3) × 60 × speed ÷ 2.
+  // Caravan: speed +20%, +30% for Varangians (its effect +50%). A cog's Clinker Construction and Carvel Hull: +10% each, then its
+  // speed is rounded up to two decimals (1.65 × 1.2 × 1.1 × 1.1 = 2.3958 → 2.40). A Spanish civ or ally's team bonus adds 25% to the
+  // gold, and the Bump factor (carts only) takes 20% off.
+  function tradePerMin() {
+    const src = tradeSrc(), u = TRADE_UNIT[src], xs = activeFx();
+    if (!u) return 0;
+    const boost = xs.reduce((b, f) => (f.e.k === "caravan" ? b * (1 + pct(f.e) / 100) : b), 1);
+    let speed = u.speed * (1 + (on("car") ? (CARAVAN_SPEED * boost) / 100 : 0));
+    if (src === "cog") {
+      ["clk", "crv"].forEach((k) => { if (on(k)) speed *= 1 + HULL_SPEED / 100; });
+      speed = Math.ceil(speed * 100 - 1e-9) / 100;
+    }
+    const x = TRADE_D - u.edge;
+    const gold = (0.46 * (x / TRADE_D + 0.3) * 60 * speed) / 2;
+    const spanish = xs.reduce((g, f) => (f.e.k === "tradegold" ? g * (1 + pct(f.e) / 100) : g), gold);
+    return state.tradeBump && src === "trade" ? spanish * (1 - TRADE_BUMP / 100) : spanish;
+  }
   // Wood per second from each forager (Portuguese civ bonus), while Berries is the food source.
   const forageEach = () => (state.food === "berries" ? activeFx().reduce((w, x) => (x.e.k === "forage" ? w + x.e.perMin / 60 : w), 0) : 0);
   // Food from each lumberjack, as a share of the lumberjack rate (Shu civ bonus), while Trees is the wood source.
   const woodFoodShare = () => (state.src.wood === "std" ? activeFx().reduce((m, x) => (x.e.k === "woodfood" ? m + x.e.mult : m), 0) : 0);
+  // Food from each Trade Cart or Cog, as a share of its gold rate (Bengali team bonus), while one is the gold source.
+  const tradeFoodShare = () => (tradeSrc() ? activeFx().reduce((m, x) => (x.e.k === "tradefood" ? m + pct(x.e) / 100 : m), 0) : 0);
   // Gold from each stone miner, as a share of the stone rate (Polish civ bonus), while Stone Mine is the stone source.
   const stoneGoldShare = () => (state.src.stone === "std" ? activeFx().reduce((m, x) => (x.e.k === "stonegold" ? m + x.e.mult : m), 0) : 0);
   // Gold from each lumberjack, as a share of the lumberjack rate (Vietnamese Paper Money, ticked and in Imperial Age), while Trees
@@ -2573,7 +2633,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     if (show !== houseShown) { houseShown = show; requestAnimationFrame(fit); }
   }
 
-  const unitWord = (res) => ({ vils: "villagers", feitoria: "Feitorias", livestock: "livestock", fship: "Fishing Ships" })[kindOf(res)];
+  const unitWord = (res) => ({ vils: "villagers", feitoria: "Feitorias", livestock: "livestock", fship: "Fishing Ships", trade: "Trade Carts", cog: "Trade Cogs" })[kindOf(res)];
 
   /* ---------- totals ---------- */
   function update() {
@@ -2588,7 +2648,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       $("rate-" + res + "-t").title = `Gathered per ${one} per minute`;
       // "# Fishing Ships" would wrap and push the table down in the narrow layout: there it reads "# Ships".
       const hd = (HEADS[res] || {})[res === "food" ? state.food : state.src[res]];
-      const plainName = `${res.charAt(0).toUpperCase() + res.slice(1)} vils`;
+      const plainName = ({ trade: "Carts", cog: "Cogs" })[kindOf(res)] || `${res.charAt(0).toUpperCase() + res.slice(1)} vils`;
       const own = hd ? `# <span class="hl">${hd}</span><span class="hs">${plainName}</span>` : "";
       const th = $("head-" + res);
       th.innerHTML = own ? own
@@ -2717,6 +2777,19 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       $("farm-gold-out").textContent = perMin((inTE() ? state.te.vils.food : farmers) * farmGold * 60);
       fgl.title = `${fmt(farmGold * 60)} gold per minute from each farmer (Burgundian Vineyards)` + (inTE() ? "" : ", taken off what the units need");
     }
+    // Trade Carts or Cogs with a Bengali civ or ally bring in part of the food needed: fewer food gatherers. Counted after every gold
+    // line, so the carts are final; Farm Reseeding and the food gatherers' gold above counted the food gatherers before this.
+    const tradeFood = tradeFoodShare() * r.gold, carts = tradeFood ? vils(tot.gold) : 0, [traders, trader] = KIND[tradeSrc()] || [];
+    const tradeCover = Math.min(tot.food, (carts * tradeFood) / r.food);
+    tot.food -= tradeCover;
+    const tf = $("trade-food");
+    tf.classList.toggle("gone", !activeFx().some((x) => x.e.k === "tradefood"));
+    tf.hidden = !tradeFood;
+    if (tradeFood) {
+      $("trade-food-out").textContent = perMin((inTE() ? state.te.vils.gold : carts) * tradeFood * 60);
+      $("trade-food-who").textContent = traders;
+      tf.title = `${fmt(tradeFood * 60)} food per minute from each ${trader}` + (inTE() ? "" : ", taken off what the units need");
+    }
     const cover = { wood: [], food: [], gold: [], stone: [] };
     ["gold", "food"].forEach((res) => { if (covered[res]) cover[res].push(`${relicsNow()} relic${rs} cover ${covered[res].toFixed(2)}`); });
     if (soldierCover) cover.food.push(`${state.soldiers} soldier${ss} cover ${soldierCover.toFixed(2)}`);
@@ -2726,6 +2799,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     if (woodCover) cover.gold.push(`${jacks} lumberjack${js} cover ${woodCover.toFixed(2)}`);
     if (farmCover) cover.gold.push(`${farmers} farmer${fms} cover ${farmCover.toFixed(2)}`);
     if (foodCover) cover.food.push(`${lumberjacks} lumberjack${ls} cover ${foodCover.toFixed(2)}`);
+    if (tradeCover) cover.food.push(`${carts} ${carts === 1 ? trader : traders} cover ${tradeCover.toFixed(2)}`);
     // Totals round up the exact sum: villagers on one resource are shared between units.
     // Only villagers count towards Villagers required (not Feitorias, livestock or Fishing Ships).
     let grand = 0, exact = 0;
@@ -2822,6 +2896,9 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     if (woodGold) extra.gold = [woodGold, "lumberjacks"];
     const farmGold = state.te.vils.food * farmGoldEach() * t;   // Burgundian Vineyards (Castle Age: Researching Imperial)
     if (farmGold) extra.gold = [farmGold, "farmers"];
+    // Bengali Trade Cart / Cog food (team bonus, so it can come with Shu lumberjack food: both count).
+    const tradeFood = state.te.vils.gold * tradeFoodShare() * r.gold * t, traders = (KIND[tradeSrc()] || [])[0];
+    if (tradeFood) extra.food = extra.food ? [extra.food[0] + tradeFood, `${extra.food[1]} and ${traders}`] : [tradeFood, traders];
     RES.forEach((res) => {
       const amt = state.te.vils[res] * r[res] * t + (extra[res] ? extra[res][0] : 0), el = $("te-" + res);
       // What one more of them adds, and what comes without them: setTeAmount() works the count out from a typed amount.
@@ -3036,13 +3113,13 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     });
     row.style.height = base + "px";
   }
-  // The extra-income lines (Foragers, Shu lumberjack food, Burgundian relic food, Varangian food gold, Polish stone gold, Paper Money
-  // gold, Burgundian Vineyards gold): one line where the longest text they can show fits, else two, else two in smaller type, else
+  // The extra-income lines (Foragers, Shu lumberjack food, Burgundian relic food, Bengali Trade Cart food, Varangian food gold, Polish
+  // stone gold, Paper Money gold, Burgundian Vineyards gold): one line where the longest text they can show fits, else two, else two in smaller type, else
   // three (see the CSS).
   function fitIncome() {
     const root = document.documentElement.classList;
     root.remove("inc-2l", "inc-small", "inc-3l");
-    const lines = [["forage", [""]], ["wood-food", [""]], ["relic-food", [""]], ["food-gold", Object.values(FOOD_GOLD_WHO).map((w) => w[0])],
+    const lines = [["forage", [""]], ["wood-food", [""]], ["relic-food", [""]], ["trade-food", ["Trade Carts", "Trade Cogs"]], ["food-gold", Object.values(FOOD_GOLD_WHO).map((w) => w[0])],
       ["stone-gold", [""]], ["wood-gold", [""]], ["farm-gold", [""]]]
       .map(([id, whos]) => [$(id), whos]).filter(([el]) => !el.classList.contains("gone"));
     const fits = () => lines.every(([el, whos]) => {
@@ -3302,6 +3379,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     if (k === "hp") return state.food === "farm" && !pastures();
     if (k === "wb" || k === "hc") return state.food === "farm";
     if (k === "fl" || k === "gn") return state.food === "fship";
+    if (k === "car") return !!tradeSrc();
+    if (k === "clk" || k === "crv") return state.src.gold === "cog";
     const res = UP_RES[k];
     return !!res && state.src[res] === "std";
   }
@@ -3330,7 +3409,15 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       r.parentElement.classList.toggle("na", off);
       r.parentElement.title = spotTip(r.value);
     });
-    ["wood", "gold", "stone"].forEach((res) => { $(res + "-ups").hidden = state.src[res] !== "std"; });
+    ["wood", "gold", "stone"].forEach((res) => { $(res + "-ups").hidden = state.src[res] !== "std" && !(res === "gold" && tradeSrc()); });
+    // Trade Carts: Caravan and the Bump factor take Gold Mining's and Gold Shaft Mining's places. Trade Cogs: Caravan, Clinker
+    // Construction, and Carvel Hull on the third line.
+    const trade = tradeSrc(), goldOpt = (k) => $("gold-ups").querySelector(`[data-up="${k}"]`).closest(".opt");
+    ["gm", "gsm"].forEach((k) => { goldOpt(k).hidden = !!trade; });
+    goldOpt("car").hidden = !trade;
+    ["clk", "crv"].forEach((k) => { goldOpt(k).hidden = trade !== "cog"; });
+    $("trade-bump").closest(".opt").hidden = trade !== "trade";
+    $("trade-bump").checked = state.tradeBump;
     // Georgians' "Near Fortified Church": locked (tick kept) before Castle Age, hidden for a source that isn't villagers.
     const churchOpen = ageOpen(CHURCH_AGE);
     document.querySelectorAll("[data-church]").forEach((cb) => {
@@ -3371,6 +3458,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     else if (t.name === "fish") state.fish = t.value;
     else if (t.dataset.src) state.src[t.dataset.src] = t.value;
     else if (t.dataset.church) state.church[t.dataset.church] = t.checked;
+    else if (t.id === "trade-bump") state.tradeBump = t.checked;
     else return;
     syncSettings();
     const trap = rowEl("Fish Trap");   // its build time follows Fishing Lines / Gillnets (while they show)
@@ -4019,7 +4107,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     // Naval, Buildings, Full Tech Tree and Include Regional & Unique are view options: Clear All leaves them as they are.
     // (Full Tech Tree hides with Generic and starts unticked for the next civ, as usual.)
     Object.assign(state, { rows: [], civ: "Generic", allies: [], age: 3, food: "farm", fish: "deep", customRate: {}, ftt: false, consc: false, crane: false, shipwright: false, uts: [], postimp: false,
-      src: { wood: "std", gold: "std", stone: "std" }, relics: 0, soldiers: 0, tcCastles: 1, church: { wood: false, food: false, gold: false, stone: false },
+      src: { wood: "std", gold: "std", stone: "std" }, tradeBump: false, relics: 0, soldiers: 0, tcCastles: 1, church: { wood: false, food: false, gold: false, stone: false },
       idleTc: false, idleT: 0,   // Idle TC Time is reset too (user)
       te: { research: 1, after: TE_AFTER_SECS, vils: { wood: 0, food: 0, gold: 0, stone: 0 } } });
     UPS.forEach((k) => { state.up[k] = false; });
