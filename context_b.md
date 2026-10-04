@@ -1,6 +1,6 @@
 # aoe2vils — working context
 
-_Working notes for Claude sessions. This file is gitignored, like `context_a.md`, which holds the full design chat log (don't edit it). Consolidated 2026-09-28 from that log and a full read of `index.html`, then updated after later edits. Line numbers match the 2,927-line version of 2026-09-28. Edits on 2026-09-29 (Xolotl Warrior, Castle order, pastures) shifted them by a few lines from about line 931 on; grep the name._
+_Working notes for Claude sessions. `context_a.md` holds the full design chat log (don't edit it). Consolidated 2026-09-28 from that log and a full read of `index.html`, then updated after later edits. Line numbers match the 2,927-line version of 2026-09-28. Edits on 2026-09-29 (Xolotl Warrior, Castle order, pastures) shifted them by a few lines from about line 931 on; grep the name._
 
 ## What it is
 - **"Villagers required · AoE2 DE"** is a single-file, zero-dependency static page (`index.html`). It makes no network requests (since 2026-10-01; it used to load Alegreya and Alegreya Sans from Google Fonts). The fonts are embedded as base64 woff2 in a `<script>` in `<head>` (before the `<style>`), which decodes them and adds them with `document.fonts.add(new FontFace(family, bytes, { weight, display: "block" }))` (user, 2026-10-01: DevTools' Network panel counted the earlier `@font-face url(data:…)` rules as four requests, so the site showed 6; now 2 when hosted, the page and `/favicon.ico`, 1 from a local file). The fonts: Alegreya 700 and Alegreya Sans 400 / 500 / 700, Latin subset only (Google's `unicode-range` for it: every character the page uses that the fonts have; ✓ ☐ → aren't in Alegreya at all and come from a fallback, as before). About 96 KB of font, 128 KB as base64: the page went from 278 KB to 407 KB. `display: "block"`. The comment above the font data carries the fonts' copyright lines and the SIL Open Font License 1.1 (required when redistributing; the files' own name tables hold the copyright and the OFL URL too). Italics are synthesized, as before (no italic face was ever loaded). There's no build, tests or CI: open the file in a browser.
@@ -522,7 +522,6 @@ Line numbers are for the 2,927-line version.
 ## Repo state (2026-09-28)
 - **Remote:** `origin` is github.com/cnordenb/aoe2vils, branch `main`.
 - **Commits:** just one, `e03199e` "Initial commit" (LICENSE and a one-line README).
-- **Untracked:** `index.html` and `.gitignore`, so the app isn't committed yet. `.gitignore` lists `context_a.md` and `context_b.md`.
 - **App history:** git has none, so `context_a.md` serves as the change history, prompt by prompt.
 
 ## Reading context_a.md
