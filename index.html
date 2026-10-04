@@ -417,7 +417,8 @@ fieldset.res legend + * { clear: both; }
 .ups[hidden] { display: block; visibility: hidden; }
 /* Heavy Plow / Fishing Lines and Wheelbarrow / Gillnets share a spot (the Fishing Ship source swaps them), sized for the larger;
    so do Gold Mining / Caravan and Gold Shaft Mining / Bump factor (Trade Carts) / Clinker Construction (Trade Cogs). Gold keeps a
-   third line for Carvel Hull (Trade Cogs) for everyone (user), so picking Trade Cogs moves nothing */
+   third line for Carvel Hull (Trade Cogs) for everyone (user), so picking Trade Cogs moves nothing. Whaling: Fishing Lines and
+   Gillnets in the mining techs' places (the same ticks as the Food box's) */
 .opt-stack { display: grid; }
 .opt-stack > .opt { grid-area: 1 / 1; }
 /* Fishing Ship: where it fishes, right of the upgrades; hidden for other sources but keeps its space */
@@ -442,16 +443,22 @@ html.narrow .wide-only { display: none; }
 }
 .src-sel:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
 /* Relics: a count under the gold upgrades, sized to fit the line Gold has spare (Food's box sets the height) */
-#relics, #soldiers { display: flex; align-items: center; gap: .3rem; white-space: nowrap; }
-#relics .stepper, #soldiers .stepper { --sh: 1.2rem; font-size: .85rem; }
+#relics, #soldiers, #garrison { display: flex; align-items: center; gap: .3rem; white-space: nowrap; }
+#relics .stepper, #soldiers .stepper, #garrison .stepper { --sh: 1.2rem; font-size: .85rem; }
 #relics .stepper input { width: 1.7em; padding: 0; }
 #soldiers .stepper input { width: 2.4em; padding: 0; }   /* up to 999 */
-#relics .relic-out, #soldiers .relic-out { color: var(--muted); font-size: .8rem; }
+#relics .relic-out, #soldiers .relic-out, #garrison .relic-out { color: var(--muted); font-size: .8rem; }
 #relics.na { opacity: .42; }   /* before Castle Age */
 /* Wei soldiers (Food box, under the upgrades): a count like Relics while Tuntian is in effect; the row exists only for Wei (.gone
    otherwise) and keeps its space while Tuntian is off, so ticking it moves nothing */
 #soldiers[hidden] { visibility: hidden; }
 #soldiers.gone { display: none; }
+/* Gurjaras' Garrisoned Food Amount (Food box, user): a count like Relics, 0–9999 in steps of 100; the row exists only for Gurjaras
+   (.gone otherwise). It wraps like Soldiers, so its height depends on the box, not the number */
+#garrison { flex-wrap: wrap; row-gap: 0; white-space: normal; }
+#garrison .stepper input { width: 3em; padding: 0; }   /* up to 9999 */
+#garrison .relic-out { min-width: 4.1em; }
+#garrison.gone { display: none; }
 /* The food per minute is as wide as its largest value ("1798f/min"), so whether it wraps under the count depends on the box, never
    on the number */
 #soldiers { flex-wrap: wrap; row-gap: 0; }
@@ -468,9 +475,9 @@ html.inc-2l .extra-inc .inc-from, html.inc-3l .extra-inc .inc-who { display: blo
 html.inc-small .extra-inc { font-size: .7rem; }
 .extra-inc[hidden] { display: block; visibility: hidden; }
 .extra-inc.gone { display: none; }
-html.narrow #relics, html.narrow #soldiers { flex-wrap: wrap; gap: .1rem .25rem; }
-html.narrow #relics .stepper, html.narrow #soldiers .stepper { --sh: 1.05rem; font-size: .75rem; }
-html.tab-te #relics, html.tab-te #soldiers { visibility: hidden; }   /* relics and soldiers don't count in Transition Eco */
+html.narrow #relics, html.narrow #soldiers, html.narrow #garrison { flex-wrap: wrap; gap: .1rem .25rem; }
+html.narrow #relics .stepper, html.narrow #soldiers .stepper, html.narrow #garrison .stepper { --sh: 1.05rem; font-size: .75rem; }
+html.tab-te #relics, html.tab-te #soldiers, html.tab-te #garrison { visibility: hidden; }   /* relics, soldiers and garrisoned food don't count in Transition Eco */
 .opt.na { opacity: .42; cursor: default; }
 .opt.na input { cursor: default; }
 .opt.fixed, .opt.fixed input { cursor: default; }   /* a free tech (Bohemians' mining techs): ticked, can't be unticked */
@@ -740,11 +747,11 @@ html:not(.narrow):not(.tab-te) .sheet-wrap { overflow: visible; }
   html.narrow fieldset.res .opt input { width: .85rem; height: .85rem; margin-top: .1rem; }
   html.narrow .food-grid { column-gap: .8rem; }
   /* Relics fit the phone Gold box in two lines (three at 360 px): label and −/+, then the gold per minute */
-  html.narrow #relics, html.narrow #soldiers { row-gap: 0; }
-  html.narrow #relics .stepper, html.narrow #soldiers .stepper { --sh: .95rem; }
+  html.narrow #relics, html.narrow #soldiers, html.narrow #garrison { row-gap: 0; }
+  html.narrow #relics .stepper, html.narrow #soldiers .stepper, html.narrow #garrison .stepper { --sh: .95rem; }
   html.narrow #relics .stepper input { width: 1.3em; }
   html.narrow #soldiers .stepper input { width: 1.9em; }
-  html.narrow #relics .relic-out, html.narrow #soldiers .relic-out { font-size: .7rem; line-height: 1.1; }
+  html.narrow #relics .relic-out, html.narrow #soldiers .relic-out, html.narrow #garrison .relic-out { font-size: .7rem; line-height: 1.1; }
   html.narrow .others { grid-template-columns: auto; }
   html.narrow .sheet th, html.narrow .sheet td { padding-left: .4em; padding-right: .4em; }
   html.narrow .long { display: none; }
@@ -777,10 +784,10 @@ html:not(.narrow):not(.tab-te) .sheet-wrap { overflow: visible; }
   html.narrow #civ-fx { -webkit-line-clamp: 1; line-clamp: 1; }
   html.narrow fieldset.res { font-size: .8rem; padding: .35rem .45rem .4rem; }
   html.narrow .src-sel { margin: 0 0 .15rem; padding-top: .04rem; padding-bottom: .04rem; }
-  html.narrow #relics .stepper, html.narrow #soldiers .stepper { --sh: .95rem; }
+  html.narrow #relics .stepper, html.narrow #soldiers .stepper, html.narrow #garrison .stepper { --sh: .95rem; }
   html.narrow #relics .stepper input { width: 1.3em; }
   html.narrow #soldiers .stepper input { width: 1.9em; }
-  html.narrow #relics .relic-out, html.narrow #soldiers .relic-out { font-size: .7rem; }
+  html.narrow #relics .relic-out, html.narrow #soldiers .relic-out, html.narrow #garrison .relic-out { font-size: .7rem; }
 }
 
 /* No buildings (Buildings box off, none in the table): no stone costs, so the Stone column and its settings
@@ -980,6 +987,11 @@ html.tab-te.narrow .lanes { grid-template-areas: "wood food gold stone"; }
             <label class="opt" title="Fish Traps"><input type="radio" name="fish" value="trap"> Trap</label>
           </div>
         </div>
+        <div class="relics gone" id="garrison">
+          <span>Garrisoned Food Amount</span>
+          <div class="stepper"><button type="button" class="step" data-step="-1" aria-label="Garrisoned food: 100 less">−</button><input type="number" inputmode="numeric" min="0" max="9999" step="100" value="800" aria-label="Garrisoned Food Amount"><button type="button" class="step" data-step="1" aria-label="Garrisoned food: 100 more">+</button></div>
+          <span class="relic-out" id="garrison-out"></span>
+        </div>
         <div class="relics" id="soldiers" hidden>
           <span>Soldiers</span>
           <div class="stepper"><button type="button" class="step" data-step="-1" aria-label="Soldiers: one fewer">−</button><input type="number" inputmode="numeric" min="0" max="999" step="1" value="0" aria-label="Soldiers"><button type="button" class="step" data-step="1" aria-label="Soldiers: one more">+</button></div>
@@ -998,11 +1010,13 @@ html.tab-te.narrow .lanes { grid-template-areas: "wood food gold stone"; }
           <div class="opt-stack">
             <label class="opt"><input type="checkbox" data-up="gm"> <span><span class="long">Gold </span>Mining</span></label>
             <label class="opt" hidden><input type="checkbox" data-up="car"> Caravan</label>
+            <label class="opt" hidden><input type="checkbox" data-up="fl"> Fishing Lines</label>
           </div>
           <div class="opt-stack">
             <label class="opt"><input type="checkbox" data-up="gsm"> <span><span class="long">Gold </span>Shaft Mining</span></label>
             <label class="opt" hidden title="Trade Carts bumping into each other: 20% less gold"><input type="checkbox" id="trade-bump"> Bump factor</label>
             <label class="opt" hidden><input type="checkbox" data-up="clk"> Clinker Con&shy;struction</label>
+            <label class="opt" hidden><input type="checkbox" data-up="gn"> Gillnets</label>
           </div>
           <div class="opt-stack">
             <label class="opt" hidden><input type="checkbox" data-up="crv"> Carvel Hull</label>
@@ -1642,8 +1656,6 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     ],
     food: [
       { id: "feitoria", label: "Feitoria", perMin: 97, kind: "feitoria", civs: ["Portuguese"], age: 4, unique: true, tip: "Portuguese Feitoria" },
-      { id: "gurjara", label: "Garrisoned Sheep", perMin: 6, kind: "livestock", civs: ["Gurjaras"], age: 1, tip: "Sheep garrisoned in a Gurjara Mill" },
-      { id: "gurjara-l", label: "Garrisoned Cows", perMin: 8, kind: "livestock", civs: ["Gurjaras"], age: 1, tip: "Cows garrisoned in a Gurjara Mill" },
     ],
     gold: [
       { id: "feitoria", label: "Feitoria", perMin: 60, kind: "feitoria", civs: ["Portuguese"], age: 4, unique: true, tip: "Portuguese Feitoria" },
@@ -1651,6 +1663,9 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       // Construction and Carvel Hull (tradePerMin()).
       { id: "trade", label: "Trade Carts", kind: "trade", age: 2, tip: "Trade Carts going between Markets on opposite sides of the map" },
       { id: "cog", label: "Trade Cogs", kind: "cog", age: 2, tip: "Trade Cogs going between Docks on opposite sides of the map" },
+      // Fishing Ships on whales (every civ, Dark Age): 30 gold per minute each (user), with Fishing Lines, Gillnets and fishing
+      // bonuses (whalePerMin()).
+      { id: "whale", label: "Whaling", kind: "whale", age: 1, tip: "Fishing Ships gathering gold from whales" },
     ],
     stone: [
       { id: "feitoria", label: "Feitoria", perMin: 18, kind: "feitoria", civs: ["Portuguese"], age: 4, unique: true, tip: "Portuguese Feitoria" },
@@ -1664,7 +1679,9 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   RES.forEach((res) => { HEADS[res].custom = "Villagers"; });   // a custom income (user)
   const FOOD_STD = [["farm", "Farm"], ["berries", "Berries"], ["hunt", "Hunt"], ["sheep", "Sheep"], ["fish", "Fisherman"], ["fship", "Fishing Ship"]];
   const KIND = { vils: ["vils", "villager"], feitoria: ["Feitorias", "Feitoria"], livestock: ["Livestock", "livestock animal"],
-    fship: ["Fishing Ships", "Fishing Ship"], trade: ["Trade Carts", "Trade Cart"], cog: ["Trade Cogs", "Trade Cog"] };
+    fship: ["Fishing Ships", "Fishing Ship"], trade: ["Trade Carts", "Trade Cart"], cog: ["Trade Cogs", "Trade Cog"],
+    whale: ["Whaling Ships", "Whaling Ship"] };
+  const WHALE = 30;   // Whaling: gold per minute per Whaling Ship, unupgraded (user)
   // Trade Carts and Trade Cogs (github.com/cnordenb/aoe2_tradeprofit): a trip x tiles from Market to Market (Dock to Dock) brings
   // 0.46 × x × (x / d + 0.3) gold on a map d tiles across, and the unit goes there and back at its speed in tiles per second.
   // Always a 2v2 map (Medium, 168 tiles) side to side (user): x = d − 8 for a cart, d − 6 for a cog. So a cart makes 21.6 gold per
@@ -1820,7 +1837,10 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
 
   FX["Ethiopians"] = [{ k: "agebonus", res: { food: 100, gold: 100 }, label: "Receive +100 gold and +100 food when advancing to the next Age" },
     team(cost(named("Outpost"), 100, "Outposts cost no stone", ["stone"]))];
-  FX["Gurjaras"] = [team(faster(CAMEL_OR_ELE, 25, "Camel and Elephant Units train +{p}% faster"))];
+  // Gurjaras: livestock garrisoned in Mills holding F food produce 15 × ln(F / 200 + 1) food per minute (user; F is the Food box's
+  // Garrisoned Food Amount, state.garrison).
+  FX["Gurjaras"] = [{ k: "garrison", perMin: (f) => 15 * Math.log(f / 200 + 1), label: "Can garrison livestock in Mills to passively produce food" },
+    team(faster(CAMEL_OR_ELE, 25, "Camel and Elephant Units train +{p}% faster"))];
   // Georgians: gatherers of a resource whose "Near Fortified Church" box is ticked work +10% faster (rates(); from Castle Age).
   FX["Georgians"] = [{ k: "church", p: 10, label: "Fortified Churches provide Villagers in a 9 tiles radius with +{p}% work rate" }];
   FX["Vietnamese"] = [{ k: "freeups", ups: ["consc"], label: "Conscription free" }];   // always researched from Imperial (freeUp())
@@ -1935,12 +1955,14 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     tradeBump: false,   // Trade Carts: the Bump factor (20% less gold)
     church: { wood: false, food: false, gold: false, stone: false },   // Georgians: gatherers near a Fortified Church, per resource
     soldiers: 0,   // Wei with Tuntian: soldiers producing food (0–SOLDIERS_MAX)
+    garrison: 800,   // Gurjaras: food held by livestock garrisoned in Mills (0–GARRISON_MAX, GARRISON_START to start with)
     tcCastles: 1,   // Saxons: Town Centers and Castles held (0–4), −5% on Foot Soldiers each
     idleTc: false, idleT: 0,   // Idle TC Time: shown, and the seconds the Town Center stood idle (0–IDLE_MAX)
     // Transition Eco: research 1–3 = the age being researched, 4 = "After [after] seconds" in Imperial Age (TE_AFTER)
     tab: "vr", te: { research: 1, after: TE_AFTER_SECS, vils: { wood: 0, food: 0, gold: 0, stone: 0 } } };
   const TE_MAX = 200;
   const SOLDIERS_MAX = 999;
+  const GARRISON_START = 800, GARRISON_MAX = 9999, GARRISON_STEP = 100;   // Garrisoned Food Amount (user)
   const TC_MAX = 4;   // Saxon TCs/Castles: −5% each, up to −20%
   // Idle TC Time: up to 59:59 typed in, the slider up to 10:00; a villager missing per 25 s, the base training time whatever the civ (user).
   const IDLE_MAX = 59 * 60 + 59, IDLE_VIL_T = 25;
@@ -1995,7 +2017,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   // Everything at its starting value: nothing for Clear to do, so it's hidden.
   function isCleared() {
     return !state.rows.length && state.civ === "Generic" && !state.allies.length && state.age === 3 &&
-      state.food === "farm" && state.fish === "deep" && ["wood", "gold", "stone"].every((r) => state.src[r] === "std") && !state.tradeBump && !state.relics && !state.soldiers && state.tcCastles === 1 && !state.idleTc && !state.idleT && !state.consc && !state.crane && !state.shipwright && !state.uts.length && !state.postimp &&
+      state.food === "farm" && state.fish === "deep" && ["wood", "gold", "stone"].every((r) => state.src[r] === "std") && !state.tradeBump && !state.relics && !state.soldiers && state.garrison === GARRISON_START && state.tcCastles === 1 && !state.idleTc && !state.idleT && !state.consc && !state.crane && !state.shipwright && !state.uts.length && !state.postimp &&
       UPS.every((k) => !state.up[k]) && RES.every((r) => !state.church[r]) && state.te.research === 1 && state.te.after === TE_AFTER_SECS && RES.every((r) => !state.te.vils[r]);
   }
   // Something for Clear Techs to do: any technology that is ticked and in effect.
@@ -2073,6 +2095,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       state.relics = Math.max(0, Math.min(99, parseInt(s.relics, 10) || 0));
       if (s.church) RES.forEach((r) => { state.church[r] = !!s.church[r]; });
       state.soldiers = Math.max(0, Math.min(SOLDIERS_MAX, parseInt(s.soldiers, 10) || 0));
+      const gf = parseInt(s.garrison, 10);
+      if (Number.isFinite(gf)) state.garrison = Math.max(0, Math.min(GARRISON_MAX, gf));
       const tc = parseInt(s.tcCastles, 10);
       if (Number.isFinite(tc)) state.tcCastles = Math.max(0, Math.min(TC_MAX, tc));
       state.idleTc = !!s.idleTc;
@@ -2205,8 +2229,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     const c = { wood: u[2], food: u[3], gold: u[4], stone: u[5] };
     let t = baseTime(u);
     const applied = [], timeFx = [];   // timeFx: the applied time effects, also listed in applied
-    // Fishing Lines and Gillnets speed up building Fish Traps (while their boxes show, i.e. with Fishing Ship food).
-    const fk = u[0] === "Fish Trap" && laneShown("fl") ? fishKey() : "";
+    // Fishing Lines and Gillnets speed up building Fish Traps (while their Food boxes show, i.e. with Fishing Ship food).
+    const fk = u[0] === "Fish Trap" && state.food === "fship" ? fishKey() : "";
     if (fk) {
       t = TRAP_TIME[fk];
       applied.push(`${TECH_NAME[fk]}: built in ${t}s`);
@@ -2277,7 +2301,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     RES.forEach((res) => {
       const o = nicheOf(res);
       if (!o) return;
-      let v = (TRADE_UNIT[o.id] && res === "gold" ? tradePerMin() : o.perMin) / 60;
+      let v = (TRADE_UNIT[o.id] && res === "gold" ? tradePerMin() : o.kind === "whale" ? whalePerMin() : o.perMin) / 60;
       if (res === "gold" && gtr) v *= 1.1;                       // all gold income +10% (trade too)
       r[res] = v;
     });
@@ -2307,6 +2331,10 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     const food = xs.reduce((f, x) => (x.e.k === "relicfood" ? f + (n * x.e.perMin) / 60 : f), 0);
     return { gold, food };
   }
+  // Gold per minute from each Whaling Ship: +10% each with Fishing Lines and Gillnets (their "Fishing Ships work 10% faster"), and
+  // Fishing Ships working faster (Japanese). Grand Trunk Road is applied by rates(). The Danes' food drop-off bonus doesn't apply.
+  const whalePerMin = () => activeFx().reduce((g, x) => (x.e.k === "rate" && x.e.src === "fship" ? g * (1 + pct(x.e) / 100) : g),
+    ["fl", "gn"].reduce((g, k) => (on(k) ? g * 1.1 : g), WHALE));
   // The trade unit picked as the gold source ("trade" for Trade Carts, "cog" for Trade Cogs), or null.
   const tradeSrc = () => (TRADE_UNIT[state.src.gold] ? state.src.gold : null);
   // Gold per minute from each Trade Cart or Trade Cog, done as aoe2_tradeprofit does it (Grand Trunk Road is applied by rates(), as
@@ -2634,7 +2662,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     if (show !== houseShown) { houseShown = show; requestAnimationFrame(fit); }
   }
 
-  const unitWord = (res) => ({ vils: "villagers", feitoria: "Feitorias", livestock: "livestock", fship: "Fishing Ships", trade: "Trade Carts", cog: "Trade Cogs" })[kindOf(res)];
+  const unitWord = (res) => ({ vils: "villagers", feitoria: "Feitorias", livestock: "livestock", fship: "Fishing Ships", trade: "Trade Carts", cog: "Trade Cogs", whale: "Whaling Ships" })[kindOf(res)];
 
   /* ---------- totals ---------- */
   function update() {
@@ -2647,14 +2675,14 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       rin.hidden = !custom;
       if (custom && document.activeElement !== rin) rin.value = state.customRate[res] || CUSTOM_RATE;
       $("rate-" + res + "-t").title = `Gathered per ${one} per minute`;
-      // "# Fishing Ships" would wrap and push the table down in the narrow layout: there it reads "# Ships".
+      // "# Fishing Ships" / "# Whaling Ships" would wrap and push the table down in the narrow layout: there they read "# Ships".
       const hd = (HEADS[res] || {})[res === "food" ? state.food : state.src[res]];
       const plainName = ({ trade: "Carts", cog: "Cogs" })[kindOf(res)] || `${res.charAt(0).toUpperCase() + res.slice(1)} vils`;
       const own = hd ? `# <span class="hl">${hd}</span><span class="hs">${plainName}</span>` : "";
       const th = $("head-" + res);
       th.innerHTML = own ? own
         : plural === "vils" ? `# ${plainName}`
-        : `# ${plural.replace("Fishing ", '<span class="wide-only">Fishing </span>')}`;
+        : `# ${plural.replace(/^(Fishing|Whaling) /, '<span class="wide-only">$1 </span>')}`;
       th.dataset.label = hd ? `# ${hd}` : th.textContent;   // for labels: one form
     });
     const tot = { wood: 0, food: 0, gold: 0, stone: 0 };
@@ -2707,6 +2735,16 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     sb.hidden = !soldierEach;
     $("soldier-out").textContent = `${perMin(soldierFood * 60)}f/min`;
     sb.title = `Each soldier produces ${fmt(soldierEach * 60)} food per minute (Tuntian), taken off what the units need`;
+    // Gurjara livestock garrisoned in Mills produce food too: fewer food gatherers, likewise. The row exists for Gurjaras (not Full
+    // Tech Tree); not in Transition Eco.
+    const garrisonFx = activeFx().find((x) => x.e.k === "garrison");
+    const garrisonFood = garrisonFx ? garrisonFx.e.perMin(state.garrison) / 60 : 0;
+    const garrisonCover = Math.min(tot.food, garrisonFood / r.food);
+    tot.food -= garrisonCover;
+    const gb = $("garrison");
+    gb.classList.toggle("gone", !garrisonFx);
+    $("garrison-out").textContent = `${perMin(garrisonFood * 60)}f/min`;
+    if (garrisonFx) gb.title = "Food held by livestock garrisoned in Mills (F): they produce 15 × ln(F ÷ 200 + 1) food per minute, taken off what the units need";
     reseed(r, tot);
     rebuildTraps(r, tot);
     houseBuilding(r, tot, popRate);
@@ -2794,6 +2832,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     const cover = { wood: [], food: [], gold: [], stone: [] };
     ["gold", "food"].forEach((res) => { if (covered[res]) cover[res].push(`${relicsNow()} relic${rs} cover ${covered[res].toFixed(2)}`); });
     if (soldierCover) cover.food.push(`${state.soldiers} soldier${ss} cover ${soldierCover.toFixed(2)}`);
+    if (garrisonCover) cover.food.push(`${state.garrison} garrisoned food covers ${garrisonCover.toFixed(2)}`);
     if (covered.wood) cover.wood.push(`${foragers} forager${fs} cover ${covered.wood.toFixed(2)}`);
     if (goldCover) cover.gold.push(`${fishers} ${fishers === 1 ? who[1] : who[2]} cover ${goldCover.toFixed(2)}`);
     if (stoneCover) cover.gold.push(`${miners} stone miner${ms} cover ${stoneCover.toFixed(2)}`);
@@ -3379,7 +3418,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   function laneShown(k) {
     if (k === "hp") return state.food === "farm" && !pastures();
     if (k === "wb" || k === "hc") return state.food === "farm";
-    if (k === "fl" || k === "gn") return state.food === "fship";
+    if (k === "fl" || k === "gn") return state.food === "fship" || state.src.gold === "whale";   // Food box, or Gold box (Whaling)
     if (k === "car") return !!tradeSrc();
     if (k === "clk" || k === "crv") return state.src.gold === "cog";
     const res = UP_RES[k];
@@ -3400,7 +3439,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     // Upgrades show only for the source they speed up; otherwise they're hidden, keeping their space and ticks.
     // With Fishing Ship, Fishing Lines and Gillnets take Heavy Plow's and Wheelbarrow's places, with the fishing spot beside them.
     const ups = $("food-ups"), ship = state.food === "fship";
-    ["hp", "wb", "hc", "fl", "gn"].forEach((k) => { ups.querySelector(`[data-up="${k}"]`).closest(".opt").hidden = !laneShown(k); });
+    ["hp", "wb", "hc"].forEach((k) => { ups.querySelector(`[data-up="${k}"]`).closest(".opt").hidden = !laneShown(k); });
+    ["fl", "gn"].forEach((k) => { ups.querySelector(`[data-up="${k}"]`).closest(".opt").hidden = !ship; });
     ups.classList.toggle("ship", ship);
     $("fish-spot").hidden = !ship;
     document.querySelectorAll('input[name="fish"]').forEach((r) => {   // Trap greyed before Feudal Age
@@ -3410,11 +3450,13 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       r.parentElement.classList.toggle("na", off);
       r.parentElement.title = spotTip(r.value);
     });
-    ["wood", "gold", "stone"].forEach((res) => { $(res + "-ups").hidden = state.src[res] !== "std" && !(res === "gold" && tradeSrc()); });
+    const whale = state.src.gold === "whale";
+    ["wood", "gold", "stone"].forEach((res) => { $(res + "-ups").hidden = state.src[res] !== "std" && !(res === "gold" && (tradeSrc() || whale)); });
     // Trade Carts: Caravan and the Bump factor take Gold Mining's and Gold Shaft Mining's places. Trade Cogs: Caravan, Clinker
-    // Construction, and Carvel Hull on the third line.
+    // Construction, and Carvel Hull on the third line. Whaling: Fishing Lines and Gillnets.
     const trade = tradeSrc(), goldOpt = (k) => $("gold-ups").querySelector(`[data-up="${k}"]`).closest(".opt");
-    ["gm", "gsm"].forEach((k) => { goldOpt(k).hidden = !!trade; });
+    ["gm", "gsm"].forEach((k) => { goldOpt(k).hidden = !!trade || whale; });
+    ["fl", "gn"].forEach((k) => { goldOpt(k).hidden = !whale; });
     goldOpt("car").hidden = !trade;
     ["clk", "crv"].forEach((k) => { goldOpt(k).hidden = trade !== "cog"; });
     $("trade-bump").closest(".opt").hidden = trade !== "trade";
@@ -3436,6 +3478,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     relicInput.value = relicsNow();
     syncStepper(relicBox.querySelector(".stepper"), relicsNow());
     if (!relicOpen) relicBox.querySelectorAll(".step").forEach((b) => { b.disabled = true; });
+    garrisonBox.querySelector("input").value = state.garrison;   // Gurjaras' garrisoned food (shown by update())
+    syncStepper(garrisonBox.querySelector(".stepper"), state.garrison);
     soldierBox.querySelector("input").value = state.soldiers;   // Wei soldiers (shown by update() while Tuntian is in effect)
     syncStepper(soldierBox.querySelector(".stepper"), state.soldiers);
     tcBox.classList.toggle("gone", fttOn() || !fxOf(state.civ).some((e) => e.tc));   // Saxons' TCs/Castles
@@ -3475,8 +3519,9 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     update();
     save();
   });
-  // Counts in the resource boxes, by −/+ or typed: Relics (Gold box, 0–99) and Wei soldiers (Food box, 0–999).
-  function counter(box, key, max, redraw = update) {
+  // Counts in the resource boxes, by −/+ or typed: Relics (Gold box, 0–99), Wei soldiers (Food box, 0–999) and Gurjaras'
+  // garrisoned food (Food box, 0–9999, −/+ by 100). Any whole number in range can be typed.
+  function counter(box, key, max, redraw = update, stepBy = 1) {
     const input = box.querySelector("input");
     const set = (v) => {
       state[key] = Math.max(0, Math.min(max, v));
@@ -3487,7 +3532,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     box.addEventListener("click", (e) => {
       const step = e.target.closest(".step");
       if (!step) return;
-      set(state[key] + +step.dataset.step);
+      set(state[key] + step.dataset.step * stepBy);
       input.value = state[key];
       if (step.disabled) input.focus();   // keep focus in the box at the limit
     });
@@ -3502,6 +3547,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   counter(relicBox, "relics", 99);
   const soldierBox = $("soldiers");
   counter(soldierBox, "soldiers", SOLDIERS_MAX);
+  const garrisonBox = $("garrison");
+  counter(garrisonBox, "garrison", GARRISON_MAX, update, GARRISON_STEP);
   const tcBox = $("tc-castles");   // Saxons: changes unit costs, so the rows' cost text is redrawn too
   counter(tcBox, "tcCastles", TC_MAX, renderRows);
   $("age").addEventListener("change", (e) => {
@@ -4108,7 +4155,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     // Naval, Buildings, Full Tech Tree and Include Regional & Unique are view options: Clear All leaves them as they are.
     // (Full Tech Tree hides with Generic and starts unticked for the next civ, as usual.)
     Object.assign(state, { rows: [], civ: "Generic", allies: [], age: 3, food: "farm", fish: "deep", customRate: {}, ftt: false, consc: false, crane: false, shipwright: false, uts: [], postimp: false,
-      src: { wood: "std", gold: "std", stone: "std" }, tradeBump: false, relics: 0, soldiers: 0, tcCastles: 1, church: { wood: false, food: false, gold: false, stone: false },
+      src: { wood: "std", gold: "std", stone: "std" }, tradeBump: false, relics: 0, soldiers: 0, garrison: GARRISON_START, tcCastles: 1, church: { wood: false, food: false, gold: false, stone: false },
       idleTc: false, idleT: 0,   // Idle TC Time is reset too (user)
       te: { research: 1, after: TE_AFTER_SECS, vils: { wood: 0, food: 0, gold: 0, stone: 0 } } });
     UPS.forEach((k) => { state.up[k] = false; });
