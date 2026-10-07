@@ -1843,7 +1843,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     team(faster(CAMEL_OR_ELE, 25, "Camel and Elephant Units train +{p}% faster"))];
   // Georgians: gatherers of a resource whose "Near Fortified Church" box is ticked work +10% faster (rates(); from Castle Age).
   FX["Georgians"] = [{ k: "church", p: 10, label: "Fortified Churches provide Villagers in a 9 tiles radius with +{p}% work rate" }];
-  FX["Vietnamese"] = [{ k: "freeups", ups: ["consc"], label: "Conscription free" }];   // always researched from Imperial (freeUp())
+  FX["Vietnamese"] = [{ k: "freeups", ups: ["consc"], label: "Conscription free" },   // always researched from Imperial (freeUp())
+    team({ k: "unlock", ages: { "Imperial Skirmisher": 4 }, label: "Imperial Skirmisher upgrade available" })];
   // Saxons: Foot Soldiers cost −5% per Town Center or Castle held, up to −20%; the count is the adder's "TCs/Castles" (0–4,
   // state.tcCastles), so p follows it. The bonus line shows aoe2techtree's text whatever the count (user); a unit's tooltip
   // says what applies (appliedLabel).
@@ -2394,8 +2395,8 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   }
 
   /* ---------- Post-Imp: only the latest version of each upgrade line ---------- */
-  const KIDS = {}, LINE_OF = {}, LINE_NODES = [];
-  EDGES.forEach(([p, c]) => { (KIDS[p] = KIDS[p] || []).push(c); });
+  const KIDS = {}, PARENTS = {}, LINE_OF = {}, LINE_NODES = [];
+  EDGES.forEach(([p, c]) => { (KIDS[p] = KIDS[p] || []).push(c); (PARENTS[c] = PARENTS[c] || []).push(p); });
   (function groupLines() {
     const nb = {};
     EDGES.forEach(([p, c]) => { (nb[p] = nb[p] || []).push(c); (nb[c] = nb[c] || []).push(p); });
@@ -2412,15 +2413,16 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     });
   })();
   const unique = (m) => !!(MEMBERS[m] && MEMBERS[m][0]);
-  // A unique member (e.g. Camel Scout, Imperial Skirmisher) counts in names and searches for the civ that has it, and for
-  // Generic only with Include Regional & Unique ticked (user).
+  // A unique member (e.g. Camel Scout, Imperial Skirmisher) counts in names and searches for the civ that has it or gets it
+  // from an ally, and for Generic only with Include Regional & Unique ticked (user).
   const uniqueShown = (m) => !unique(m) || (state.civ === "Generic" ? state.regional : memberHas(m));
   function memberHas(m) {
     const info = MEMBERS[m];
     if (!info) return false;
     if (state.civ === "Generic") return true;
     if (state.ftt && !info[0]) return true;
-    if (!fttOn() && allyUnlockAge(m)) return true;
+    // An upgrade from an ally needs the version before it (a Vietnamese ally gives Turks no Imperial Skirmisher: no Elite).
+    if (!fttOn() && allyUnlockAge(m) && (!PARENTS[m] || PARENTS[m].some(memberHas))) return true;
     return info[1].charAt(CIV_NAMES.indexOf(state.civ)) === "1";
   }
   function descendants(n, out = new Set()) {
@@ -2508,7 +2510,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   const view = () => (state.postimp ? (piView = piView || postImpView()) : null);
   const invalidateView = () => { piView = null; };
   // Entries named with their unique member too where it can be had (user): Generic with Include Regional & Unique, or the
-  // civ that has it outside Post-Imp (which names the latest version).
+  // civ that has it (its own or from an ally) outside Post-Imp (which names the latest version).
   const NAME_WITH_UNIQUE = { "Elite Skirmisher": ["Imperial Skirmisher", "Elite/Imperial Skirmisher"] };
   const displayName = (i) => {
     const w = NAME_WITH_UNIQUE[UNITS[i][0]], early = EARLY_UNIQUE[UNITS[i][0]];
