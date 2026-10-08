@@ -834,6 +834,15 @@ html.tab-te .lane-bg > div:nth-child(-n+4) { border-left: 0; }
 .te-after-slide[hidden] { display: block; visibility: hidden; }
 .te-after-slide:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .sheet td.te-in { padding: .45em .4em; }
+/* Clear Values (user): bottom right of the hidden adder; in stacked layouts (no adder here) a copy in the Unit heading, over the
+   radios, sized by the heading's text so the row doesn't grow. Laid over hidden things, so it moves nothing. Hidden, its space
+   kept, with nothing to clear, like the other Clear buttons. */
+.te-clear, .te-clear[hidden] { display: none; }
+html.tab-te:not(.narrow) .te-clear:not(.te-clear-alt), html.tab-te.narrow .te-clear-alt { display: inline-block; position: absolute; }
+html.tab-te .te-clear:not([hidden]) { visibility: visible; }
+.te-clear:not(.te-clear-alt) { bottom: .5rem; right: .8rem; font-size: .8rem; padding: .25rem .65rem; }   /* bottom right (user) */
+#unit-head { position: relative; }
+.te-clear-alt { bottom: .25em; right: .4em; font-size: 1em; line-height: 1.15; padding: .1em .45em; }
 .te-box { flex-direction: column; margin-top: .5rem; padding-top: .55rem; border-top: 1px solid var(--rule); }
 .te-amts { display: grid; grid-template-columns: auto auto; justify-content: space-between; column-gap: .8rem; row-gap: .05rem; margin-top: .25rem; font-size: 1.05rem; font-weight: 700; }
 /* An amount: a field over a hidden copy of its text (sizeAmt()), which sets its width, so it's exactly as wide as the number */
@@ -849,6 +858,10 @@ html.tab-te .lane-bg > div:nth-child(-n+4) { border-left: 0; }
 .te-amts .t-food { color: var(--food); }
 .te-amts .t-gold { color: var(--gold); }
 .te-amts .t-stone { color: var(--stone); }
+/* Total villagers used, under the amounts */
+.te-vils { display: flex; justify-content: space-between; align-items: baseline; gap: .6rem; margin-top: .45rem; padding-top: .4rem; border-top: 1px solid var(--rule); }
+#te-vils { font-size: 1.05rem; color: var(--ink); }
+.tv-short { display: none; }
 /* Narrow layouts: no remove / builder / building columns here, so the resource columns widen to hold the steppers */
 html.tab-te.narrow, html.tab-te.narrow.show-bld { --w-rm: 0px; --w-count: 0px; --w-bld: 0px; --w-wood: 6.4rem; --w-food: 6.4rem; --w-gold: 6.4rem; --w-stone: 6.4rem; }
 html.tab-te.narrow .sheet thead th:nth-child(-n+4):not(:nth-child(2)) { padding: 0; border: 0; overflow: hidden; }
@@ -862,6 +875,12 @@ html.tab-te.narrow .lanes { grid-template-areas: "wood food gold stone"; }
   html.tab-te.narrow .te-amt-wrap { margin-right: .45rem; }
   html.tab-te.narrow .te-amt-size { padding: 0; border: 0; }
   html.tab-te.narrow .te-amt { padding: 0; border-width: 0 0 1px; border-radius: 0; background: none; }
+  /* After the amounts, on their line where it fits; "Villagers" for short, like Villagers required on phones, so the strip
+     takes no more lines */
+  html.tab-te.narrow .te-vils { gap: .35rem; margin: 0; padding: 0; border: 0; }
+  html.tab-te.narrow #te-vils { font-size: .9rem; }
+  html.tab-te.narrow .tv-long { display: none; }
+  html.tab-te.narrow .tv-short { display: inline; }
 }
 @media (max-height: 520px) {
   html.tab-te.narrow .te-ages > div { display: flex; flex-wrap: wrap; gap: 0 1.1rem; }
@@ -924,6 +943,8 @@ html.tab-te.narrow .lanes { grid-template-areas: "wood food gold stone"; }
   <div class="board">
     <div class="lanes">
       <div class="adder">
+        <!-- Transition Eco: Clear Values, in this box's bottom right corner (user) -->
+        <button type="button" class="pagebtn te-clear" title="0 on every resource">Clear Values</button>
         <div class="adder-head">
           <label for="unit-search" class="adder-title" id="adder-title">Add a unit</label>
           <span class="adder-opts">
@@ -1061,7 +1082,7 @@ html.tab-te.narrow .lanes { grid-template-areas: "wood food gold stone"; }
         <thead>
           <tr>
             <th scope="col"><span class="sr">Remove</span></th>
-            <th scope="col" id="unit-head">Unit</th>
+            <th scope="col" id="unit-head"><span id="unit-head-t">Unit</span><button type="button" class="pagebtn te-clear te-clear-alt" title="0 on every resource">Clear Values</button></th>
             <th scope="col" class="count-h bld-cell" title="Villagers building each building"><span class="bl-long"># Builders</span><span class="bl-short"># Bldrs</span></th>
             <th scope="col" class="count-h" title="Buildings producing this unit non-stop"><span class="bl-long"># Buildings</span><span class="bl-short"># Bldgs</span></th>
             <th scope="col" class="num wood" id="head-wood"># Wood vils</th>
@@ -1131,6 +1152,8 @@ html.tab-te.narrow .lanes { grid-template-areas: "wood food gold stone"; }
             <span class="t-gold">Gold</span><span class="te-amt-wrap"><span class="te-amt-size" aria-hidden="true">0</span><input type="text" class="te-amt" id="te-gold" data-res="gold" value="0" maxlength="11" inputmode="numeric" autocomplete="off" spellcheck="false" aria-label="Gold"></span>
             <span class="t-stone">Stone</span><span class="te-amt-wrap"><span class="te-amt-size" aria-hidden="true">0</span><input type="text" class="te-amt" id="te-stone" data-res="stone" value="0" maxlength="11" inputmode="numeric" autocomplete="off" spellcheck="false" aria-label="Stone"></span>
           </div>
+          <!-- The villagers in the steppers, added up (user) -->
+          <div class="te-vils"><span class="grand-label"><span class="tv-long">Total villagers used</span><span class="tv-short">Villagers</span></span><b id="te-vils">0</b></div>
         </div>
       </aside>
     </div>
@@ -1960,7 +1983,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     tcCastles: 1,   // Saxons: Town Centers and Castles held (0–4), −5% on Foot Soldiers each
     idleTc: false, idleT: 0,   // Idle TC Time: shown, and the seconds the Town Center stood idle (0–IDLE_MAX)
     // Transition Eco: research 1–3 = the age being researched, 4 = "After [after] seconds" in Imperial Age (TE_AFTER)
-    tab: "vr", te: { research: 1, after: TE_AFTER_SECS, vils: { wood: 0, food: 0, gold: 0, stone: 0 } } };
+    tab: "vr", te: { research: TE_AFTER, after: TE_AFTER_SECS, vils: { wood: 0, food: 0, gold: 0, stone: 0 } } };
   const TE_MAX = 200;
   const SOLDIERS_MAX = 999;
   const GARRISON_START = 800, GARRISON_MAX = 9999, GARRISON_STEP = 100;   // Garrisoned Food Amount (user)
@@ -2019,8 +2042,12 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   function isCleared() {
     return !state.rows.length && state.civ === "Generic" && !state.allies.length && state.age === 3 &&
       state.food === "farm" && state.fish === "deep" && ["wood", "gold", "stone"].every((r) => state.src[r] === "std") && !state.tradeBump && !state.relics && !state.soldiers && state.garrison === GARRISON_START && state.tcCastles === 1 && !state.idleTc && !state.idleT && !state.consc && !state.crane && !state.shipwright && !state.uts.length && !state.postimp &&
-      UPS.every((k) => !state.up[k]) && RES.every((r) => !state.church[r]) && state.te.research === 1 && state.te.after === TE_AFTER_SECS && RES.every((r) => !state.te.vils[r]);
+      UPS.every((k) => !state.up[k]) && RES.every((r) => !state.church[r]) && state.te.after === TE_AFTER_SECS &&
+      // Transition Eco's radio and counts start from Villagers Required on every switch (setTab), so they count only there
+      (!inTE() || (state.te.research === state.age + 1 && RES.every((r) => !state.te.vils[r])));
   }
+  // No one on any resource in Transition Eco: nothing for Clear Values to do.
+  const teCleared = () => RES.every((r) => !state.te.vils[r]);
   // Something for Clear Techs to do: any technology that is ticked and in effect.
   function anyTechOn() {
     // Only ticks whose box shows: in its resource's box, or in the reseed row.
@@ -2035,6 +2062,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     $("clear-civs").hidden = state.civ === "Generic" && !state.allies.length;
     $("ally-count").textContent = `${state.allies.length}/${MAX_ALLIES}`;
     document.querySelectorAll(".clear-techs").forEach((b) => { b.hidden = !anyTechOn(); });
+    document.querySelectorAll(".te-clear").forEach((b) => { b.hidden = teCleared(); });
   }
   function save() {
     syncButtons();
@@ -2667,6 +2695,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   const unitWord = (res) => ({ vils: "villagers", feitoria: "Feitorias", livestock: "livestock", fship: "Fishing Ships", trade: "Trade Carts", cog: "Trade Cogs", whale: "Whaling Ships" })[kindOf(res)];
 
   /* ---------- totals ---------- */
+  const vrTot = { wood: 0, food: 0, gold: 0, stone: 0 };   // Villagers Required's Total row: where Transition Eco's counts start
   function update() {
     const r = rates();
     RES.forEach((res) => {
@@ -2847,6 +2876,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     let grand = 0, exact = 0;
     RES.forEach((res) => {
       const n = vils(tot[res]);
+      if (!inTE()) vrTot[res] = n;
       if (kindOf(res) === "vils") { grand += n; exact += tot[res]; }
       const td = $("tot-" + res);
       td.textContent = n;
@@ -2952,6 +2982,10 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
       const inp = document.querySelector(`#te-row .te-in[data-res="${res}"] input`);
       if (inp) inp.setAttribute("aria-label", $("head-" + res).dataset.label);
     });
+    // Total villagers used: the villager steppers added up; Feitorias, livestock, ships and trade units aren't villagers.
+    const others = RES.filter((res) => kindOf(res) !== "vils" && state.te.vils[res]);
+    $("te-vils").textContent = RES.reduce((n, res) => n + (kindOf(res) === "vils" ? state.te.vils[res] : 0), 0);
+    $("te-vils").title = others.length ? `Not counted: ${others.map((res) => `${state.te.vils[res]} ${KIND[kindOf(res)][state.te.vils[res] === 1 ? 1 : 0]}`).join(", ")}` : "";
   }
   // "After [] seconds": the field shows the time (not while it's being typed in), the slider up to 900 s (at its end beyond that),
   // shown only while After is picked.
@@ -3206,7 +3240,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     fitFish();
     fitIncome();
     document.querySelectorAll(".tab").forEach((b) => { const on = b.dataset.tab === state.tab; b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1; });
-    const title = document.getElementById("adder-title"), head = document.getElementById("unit-head");
+    const title = document.getElementById("adder-title"), head = document.getElementById("unit-head-t");
     if (title) title.textContent = state.bldOn ? "Add a unit or building" : "Add a unit";
     if (head) head.textContent = state.bldOn ? "Unit/Building" : "Unit";
   }
@@ -4045,6 +4079,12 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
   function setTab(t) {
     if (state.tab === t) return;
     state.tab = t;
+    // Transition Eco starts from Villagers Required (user): its age (Dark Age → Researching Feudal Age … Imperial Age → "After []
+    // seconds", so the age stays the same, see curAge) and its totals. Nothing in Transition Eco goes back.
+    if (t === "te") {
+      state.te.research = state.age + 1;
+      RES.forEach((res) => { state.te.vils[res] = Math.min(TE_MAX, vrTot[res]); });
+    }
     unitCombo.close();
     refreshAll();
   }
@@ -4159,7 +4199,7 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     Object.assign(state, { rows: [], civ: "Generic", allies: [], age: 3, food: "farm", fish: "deep", customRate: {}, ftt: false, consc: false, crane: false, shipwright: false, uts: [], postimp: false,
       src: { wood: "std", gold: "std", stone: "std" }, tradeBump: false, relics: 0, soldiers: 0, garrison: GARRISON_START, tcCastles: 1, church: { wood: false, food: false, gold: false, stone: false },
       idleTc: false, idleT: 0,   // Idle TC Time is reset too (user)
-      te: { research: 1, after: TE_AFTER_SECS, vils: { wood: 0, food: 0, gold: 0, stone: 0 } } });
+      te: { research: TE_AFTER, after: TE_AFTER_SECS, vils: { wood: 0, food: 0, gold: 0, stone: 0 } } });   // research: Imperial Age's
     UPS.forEach((k) => { state.up[k] = false; });
     refreshAll();
   });
@@ -4185,6 +4225,12 @@ const EDGES = [["Arambai", "Elite Arambai"], ["Archer", "Crossbowman"], ["Armore
     setPostImp(false);
     refreshAll();
     if (unitCombo.isOpen()) unitCombo.render();
+  }));
+
+  // Clear Values (Transition Eco, user): every count at 0, so nothing is gathered. The radios and the After time stay.
+  document.querySelectorAll(".te-clear").forEach((btn) => btn.addEventListener("click", () => {
+    state.te.vils = { wood: 0, food: 0, gold: 0, stone: 0 };
+    refreshAll();
   }));
 
   // Post-Imp: Imperial Age, every available technology on, and only the latest unit versions in the dropdown.
